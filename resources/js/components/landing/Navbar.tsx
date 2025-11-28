@@ -29,27 +29,27 @@ export default function Navbar() {
                         </span>
                         <span className="absolute bottom-0 left-0 h-[2px] w-full bg-[#317b74]"></span>
                     </Link>
-                    <Link href="#find-teacher" className="group relative py-2">
+                    <Link href="find-teacher" className="group relative py-2">
                         <span className="whitespace-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium text-[#317b74] transition-colors group-hover:text-[#2a6b64]">
                             Find a Teacher
                         </span>
                         <span className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#317b74] transition-all duration-300 group-hover:w-full"></span>
                     </Link>
-                    <Link href="#about" className="group relative py-2">
+                    <Link href="howitworks" className="group relative py-2">
+                        <span className="whitespace-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium text-[#317b74] transition-colors group-hover:text-[#2a6b64]">
+                            How Its Works
+                        </span>
+                        <span className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#317b74] transition-all duration-300 group-hover:w-full"></span>
+                    </Link>
+                    <Link href="#blog" className="group relative py-2">
+                        <span className="whitespace-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium text-[#317b74] transition-colors group-hover:text-[#2a6b64]">
+                            Blog
+                        </span>
+                        <span className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#317b74] transition-all duration-300 group-hover:w-full"></span>
+                    </Link>
+                    <Link href="#aboutus" className="group relative py-2">
                         <span className="whitespace-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium text-[#317b74] transition-colors group-hover:text-[#2a6b64]">
                             About Us
-                        </span>
-                        <span className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#317b74] transition-all duration-300 group-hover:w-full"></span>
-                    </Link>
-                    <Link href="#features" className="group relative py-2">
-                        <span className="whitespace-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium text-[#317b74] transition-colors group-hover:text-[#2a6b64]">
-                            Features
-                        </span>
-                        <span className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#317b74] transition-all duration-300 group-hover:w-full"></span>
-                    </Link>
-                    <Link href="#contact" className="group relative py-2">
-                        <span className="whitespace-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium text-[#317b74] transition-colors group-hover:text-[#2a6b64]">
-                            Contact
                         </span>
                         <span className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#317b74] transition-all duration-300 group-hover:w-full"></span>
                     </Link>

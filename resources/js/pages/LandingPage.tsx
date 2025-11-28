@@ -12,6 +12,7 @@ import TestimonialsSection from '@/components/landing/sections/TestimonialsSecti
 import FAQSection from '@/components/landing/sections/FAQSection';
 import AppDownloadSection from '@/components/landing/sections/AppDownloadSection';
 import CTASection from '@/components/landing/sections/CTASection';
+import ScrollToTop from '@/components/landing/ScrollToTop';
 
 export default function LandingPage() {
     return (
@@ -21,50 +22,76 @@ export default function LandingPage() {
                     name="description" 
                     content="Find expert Quran tutors for kids and adults. Learn at your own pace, anytime, anywhere with certified teachers." 
                 />
+                <meta name="keywords" content="Quran teacher, online Quran classes, Quran tutor, learn Quran online, Islamic education" />
+                <meta property="og:title" content="IqraQuest - Connect with Expert Quran Teachers" />
+                <meta property="og:description" content="Find expert Quran tutors for kids and adults. Learn at your own pace, anytime, anywhere." />
+                <meta property="og:type" content="website" />
+                <meta property="og:image" content="/images/og-image.png" />
+                <meta name="twitter:card" content="summary_large_image" />
                 <link 
                     href="https://fonts.bunny.net/css?family=poppins:300,400,500,600,700|inter:400,500,600,700|nunito:400,500,600,700,800" 
                     rel="stylesheet" 
                 />
             </Head>
 
-            <div className="relative min-h-screen w-full">
+            <div className="relative min-h-screen w-full scroll-smooth">
                 {/* Navigation */}
                 <Navbar />
 
                 {/* Hero Section with Features Bar (Overlapping) */}
-                {/* <HeroContainer /> */}
-                <HeroSection />
+                <section id="home">
+                    <HeroSection />
+                </section>
 
                 <div className="flex items-center justify-center md:-mt-20 sm:-mt-20 lg:-mt-20 -mt-10">
                     <FeaturesBar />
                 </div>
 
                 {/* How It Works Section */}
-                <HowItWorksSection />
+                <section id="how-it-works">
+                    <HowItWorksSection />
+                </section>
 
                 {/* Teachers Section */}
-                <TeachersSection />
+                <section id="find-teacher">
+                    <TeachersSection />
+                </section>
 
                 {/* Memorization Plans Section */}
-                <MemorizationSection />
+                <section id="features">
+                    <MemorizationSection />
+                </section>
 
                 {/* Testimonials Section */}
-                <TestimonialsSection />
+                <section id="testimonials">
+                    <TestimonialsSection />
+                </section>
                 
                 {/* Become a Teacher Section */}
-                <BecomeTeacherSection />
+                <section id="become-teacher">
+                    <BecomeTeacherSection />
+                </section>
 
                 {/* FAQ Section */}
-                <FAQSection />
+                <section id="faq">
+                    <FAQSection />
+                </section>
 
                 {/* App Download Section */}
-                <AppDownloadSection />
+                <section id="download">
+                    <AppDownloadSection />
+                </section>
 
                 {/* CTA Section */}
-                <CTASection />
+                <section id="contact">
+                    <CTASection />
+                </section>
 
                 {/* Footer */}
                 <Footer />
+
+                {/* Scroll to Top Button */}
+                <ScrollToTop />
             </div>
         </>
     );

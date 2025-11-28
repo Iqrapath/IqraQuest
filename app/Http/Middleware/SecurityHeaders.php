@@ -27,16 +27,30 @@ class SecurityHeaders
         // Referrer policy
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-        // Content Security Policy
-        $csp = implode('; ', [
-            "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.bunny.net",
-            "style-src 'self' 'unsafe-inline' https://fonts.bunny.net",
-            "font-src 'self' https://fonts.bunny.net data:",
-            "img-src 'self' data: https:",
-            "connect-src 'self'",
-            "frame-ancestors 'self'",
-        ]);
+        // Content Security Policy - Development friendly
+        if (app()->environment('local', 'development')) {
+            // Relaxed CSP for development
+            $csp = implode('; ', [
+                "default-src 'self'",
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' http: https:",
+                "style-src 'self' 'unsafe-inline' http: https:",
+                "font-src 'self' https://fonts.bunny.net https://fonts.gstatic.com data:",
+                "img-src 'self' data: https: http: blob:",
+                "connect-src 'self' ws: wss: http: https:",
+                "frame-ancestors 'self'",
+            ]);
+        } else {
+            // Strict CSP for production
+            $csp = implode('; ', [
+                "default-src 'self'",
+                "script-src 'self' 'unsafe-inline' https://fonts.bunny.net",
+                "style-src 'self' 'unsafe-inline' https://fonts.bunny.net https://fonts.googleapis.com",
+                "font-src 'self' https://fonts.bunny.net https://fonts.gstatic.com data:",
+                "img-src 'self' data: https: blob:",
+                "connect-src 'self' https:",
+                "frame-ancestors 'self'",
+            ]);
+        }
         $response->headers->set('Content-Security-Policy', $csp);
 
         // Permissions Policy (formerly Feature Policy)

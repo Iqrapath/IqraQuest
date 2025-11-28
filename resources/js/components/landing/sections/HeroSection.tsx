@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 
 export default function HeroSection() {
     return (
-        <div className="isolate relative flex flex-col items-center gap-[clamp(1.5rem,2.22vw,2rem)] px-[clamp(1rem,2vw,2rem)]">
+        <div className="isolate relative flex flex-col items-center gap-[clamp(1.5rem,2.22vw,2rem)] px-[clamp(1rem,2vw,2rem)] pt-[clamp(3rem,6vw,6rem)]">
             {/* Background Image */}
             <div className="absolute inset-0 -z-10 h-full w-full">
                 <img
@@ -12,7 +12,7 @@ export default function HeroSection() {
                 />
             </div>
             {/* Hero Text */}
-            <div className="flex w-full flex-col items-center gap-[clamp(1rem,1.67vw,1.5rem)] mt-[100px]">
+            <div className="flex w-full flex-col items-center gap-[clamp(1rem,1.67vw,1.5rem)] animate-fade-in">
                 <div className="flex w-full flex-col items-center top-[50px] ">
                     {/* First line with gradient text */}
                     <div className="flex w-full flex-wrap items-end justify-center gap-[clamp(0.5rem,0.83vw,0.75rem)]">
