@@ -1,0 +1,270 @@
+# IqraQuest
+
+A modern Islamic learning platform built with Laravel, React, and Inertia.js.
+
+## 🚀 Tech Stack
+
+- **Backend**: Laravel (PHP)
+- **Frontend**: React 19.2 with TypeScript
+- **Routing**: Inertia.js 2.1
+- **Styling**: Tailwind CSS 4.0
+- **Build Tool**: Vite 7
+- **UI Components**: Radix UI
+- **Icons**: Iconify (150,000+ icons from 100+ sets)
+- **State Management**: Inertia.js + React Hooks
+
+## 📦 Installation
+
+### Prerequisites
+- PHP 8.1+
+- Composer
+- Node.js 18+
+- npm or yarn
+
+### Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd IqraQuest
+   ```
+
+2. **Install PHP dependencies**
+   ```bash
+   composer install
+   ```
+
+3. **Install JavaScript dependencies**
+   ```bash
+   npm install
+   ```
+
+4. **Environment setup**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+5. **Database setup**
+   ```bash
+   php artisan migrate
+   ```
+
+6. **Start development servers**
+   ```bash
+   # Terminal 1 - Laravel server
+   php artisan serve
+
+   # Terminal 2 - Vite dev server
+   npm run dev
+   ```
+
+## 🎨 Design System
+
+### Colors
+- **Primary**: `#4caf50` (Green)
+- **Accent**: `#4d9b91` (Teal)
+- **Landing Page**: `#317b74` (Dark Teal), `#fff7e4` (Cream)
+- **Background**: `#ffffff` (Light), `#1c2a3a` (Dark)
+
+### Typography
+- **Primary Font**: Poppins (headings, body)
+- **Secondary Font**: Inter (body text, buttons)
+- **Landing Font**: Nunito (landing page components)
+
+### Responsive Scaling
+All components use the automated scaling formula:
+```
+clamp(minSize, (px / 1440) * 100vw, maxSize)
+```
+
+Example:
+```tsx
+// 48px heading becomes:
+text-[clamp(2rem,3.33vw,4rem)]
+```
+
+## 🧩 Project Structure
+
+```
+IqraQuest/
+├── app/                    # Laravel application
+├── resources/
+│   ├── css/
+│   │   └── app.css        # Design tokens, utilities
+│   ├── js/
+│   │   ├── components/
+│   │   │   ├── ui/        # Reusable UI components
+│   │   │   └── landing/   # Landing page components
+│   │   ├── pages/         # Inertia pages
+│   │   ├── layouts/       # Page layouts
+│   │   └── lib/           # Utilities (cn, etc.)
+│   └── views/
+│       └── app.blade.php  # Main template
+├── public/
+│   └── images/            # Static images
+└── routes/                # Laravel routes
+```
+
+## 🎯 Development Guidelines
+
+### Code Style
+- **TypeScript**: All React components use TypeScript
+- **Formatting**: Run `npm run format` before committing
+- **Linting**: Run `npm run lint` to check for issues
+
+### Component Patterns
+
+**UI Components** (with CVA):
+```tsx
+import { cva } from 'class-variance-authority';
+
+const buttonVariants = cva("base-classes", {
+  variants: {
+    variant: { default: "...", outline: "..." },
+    size: { default: "...", sm: "..." }
+  }
+});
+```
+
+**Page Components** (with Inertia):
+```tsx
+import { Head, Link, usePage } from '@inertiajs/react';
+
+export default function PageName() {
+  const { auth } = usePage<SharedData>().props;
+  return (
+    <>
+      <Head title="Page Title" />
+      {/* content */}
+    </>
+  );
+}
+```
+
+### Icons (Iconify)
+```tsx
+import { Icon } from '@iconify/react';
+
+<Icon icon="mdi:home" className="h-6 w-6" />
+<Icon icon="fa-solid:user" className="h-6 w-6 text-primary" />
+```
+
+Browse icons at: https://icon-sets.iconify.design/
+
+### Responsive Design
+Use `clamp()` for fluid scaling:
+```tsx
+// Typography
+text-[clamp(1rem,2vw,1.5rem)]
+
+// Spacing
+px-[clamp(1rem,5vw,5rem)]
+gap-[clamp(0.5rem,2vw,2rem)]
+
+// Containers
+<div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
+```
+
+## 📝 Available Scripts
+
+```bash
+# Development
+npm run dev              # Start Vite dev server
+php artisan serve        # Start Laravel server
+
+# Build
+npm run build            # Build for production
+npm run build:ssr        # Build with SSR
+
+# Code Quality
+npm run lint             # Run ESLint
+npm run format           # Format code with Prettier
+npm run format:check     # Check formatting
+npm run types            # Type check with TypeScript
+```
+
+## 🔧 Configuration
+
+### Tailwind CSS
+Custom configuration in `resources/css/app.css`:
+- Design tokens (colors, fonts, spacing)
+- Custom utility classes
+- Dark mode support
+
+### TypeScript
+Type checking enabled with strict mode. Types located in `resources/js/types/`.
+
+## 🌙 Dark Mode
+
+Toggle dark mode by adding `.dark` class to root element:
+```tsx
+// Tailwind classes automatically adapt
+<div className="bg-white dark:bg-[#1c2a3a]">
+  <p className="text-gray-900 dark:text-white">Content</p>
+</div>
+```
+
+## 📚 Documentation
+
+- **Coding Rules**: See `coding_rules.md` for comprehensive guidelines
+- **Design System**: Defined in `resources/css/app.css`
+- **Figma Designs**: [Link to Figma project]
+
+## 🤝 Contributing
+
+1. Create a feature branch
+2. Make your changes
+3. Run linting and formatting: `npm run lint && npm run format`
+4. Commit with descriptive messages
+5. Create a pull request
+
+## 📄 License
+
+[Your License Here]
+
+## 🔗 Links
+
+- **Iconify Icons**: https://icon-sets.iconify.design/
+- **Tailwind CSS**: https://tailwindcss.com/
+- **Inertia.js**: https://inertiajs.com/
+- **React**: https://react.dev/
+
+---
+
+## 📋 Development Log
+
+### Recent Updates
+
+#### 2025-11-27
+- ✅ Implemented responsive Navbar component with Figma design
+- ✅ Applied automated scaling system using `clamp()` formulas
+- ✅ Integrated Iconify for icon management (150,000+ icons)
+- ✅ Created comprehensive coding rules documentation
+- ✅ Set up Figma → Tailwind conversion guidelines
+- ✅ **Added fully responsive mobile navigation**
+  - Hamburger menu icon with smooth animations
+  - Slide-in mobile menu drawer (300ms transition)
+  - Backdrop overlay with blur effect
+  - Icon-enhanced menu items (mdi icons)
+  - Active state indicators
+  - Hover effects and transitions
+
+#### Component Updates
+- **Navbar.tsx**: Fully responsive with mobile menu
+  - Desktop: Horizontal navigation with hover underline animations
+  - Mobile: Slide-in drawer menu from right side
+  - Hamburger icon toggles between menu/close (Iconify)
+  - Smooth 300ms transitions
+  - Backdrop overlay on mobile menu open
+  - Icons for each menu item (Home, About, Features, Contact)
+  - Responsive sizing with `clamp()` values
+
+#### Design System
+- Established automated scaling formula: `clamp(min, px/1440*100vw, max)`
+- Defined responsive defaults for typography, spacing, and components
+- Integrated Nunito, Poppins, and Inter fonts
+
+---
+
+**Built with ❤️ for Islamic education**
