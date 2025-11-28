@@ -4,7 +4,7 @@ import QuranBookIcon from '@/components/icons/QuranBookIcon';
 
 export default function FeaturesBar() {
     return (
-        <div className="absolute left-[180px] top-[1060px] w-[1100px]">
+        <div className="w-[1100px]">
             {/* Background with gradient */}
             <div 
                 className="h-[144px] w-full rounded-[clamp(2rem,5.4vw,4.863rem)] backdrop-blur-[41.73px]"

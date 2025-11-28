@@ -3,13 +3,13 @@ import FeaturesBar from './FeaturesBar';
 
 export default function HeroContainer() {
     return (
-        <div className="relative h-[1280px] w-full overflow-hidden">
+        <div className="flex flex-col items-center h-auto w-full overflow-hidden">
             {/* Combined Hero Background Image */}
-            <div className="absolute inset-0 h-full w-full">
+            <div className="absolute inset-0 h-100% w-full">
                 <img 
                     src="/images/hero-bg.png" 
                     alt="" 
-                    className="h-auto w-full object-cover object-center"
+                    className="h-auto w-full object-cover"
                 />
             </div>
             
@@ -17,7 +17,9 @@ export default function HeroContainer() {
             <HeroSection />
             
             {/* Features bar - overlaps hero */}
-            <FeaturesBar />
+            <div className="md:-mt-8 lg:mt-20 mt-30">
+                <FeaturesBar />
+            </div>
         </div>
     );
 }

@@ -61,7 +61,7 @@ export default function HeroSection() {
             </div>
 
             {/* Hero Image */}
-            <div className="absolute top-[clamp(280px,29.6vw,426.28px)] w-full max-w-[clamp(300px,50vw,700px)]">
+            <div className="md:-mt-20 ">
                 <img 
                     src="/images/young-arab-man-works-diligently-his-desk-browsing-internet-his-digital-laptop-engrossed-online-webpage-he-takes-notes-researches-embodying-professionalism-efficiency 2.png" 
                     alt="Student learning Quran online" 
