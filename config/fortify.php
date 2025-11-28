@@ -73,7 +73,7 @@ return [
     |
     */
 
-    'home' => '/dashboard',
+    'home' => '/dashboard', // Will redirect to role-specific dashboard
 
     /*
     |--------------------------------------------------------------------------

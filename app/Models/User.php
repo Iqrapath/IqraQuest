@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -22,6 +23,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'phone',
+        'avatar',
+        'status',
     ];
 
     /**
@@ -47,6 +52,72 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'role' => UserRole::class,
         ];
+    }
+
+    /**
+     * Check if user is admin
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === UserRole::ADMIN;
+    }
+
+    /**
+     * Check if user is teacher
+     */
+    public function isTeacher(): bool
+    {
+        return $this->role === UserRole::TEACHER;
+    }
+
+    /**
+     * Check if user is guardian
+     */
+    public function isGuardian(): bool
+    {
+        return $this->role === UserRole::GUARDIAN;
+    }
+
+    /**
+     * Check if user is student
+     */
+    public function isStudent(): bool
+    {
+        return $this->role === UserRole::STUDENT;
+    }
+
+    /**
+     * Get the teacher profile
+     */
+    public function teacher(): HasOne
+    {
+        return $this->hasOne(Teacher::class);
+    }
+
+    /**
+     * Get the guardian profile
+     */
+    public function guardian(): HasOne
+    {
+        return $this->hasOne(Guardian::class);
+    }
+
+    /**
+     * Get the student profile
+     */
+    public function student(): HasOne
+    {
+        return $this->hasOne(Student::class);
+    }
+
+    /**
+     * Get dashboard route based on role
+     */
+    public function dashboardRoute(): string
+    {
+        return $this->role->dashboardRoute();
     }
 }

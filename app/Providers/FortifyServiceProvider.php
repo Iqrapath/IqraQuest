@@ -47,6 +47,17 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureViews(): void
     {
+        // Redirect after login based on role
+        Fortify::redirects('login', function () {
+            $user = auth()->user();
+            
+            // Update last login
+            $user->update(['last_login_at' => now()]);
+            
+            // Redirect to role-specific dashboard
+            return route($user->dashboardRoute());
+        });
+
         Fortify::loginView(fn (Request $request) => Inertia::render('auth/login', [
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
             'canRegister' => Features::enabled(Features::registration()),

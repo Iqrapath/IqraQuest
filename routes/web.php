@@ -11,8 +11,9 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    // Redirect to role-specific dashboard
     Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
+        return redirect()->route(auth()->user()->dashboardRoute());
     })->name('dashboard');
 });
 
