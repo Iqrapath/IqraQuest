@@ -35,7 +35,7 @@ export default function HowItWorksSection() {
     return (
         <div className="relative flex w-full flex-col items-center gap-[clamp(2rem,3.33vw,3rem)] mb-30 mt-30">
             {/* Section Header */}
-            <div className="flex w-[1096px] items-center justify-center gap-[clamp(2rem,2.92vw,2.625rem)]">
+            <div className="flex w-[clamp(calc(100%-2rem),76.11vw,1096px)] max-w-[1096px] items-center justify-center gap-[clamp(2rem,2.92vw,2.625rem)] px-[clamp(1rem,2vw,0px)]">
                 <div className="w-[270px]">
                     <p className="bg-gradient-to-l from-[#0a1a18] to-[#338078] bg-clip-text font-['Nunito'] text-[clamp(2rem,3.33vw,3rem)] font-bold leading-normal text-transparent">
                         How <br /> it Works
@@ -46,14 +46,34 @@ export default function HowItWorksSection() {
                 </p>
             </div>
 
-            {/* Steps Container */}
-            <div className="relative h-[583px] w-full bg-gradient-to-tr from-[#FFFBF9] via-[#EFFDFB] to-[#E4FFFC]">
-                {/* Background wave */}
-                {/* <div className="absolute inset-0">
-                    <div className="h-[583px] ">
-                    </div>
-                </div> */}
+            {/* Mobile/Tablet: Vertical List */}
+            <div className="flex w-full flex-col gap-[clamp(2rem,3vw,3rem)] bg-gradient-to-tr from-[#FFFBF9] via-[#EFFDFB] to-[#E4FFFC] px-[clamp(1rem,2vw,2rem)] py-[clamp(2rem,3vw,3rem)] lg:hidden">
+                {steps.map((step, index) => (
+                    <div key={index} className="flex items-start gap-[clamp(1rem,2vw,2rem)]">
+                        {/* Number Circle */}
+                        <div className="flex size-[clamp(4rem,8vw,6rem)] shrink-0 items-center justify-center rounded-full bg-[rgba(184,184,184,0.32)] p-[clamp(0.5rem,1vw,0.75rem)]">
+                            <div className="flex size-full items-center justify-center rounded-full bg-gradient-to-br from-[#317B74] to-[#F3E5C3]">
+                                <p className="font-['Nunito'] text-[clamp(1.5rem,3vw,2rem)] font-bold leading-normal text-[#343045]">
+                                    {step.number}
+                                </p>
+                            </div>
+                        </div>
 
+                        {/* Content */}
+                        <div className="flex flex-col gap-[clamp(0.5rem,1vw,0.75rem)]">
+                            <p className="font-['Nunito'] text-[clamp(1.125rem,2vw,1.5rem)] font-bold text-black">
+                                {step.title}
+                            </p>
+                            <p className="font-['Nunito'] text-[clamp(0.875rem,1.5vw,1rem)] font-light text-[#1f2a37]">
+                                {step.description}
+                            </p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Desktop: Original Horizontal Layout */}
+            <div className="relative hidden h-[583px] w-full bg-gradient-to-tr from-[#FFFBF9] via-[#EFFDFB] to-[#E4FFFC] lg:block">
                 {/* Steps */}
                 {steps.map((step, index) => (
                     <div 
@@ -90,7 +110,7 @@ export default function HowItWorksSection() {
                 ))}
 
                 {/* Connecting Arrows */}
-                <div className="absolute left-[377.5px] top-[221.97px] h-[57.526px] w-[118px]">
+                <div className="absolute left-[371.5px] top-[221.97px] h-[57.526px] w-[118px]">
                     <img 
                         src="/images/Vector 12.png" 
                         alt="" 

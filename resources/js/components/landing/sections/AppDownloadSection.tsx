@@ -2,27 +2,27 @@ import { Icon } from '@iconify/react';
 
 export default function AppDownloadSection() {
     return (
-        <div className="relative h-[407px] w-full overflow-hidden bg-white">
+        <div className="relative min-h-[407px] w-full overflow-hidden bg-white py-[clamp(3rem,5vw,4rem)]">
             {/* Background Blur Effects */}
             <div className="absolute left-0 top-0 h-[407px] w-[236px] bg-[rgba(51,128,120,0.5)] blur-[277px]" />
             <div className="absolute right-0 top-0 h-[407px] w-[310.414px] bg-[rgba(255,198,51,0.5)] blur-[277px]" />
 
             {/* Content */}
-            <div className="absolute left-1/2 top-1/2 flex w-[978.382px] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-[clamp(2rem,3.61vw,3.25rem)]">
+            <div className="relative mx-auto flex w-full max-w-[978.382px] flex-col items-center gap-[clamp(2rem,3.61vw,3.25rem)] px-[clamp(1rem,2vw,2rem)]">
                 {/* Text Content */}
                 <div className="flex flex-col items-center gap-[clamp(1rem,1.67vw,1.5rem)]">
                     <div className="flex flex-col items-center gap-[clamp(0.75rem,1.11vw,1rem)] leading-normal">
                         <p className="bg-gradient-to-l from-[#0a1a18] to-[#338078] bg-clip-text text-center font-['Nunito'] text-[clamp(2rem,3.61vw,3.25rem)] font-bold text-transparent">
                             Download Our Mobile App
                         </p>
-                        <p className="w-[936px] text-center font-['Nunito'] text-[clamp(1rem,1.67vw,1.5rem)] font-normal text-gray-600">
+                        <p className="max-w-[936px] text-center font-['Nunito'] text-[clamp(1rem,1.67vw,1.5rem)] font-normal text-gray-600">
                             Book trusted local services anytime, anywhere. With our mobile app, you can search, compare, and book providers on the go — all from the palm of your hand.
                         </p>
                     </div>
                 </div>
 
                 {/* App Store Buttons */}
-                <div className="flex items-center gap-[clamp(1.5rem,2.22vw,2rem)]">
+                <div className="flex flex-col items-center gap-[clamp(1rem,2vw,1.5rem)] sm:flex-row sm:gap-[clamp(1.5rem,2.22vw,2rem)]">
                     {/* Google Play Button */}
                     <a 
                         href="#google-play"

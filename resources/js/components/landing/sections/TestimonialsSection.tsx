@@ -173,8 +173,36 @@ export default function TestimonialsSection() {
                 </p>
             </div>
 
-            {/* Testimonials Carousel */}
-            <div className="relative z-10 overflow-hidden py-[clamp(2rem,4vw,3rem)]" ref={emblaRef}>
+            {/* Mobile/Tablet: Simple Vertical List */}
+            <div className="relative z-10 flex flex-col gap-[clamp(1.5rem,3vw,2rem)] py-[clamp(2rem,4vw,3rem)] lg:hidden">
+                {testimonials.map((testimonial, index) => (
+                    <div key={index} className="rounded-[1.5rem] border border-[#ededed] bg-white p-[clamp(1.5rem,3vw,2rem)] shadow-lg">
+                        <div className="mb-[clamp(0.75rem,1.5vw,1rem)] flex size-[clamp(2.5rem,5vw,3rem)] items-center justify-center rounded-full bg-[#338078]">
+                            <Icon icon="mdi:format-quote-close" className="h-[clamp(1.25rem,2.5vw,1.5rem)] w-[clamp(1.25rem,2.5vw,1.5rem)] rotate-180 text-white" />
+                        </div>
+                        <div className="mb-[clamp(0.75rem,1.5vw,1rem)] flex gap-[0.25rem]">
+                            {[...Array(5)].map((_, i) => (
+                                <Icon key={i} icon="mdi:star" className={`h-[1rem] w-[1rem] ${i < testimonial.rating ? 'text-[#ffc633]' : 'text-gray-300'}`} />
+                            ))}
+                        </div>
+                        <p className="mb-[clamp(1.5rem,3vw,2rem)] font-['Nunito'] text-[clamp(0.875rem,1.5vw,1rem)] font-normal leading-[1.5] text-[#797979]">
+                            {testimonial.quote}
+                        </p>
+                        <div className="flex items-center gap-[clamp(0.75rem,1.5vw,1rem)] border-t border-gray-200 pt-[clamp(1rem,2vw,1.5rem)]">
+                            <div className="size-[clamp(2.5rem,5vw,3rem)] overflow-hidden rounded-full">
+                                <img src={testimonial.image} alt={testimonial.name} className="size-full object-cover" />
+                            </div>
+                            <div>
+                                <p className="font-['Nunito'] text-[clamp(0.875rem,1.5vw,1rem)] font-bold text-[#453232]">{testimonial.name}</p>
+                                <p className="font-['Nunito'] text-[clamp(0.75rem,1.25vw,0.875rem)] text-[#797979]">{testimonial.role}</p>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Desktop: Carousel with Active Card */}
+            <div className="relative z-10 hidden overflow-hidden py-[clamp(2rem,4vw,3rem)] lg:block" ref={emblaRef}>
                 <div className="flex items-center gap-[clamp(1.5rem,2.08vw,1.875rem)]">
                     <div className="min-w-[calc(50%-clamp(150px,13.3vw,191.5px)-clamp(0.75rem,1.04vw,0.9375rem))]" />
                     {testimonials.map((testimonial, index) => (
@@ -188,8 +216,8 @@ export default function TestimonialsSection() {
                 </div>
             </div>
 
-            {/* Navigation Arrows */}
-            <div className="relative z-10 mt-[clamp(2rem,2.78vw,2.5rem)] flex items-center justify-center gap-[clamp(4rem,6.85vw,6.166rem)]">
+            {/* Navigation Arrows - Desktop Only */}
+            <div className="relative z-10 mt-[clamp(2rem,2.78vw,2.5rem)] hidden items-center justify-center gap-[clamp(4rem,6.85vw,6.166rem)] lg:flex">
                 <button
                     onClick={scrollPrev}
                     className="flex size-[clamp(2.5rem,3.47vw,3.125rem)] items-center justify-center rounded-full transition-colors hover:bg-gray-100"

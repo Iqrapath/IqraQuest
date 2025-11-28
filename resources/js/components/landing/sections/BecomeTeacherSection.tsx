@@ -13,9 +13,9 @@ export default function BecomeTeacherSection() {
             <div className="absolute left-[609px] top-[93px] h-[174px] w-[123px] bg-[#338078] backdrop-blur-[42px]" />
             <div className="absolute left-[687px] top-[345px] h-[231px] w-[77px] bg-[#338078] blur-[14.5px]" />
 
-            <div className="relative mx-auto flex max-w-[1314px] items-center gap-[clamp(2rem,3.54vw,3.188rem)]">
+            <div className="relative mx-auto flex max-w-[1314px] flex-col items-center gap-[clamp(2rem,4vw,3rem)] lg:flex-row lg:gap-[clamp(2rem,3.54vw,3.188rem)]">
                 {/* Image */}
-                <div className="h-[578px] w-[722px] shrink-0">
+                <div className="h-[clamp(300px,50vw,578px)] w-full shrink-0 lg:h-[578px] lg:w-[722px]">
                     <img 
                         src="/images/young-arab-man-works-diligently-his-desk-browsing-internet-his-digital-laptop-engrossed-online-webpage-he-takes-notes-researches-embodying-professionalism-efficiency 2.png" 
                         alt="Become a teacher" 
@@ -24,11 +24,11 @@ export default function BecomeTeacherSection() {
                 </div>
 
                 {/* Content */}
-                <div className="flex w-[445px] flex-col gap-[clamp(2rem,3.47vw,3.125rem)]">
+                <div className="flex w-full flex-col gap-[clamp(2rem,3.47vw,3.125rem)] lg:w-[445px]">
                     <div className="flex flex-col gap-[clamp(2rem,3.47vw,3.125rem)]">
                         {/* Text Content */}
                         <div className="flex flex-col gap-[clamp(0.5rem,0.83vw,0.75rem)] leading-normal">
-                            <p className="w-[402px] bg-gradient-to-l from-[#f3e5c3] to-[#ffffff] bg-clip-text font-['Nunito'] text-[clamp(2rem,3.33vw,3rem)] font-bold text-transparent">
+                            <p className="max-w-[402px] bg-gradient-to-l from-[#f3e5c3] to-[#ffffff] bg-clip-text font-['Nunito'] text-[clamp(2rem,3.33vw,3rem)] font-bold text-transparent">
                                 Become a Iqrapath Teacher
                             </p>
                             <p className="font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-normal leading-normal text-gray-300">
@@ -43,7 +43,7 @@ export default function BecomeTeacherSection() {
                                     key={index}
                                     className="flex w-fit items-center gap-[clamp(0.375rem,0.63vw,0.563rem)] rounded-md bg-[#508c87] px-[clamp(0.75rem,1.11vw,1rem)] py-[clamp(0.375rem,0.56vw,0.5rem)]"
                                     style={{
-                                        marginLeft: index === 1 ? '46px' : index === 2 ? '111px' : '0'
+                                        marginLeft: index === 1 ? 'clamp(0px, 3.19vw, 46px)' : index === 2 ? 'clamp(0px, 7.71vw, 111px)' : '0'
                                     }}
                                 >
                                     <div className="size-[clamp(0.375rem,0.63vw,0.563rem)] rounded-full bg-white" />

@@ -2,14 +2,14 @@ import { Link } from '@inertiajs/react';
 
 export default function CTASection() {
     return (
-        <div className="relative h-[416px] w-full overflow-hidden bg-[#fff7e4]">
+        <div className="relative min-h-[416px] w-full overflow-hidden bg-[#fff7e4] py-[clamp(3rem,5vw,4rem)]">
             {/* Content Container */}
-            <div className="flex h-[351px] items-center justify-center px-[clamp(2rem,15.21vw,13.688rem)] py-0">
-                <div className="flex items-center gap-0">
+            <div className="flex items-center justify-center px-[clamp(2rem,15.21vw,13.688rem)]">
+                <div className="flex flex-col items-center gap-[clamp(2rem,4vw,3rem)] lg:flex-row lg:gap-0">
                     {/* Text Content */}
-                    <div className="flex w-[475px] flex-col gap-[clamp(1.5rem,2.22vw,2rem)] px-[clamp(0.5rem,0.83vw,0.75rem)] py-0">
+                    <div className="flex w-full flex-col gap-[clamp(1.5rem,2.22vw,2rem)] px-[clamp(0.5rem,0.83vw,0.75rem)] lg:w-[475px]">
                         <div className="flex flex-col gap-[clamp(0.5rem,0.83vw,0.75rem)] leading-normal">
-                            <p className="w-[588px] bg-gradient-to-l from-[#338078] to-[rgba(20,20,20,0.44)] bg-clip-text font-['Nunito'] text-[clamp(2rem,3.61vw,3.25rem)] font-bold text-transparent">
+                            <p className="max-w-[588px] bg-gradient-to-l from-[#338078] to-[rgba(20,20,20,0.44)] bg-clip-text font-['Nunito'] text-[clamp(2rem,3.61vw,3.25rem)] font-bold text-transparent">
                                 Start your Quran Learning Journey Today
                             </p>
                             <p className="font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-normal text-gray-600">
@@ -26,7 +26,7 @@ export default function CTASection() {
                     </div>
 
                     {/* Image with Blur Effects */}
-                    <div className="relative">
+                    <div className="relative hidden lg:block">
                         {/* Blur Effects */}
                         <div 
                             className="absolute left-0 top-[241.24px] h-[167.819px] w-[77.658px] blur-[11.5px]"

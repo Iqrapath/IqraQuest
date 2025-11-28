@@ -152,12 +152,12 @@ export default function TeachersSection() {
             </div>
 
             {/* Section Title */}
-            <p className="relative z-10 bg-gradient-to-r from-[#338078] to-[#0a1a18] bg-clip-text text-center font-['Nunito'] text-[clamp(2rem,3.33vw,3rem)] font-bold leading-normal text-transparent pb-6">
+            <p className=" z-10 bg-gradient-to-r from-[#338078] to-[#0a1a18] bg-clip-text text-center font-['Nunito'] text-[clamp(2rem,3.33vw,3rem)] font-bold leading-normal text-transparent pb-6">
                 Meet Our Certified <span className="text-[#338078]">Quran Teachers</span>
             </p>
 
             {/* Teachers Grid */}
-            <div className="relative z-10 flex flex-wrap items-start justify-center gap-[clamp(2rem,4.58vw,4.125rem)] pb-20">
+            <div className=" z-10 flex flex-wrap items-start justify-center gap-[clamp(2rem,4.58vw,4.125rem)] pb-20">
                 {teachers.map((teacher, index) => (
                     <TeacherCard key={index} {...teacher} />
                 ))}
