@@ -33,7 +33,7 @@ export default function HowItWorksSection() {
     ];
 
     return (
-        <div className="relative flex w-full flex-col items-center gap-[clamp(2rem,3.33vw,3rem)] mb-30">
+        <div className="relative flex w-full flex-col items-center gap-[clamp(2rem,3.33vw,3rem)] mb-30 mt-30">
             {/* Section Header */}
             <div className="flex w-[1096px] items-center justify-center gap-[clamp(2rem,2.92vw,2.625rem)]">
                 <div className="w-[270px]">

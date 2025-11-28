@@ -4,22 +4,22 @@ import QuranBookIcon from '@/components/icons/QuranBookIcon';
 
 export default function FeaturesBar() {
     return (
-        <div className="w-[1100px]">
+        <div className="w-full max-w-[1100px] px-4 lg:px-0">
             {/* Background with gradient */}
-            <div 
-                className="h-[144px] w-full rounded-[clamp(2rem,5.4vw,4.863rem)] backdrop-blur-[41.73px]"
+            <div
+                className="h-auto min-h-[144px] lg:h-[144px] w-full rounded-[2rem] lg:rounded-[clamp(2rem,5.4vw,4.863rem)] backdrop-blur-[41.73px] py-6 lg:py-0"
                 style={{
                     background: 'radial-gradient( rgba(49,123,116,1) 0%, rgba(47,79,76,1) 100%)'
                 }}
             >
                 {/* Features Grid */}
-                <div className="flex h-full items-center justify-between px-[clamp(1.5rem,2.36vw,2.125rem)]">
-                    
+                <div className="flex h-full flex-col lg:flex-row items-center justify-between px-[clamp(1.5rem,2.36vw,2.125rem)] gap-6 lg:gap-0">
+
                     {/* Feature 1: Verified Tutors */}
-                    <div className="flex items-start gap-[clamp(0.5rem,0.83vw,0.75rem)]">
+                    <div className="flex items-start gap-[clamp(0.5rem,0.83vw,0.75rem)] w-full lg:w-auto justify-center lg:justify-start">
                         <div className="flex h-[clamp(2.5rem,3.54vw,3.188rem)] w-[clamp(2.5rem,3.54vw,3.188rem)] shrink-0 items-center justify-center">
-                            <Icon 
-                                icon="line-md:check-all" 
+                            <Icon
+                                icon="line-md:check-all"
                                 className="h-full w-full text-white"
                             />
                         </div>
@@ -34,10 +34,10 @@ export default function FeaturesBar() {
                     </div>
 
                     {/* Divider */}
-                    <div className="h-[clamp(4rem,7vw,6.297rem)] w-[1.72px] bg-white/20" />
+                    <div className="hidden lg:block h-[clamp(4rem,7vw,6.297rem)] w-[1.72px] bg-white/20" />
 
                     {/* Feature 2: 24/7 Availability */}
-                    <div className="flex items-start gap-[clamp(0.5rem,0.83vw,0.75rem)]">
+                    <div className="flex items-start gap-[clamp(0.5rem,0.83vw,0.75rem)] w-full lg:w-auto justify-center lg:justify-start">
                         <div className="flex h-[clamp(2.5rem,3.54vw,3.188rem)] w-[clamp(2.5rem,3.54vw,3.188rem)] shrink-0 items-center justify-center">
                             <TwentyFourSevenIcon className="h-full w-full text-white" />
                         </div>
@@ -52,10 +52,10 @@ export default function FeaturesBar() {
                     </div>
 
                     {/* Divider */}
-                    <div className="h-[clamp(4rem,7vw,6.297rem)] w-[1.72px] bg-white/20" />
+                    <div className="hidden lg:block h-[clamp(4rem,7vw,6.297rem)] w-[1.72px] bg-white/20" />
 
                     {/* Feature 3: Tajweed, Hifz & More */}
-                    <div className="flex items-start gap-[clamp(0.5rem,0.83vw,0.75rem)]">
+                    <div className="flex items-start gap-[clamp(0.5rem,0.83vw,0.75rem)] w-full lg:w-auto justify-center lg:justify-start">
                         <div className="flex h-[clamp(2.5rem,3.54vw,3.188rem)] w-[clamp(2.5rem,3.54vw,3.188rem)] shrink-0 items-center justify-center">
                             <QuranBookIcon className="h-full w-full text-white" />
                         </div>

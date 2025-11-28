@@ -1,7 +1,9 @@
 import { Head } from '@inertiajs/react';
 import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
-import HeroContainer from '@/components/landing/sections/HeroContainer';
+// import HeroContainer from '@/components/landing/sections/HeroContainer';
+import HeroSection from '@/components/landing/sections/HeroSection';
+import FeaturesBar from '@/components/landing/sections/FeaturesBar';
 import HowItWorksSection from '@/components/landing/sections/HowItWorksSection';
 import TeachersSection from '@/components/landing/sections/TeachersSection';
 import MemorizationSection from '@/components/landing/sections/MemorizationSection';
@@ -25,12 +27,17 @@ export default function LandingPage() {
                 />
             </Head>
 
-            <div className="relative min-h-screen w-full bg-white">
+            <div className="relative min-h-screen w-full">
                 {/* Navigation */}
                 <Navbar />
 
                 {/* Hero Section with Features Bar (Overlapping) */}
-                <HeroContainer />
+                {/* <HeroContainer /> */}
+                <HeroSection />
+
+                <div className="flex items-center justify-center md:-mt-20 sm:-mt-20 lg:-mt-20 -mt-10">
+                    <FeaturesBar />
+                </div>
 
                 {/* How It Works Section */}
                 <HowItWorksSection />
