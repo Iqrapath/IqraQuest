@@ -39,7 +39,7 @@ function IllustrationGroup({ className }: { className?: string }) {
 
 export default function WaitingArea({ isPending, isRejected, rejectionReason }: Props) {
     return (
-        <TeacherLayout>
+        <TeacherLayout showLeftSidebar={false} showRightSidebar={false}>
             <Head title={isPending ? "Application Under Review" : "Application Status"} />
 
             <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-['Nunito']">
