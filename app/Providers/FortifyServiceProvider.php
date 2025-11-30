@@ -40,6 +40,12 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
+        
+        // Custom email verification response - redirect to onboarding
+        $this->app->singleton(
+            \Laravel\Fortify\Contracts\VerifyEmailResponse::class,
+            \App\Http\Responses\VerifyEmailResponse::class
+        );
     }
 
     /**
@@ -53,6 +59,20 @@ class FortifyServiceProvider extends ServiceProvider
             
             // Update last login
             $user->update(['last_login_at' => now()]);
+            
+            // Note: Login notification is sent by SendLoginNotification listener
+            // which listens to the Login event fired by Fortify
+            
+            // Check if there's an intended URL (e.g., email verification link)
+            if (session()->has('url.intended')) {
+                return redirect()->intended();
+            }
+            
+            // If teacher hasn't completed onboarding, redirect to onboarding
+            if ($user->isTeacher() && $user->teacher && $user->teacher->onboarding_step < 5) {
+                return redirect()->route('teacher.onboarding.step1')
+                    ->with('success', 'Welcome! Please complete your teacher onboarding.');
+            }
             
             // Redirect to role-specific dashboard
             return route($user->dashboardRoute());
@@ -77,7 +97,7 @@ class FortifyServiceProvider extends ServiceProvider
             'status' => $request->session()->get('status'),
         ]));
 
-        Fortify::registerView(fn () => Inertia::render('auth/register'));
+        Fortify::registerView(fn () => Inertia::render('auth/TeacherRegister'));
 
         Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/two-factor-challenge'));
 

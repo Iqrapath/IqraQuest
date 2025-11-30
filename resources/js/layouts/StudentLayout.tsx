@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { PropsWithChildren } from 'react';
+import NotificationBell from '@/components/NotificationBell';
 
 export default function StudentLayout({ children }: PropsWithChildren) {
     const { auth } = usePage<any>().props;
@@ -30,13 +31,14 @@ export default function StudentLayout({ children }: PropsWithChildren) {
                         </div>
 
                         {/* User Dropdown */}
-                        <div className="hidden sm:ml-6 sm:flex sm:items-center">
+                        <div className="hidden sm:ml-6 sm:flex sm:items-center sm:gap-4">
+                            <NotificationBell />
                             <span className="text-sm text-gray-700">{auth.user.name}</span>
                             <Link
                                 href="/logout"
                                 method="post"
                                 as="button"
-                                className="ml-4 text-sm text-gray-700 hover:text-gray-900"
+                                className="text-sm text-gray-700 hover:text-gray-900"
                             >
                                 Logout
                             </Link>

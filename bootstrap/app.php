@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
+        channels: __DIR__.'/../routes/channels.php',
         health: '/up',
         then: function () {
             Route::middleware('web')
@@ -44,6 +45,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Alias for middleware
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+            'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
+            'onboarding.completed' => \App\Http\Middleware\EnsureOnboardingCompleted::class,
+            'teacher.approved' => \App\Http\Middleware\EnsureTeacherApproved::class,
             'throttle.strict' => \Illuminate\Routing\Middleware\ThrottleRequests::class.':60,1',
         ]);
     })

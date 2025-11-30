@@ -39,7 +39,7 @@ export default function LandingPage() {
                 <Navbar />
 
                 {/* Hero Section with Features Bar (Overlapping) */}
-                <section id="home">
+                <section>
                     <HeroSection />
                 </section>
 
@@ -48,42 +48,42 @@ export default function LandingPage() {
                 </div>
 
                 {/* How It Works Section */}
-                <section id="how-it-works">
+                <section>
                     <HowItWorksSection />
                 </section>
 
                 {/* Teachers Section */}
-                <section id="find-teacher">
+                <section>
                     <TeachersSection />
                 </section>
 
                 {/* Memorization Plans Section */}
-                <section id="features">
+                <section>
                     <MemorizationSection />
                 </section>
 
                 {/* Testimonials Section */}
-                <section id="testimonials">
+                <section>
                     <TestimonialsSection />
                 </section>
                 
                 {/* Become a Teacher Section */}
-                <section id="become-teacher">
+                <section>
                     <BecomeTeacherSection />
                 </section>
 
                 {/* FAQ Section */}
-                <section id="faq">
+                <section>
                     <FAQSection />
                 </section>
 
                 {/* App Download Section */}
-                <section id="download">
+                <section>
                     <AppDownloadSection />
                 </section>
 
                 {/* CTA Section */}
-                <section id="contact">
+                <section>
                     <CTASection />
                 </section>
 

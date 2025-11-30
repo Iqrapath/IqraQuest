@@ -6,6 +6,7 @@ use App\Listeners\LogFailedLogin;
 use App\Listeners\LogLogout;
 use App\Listeners\LogPasswordReset;
 use App\Listeners\LogSuccessfulLogin;
+use App\Listeners\SendLoginNotification;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
@@ -22,6 +23,7 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
         Login::class => [
             LogSuccessfulLogin::class,
+            SendLoginNotification::class,
         ],
         Failed::class => [
             LogFailedLogin::class,

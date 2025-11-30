@@ -155,7 +155,7 @@
     --sidebar-ring: #4caf50;
 }
 
-.dark {
+/* .dark {
     --background: #1c2a3a;
     --foreground: #ffffff;
     --card: #1f2a37;
@@ -188,7 +188,7 @@
     --sidebar-accent-foreground: #ffffff;
     --sidebar-border: #374151;
     --sidebar-ring: #69f0ae;
-}
+} */
 
 @layer base {
     * {

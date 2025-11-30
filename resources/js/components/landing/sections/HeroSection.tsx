@@ -53,7 +53,7 @@ export default function HeroSection() {
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-wrap items-start justify-center gap-[clamp(1rem,1.67vw,1.5rem)]">
+            <div className="relative z-10 flex flex-wrap items-start justify-center gap-[clamp(1rem,1.67vw,1.5rem)]">
                 <Link
                     href="#find-teacher"
                     className="rounded-[clamp(1.5rem,3.89vw,3.5rem)] bg-[#338078] px-[clamp(1rem,1.67vw,1.5rem)] py-[clamp(0.5rem,0.83vw,0.75rem)] font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium capitalize text-white transition-all duration-300 hover:bg-[#2a6b64] hover:shadow-lg"
@@ -61,7 +61,7 @@ export default function HeroSection() {
                     Find a Teacher
                 </Link>
                 <Link
-                    href="#become-teacher"
+                    href="/register/teacher"
                     className="rounded-[clamp(1.5rem,3.89vw,3.5rem)] border-[1.5px] border-solid border-[#338078] px-[clamp(1rem,1.67vw,1.5rem)] py-[clamp(0.5rem,0.83vw,0.75rem)] font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium capitalize text-[#338078] transition-all duration-300 hover:bg-[#338078] hover:text-white"
                 >
                     Become a Teacher
@@ -69,11 +69,12 @@ export default function HeroSection() {
             </div>
 
             {/* Hero Image */}
-            <div className="md:-mt-20 ">
+            <div className="relative -z-10 md:-mt-20">
                 <img
                     src="/images/young-arab-man-works-diligently-his-desk-browsing-internet-his-digital-laptop-engrossed-online-webpage-he-takes-notes-researches-embodying-professionalism-efficiency 2.png"
                     alt="Student learning Quran online"
-                    className="h-auto w-full object-cover object-center"
+                    draggable="false"
+                    className="pointer-events-none h-auto w-full select-none object-cover object-center"
                 />
             </div>
         </div>
