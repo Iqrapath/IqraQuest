@@ -12,12 +12,12 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import AppLogo from '@/components/app-logo';
 
-interface TeacherHeaderProps {
+interface GuardianHeaderProps {
     onMenuToggle?: () => void;
     showMenuButton?: boolean;
 }
 
-export default function TeacherHeader({ onMenuToggle, showMenuButton = true }: TeacherHeaderProps = {}) {
+export default function GuardianHeader({ onMenuToggle, showMenuButton = true }: GuardianHeaderProps = {}) {
     const { auth } = usePage<any>().props;
     const user = auth.user;
     const getInitials = useInitials();
@@ -143,7 +143,7 @@ export default function TeacherHeader({ onMenuToggle, showMenuButton = true }: T
                                             className="font-['Nunito'] font-light leading-[1.2] text-gray-500"
                                             style={{ fontSize: 'clamp(12px, 1vw, 16px)' }}
                                         >
-                                            Arabic Teacher
+                                            Guardian
                                         </p>
                                         <Icon
                                             icon="nrk:arrow-dropdown"

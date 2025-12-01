@@ -1,23 +1,23 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Icon } from '@iconify/react';
 
-interface TeacherLeftSidebarProps {
+interface StudentLeftSidebarProps {
     onLogoutClick?: () => void;
 }
 
-export default function TeacherLeftSidebar({ onLogoutClick }: TeacherLeftSidebarProps = {}) {
+export default function StudentLeftSidebar({ onLogoutClick }: StudentLeftSidebarProps = {}) {
     const { url } = usePage();
 
     const menuItems = [
-        { name: 'Dashboard', icon: 'mage:dashboard', route: '/teacher/dashboard' },
-        { name: 'Schedule', icon: 'material-symbols:event-available-outline', route: '/teacher/schedule' },
-        { name: 'Requests', icon: 'tabler:message-user', route: '/teacher/requests' },
-        { name: 'Earnings', icon: 'stash:wallet', route: '/teacher/earnings' },
-        { name: 'Messages', icon: 'mdi:message-text-outline', route: '/teacher/messages' },
-        { name: 'Profile', icon: 'iconamoon:profile', route: '/teacher/profile' },
-        { name: 'Rating & Feedback', icon: 'carbon:review', route: '/teacher/ratings' },
-        { name: 'Settings', icon: 'solar:settings-outline', route: '/teacher/settings' },
-        { name: 'Notification', icon: 'mdi:bell-outline', route: '/teacher/notifications' },
+        { name: 'Dashboard', icon: 'mage:dashboard', route: '/student/dashboard' },
+        { name: 'Browse Teachers', icon: 'hugeicons:teacher', route: '/student/courses' },
+        { name: 'My Bookings', icon: 'tabler:message-user', route: '/student/schedule' },
+        { name: 'Payments', icon: 'stash:wallet', route: '/student/earnings' },
+        { name: 'Messages', icon: 'mdi:message-text-outline', route: '/student/messages' },
+        { name: 'Profile', icon: 'iconamoon:profile', route: '/student/profile' },
+        { name: 'Rating & Feedback', icon: 'carbon:review', route: '/student/ratings' },
+        { name: 'Settings', icon: 'solar:settings-outline', route: '/student/settings' },
+        { name: 'Notification', icon: 'mdi:bell-outline', route: '/student/notifications' },
     ];
 
     const isActive = (route: string) => url.startsWith(route);

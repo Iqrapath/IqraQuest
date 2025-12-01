@@ -12,18 +12,18 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import AppLogo from '@/components/app-logo';
 
-interface TeacherHeaderProps {
+interface StudentHeaderProps {
     onMenuToggle?: () => void;
     showMenuButton?: boolean;
 }
 
-export default function TeacherHeader({ onMenuToggle, showMenuButton = true }: TeacherHeaderProps = {}) {
+export default function StudentHeader({ onMenuToggle, showMenuButton = true }: StudentHeaderProps = {}) {
     const { auth } = usePage<any>().props;
     const user = auth.user;
     const getInitials = useInitials();
 
     // Example earnings - In production this would come from props or API
-    const earnings = 60000;
+    const progress = 75; // Student progress percentage
 
     return (
         <div className="relative w-full h-[70px] bg-gradient-to-r from-[#fffcf4] to-[#fffcf4] z-20">
@@ -57,7 +57,7 @@ export default function TeacherHeader({ onMenuToggle, showMenuButton = true }: T
                     <AppLogo />
                 </Link>
 
-                {/* Earnings Display - Centered on desktop, hidden on mobile */}
+                {/* Progress Display - Centered on desktop, hidden on mobile */}
                 <div
                     className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center bg-gray-50/50 rounded-full"
                     style={{
@@ -66,7 +66,7 @@ export default function TeacherHeader({ onMenuToggle, showMenuButton = true }: T
                     }}
                 >
                     <Icon
-                        icon="mdi:wallet-outline"
+                        icon="mdi:chart-line"
                         className="text-gray-600"
                         style={{ width: 'clamp(18px, 1.25vw, 20px)', height: 'clamp(18px, 1.25vw, 20px)' }}
                     />
@@ -75,13 +75,13 @@ export default function TeacherHeader({ onMenuToggle, showMenuButton = true }: T
                             className="text-gray-500 font-['Nunito'] uppercase"
                             style={{ fontSize: 'clamp(9px, 0.65vw, 10px)' }}
                         >
-                            Earnings:
+                            Progress:
                         </span>
                         <span
                             className="font-bold text-[#192020] font-['Nunito']"
                             style={{ fontSize: 'clamp(14px, 1vw, 16px)' }}
                         >
-                            ₦{earnings.toLocaleString()}
+                            {progress}%
                         </span>
                     </div>
                 </div>
@@ -143,7 +143,7 @@ export default function TeacherHeader({ onMenuToggle, showMenuButton = true }: T
                                             className="font-['Nunito'] font-light leading-[1.2] text-gray-500"
                                             style={{ fontSize: 'clamp(12px, 1vw, 16px)' }}
                                         >
-                                            Arabic Teacher
+                                            Student
                                         </p>
                                         <Icon
                                             icon="nrk:arrow-dropdown"

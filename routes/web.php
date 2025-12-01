@@ -24,6 +24,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return redirect()->route(auth()->user()->dashboardRoute());
     })->name('dashboard');
+
+    // Notification routes
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])
+        ->name('notifications.mark-as-read');
+    Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])
+        ->name('notifications.mark-all-as-read');
 });
 
 // Email Preview Routes (Development Only)

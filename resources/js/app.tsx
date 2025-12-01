@@ -9,6 +9,7 @@ import { configureEcho } from '@laravel/echo-react';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 import { AppProvider } from './components/AppProvider';
+import { LogoutDialogProvider } from './contexts/LogoutDialogContext';
 import axios from 'axios';
 
 // Get CSRF token from meta tag
@@ -27,7 +28,7 @@ const echoConfig = {
         return {
             authorize: (socketId: string, callback: Function) => {
                 console.log('🔐 Authorizing channel:', channel.name, 'Socket ID:', socketId);
-                
+
                 axios.post('/broadcasting/auth', {
                     socket_id: socketId,
                     channel_name: channel.name,
@@ -74,7 +75,9 @@ createInertiaApp({
         root.render(
             <StrictMode>
                 <AppProvider>
-                    <App {...props} />
+                    <LogoutDialogProvider>
+                        <App {...props} />
+                    </LogoutDialogProvider>
                 </AppProvider>
             </StrictMode>,
         );

@@ -1,54 +1,97 @@
-import { Link, usePage } from '@inertiajs/react';
-import { PropsWithChildren } from 'react';
-import NotificationBell from '@/components/NotificationBell';
+import { useState, useEffect } from 'react';
+import { usePage } from '@inertiajs/react';
+import StudentHeader from '@/components/Layout/Student/StudentHeader';
+import StudentLeftSidebar from '@/components/Layout/Student/StudentLeftSidebar';
+import StudentRightSidebar from '@/components/Layout/Student/StudentRightSidebar';
+import { useLogoutDialog } from '@/contexts/LogoutDialogContext';
 
-export default function StudentLayout({ children }: PropsWithChildren) {
-    const { auth } = usePage<any>().props;
+interface StudentLayoutProps {
+    children: React.ReactNode;
+}
+
+export default function StudentLayout({ children }: StudentLayoutProps) {
+    const [showLeftSidebar, setShowLeftSidebar] = useState(true);
+    const [showRightSidebar, setShowRightSidebar] = useState(true);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { confirmLogout } = useLogoutDialog();
+
+    // Handle responsive sidebars
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 1024) {
+                setShowLeftSidebar(false);
+                setShowRightSidebar(false);
+            } else if (window.innerWidth < 1280) {
+                setShowLeftSidebar(true);
+                setShowRightSidebar(false);
+            } else {
+                setShowLeftSidebar(true);
+                setShowRightSidebar(true);
+            }
+        };
+
+        // Initial check
+        handleResize();
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const toggleMobileMenu = () => {
+        setIsMobileMenuOpen(!isMobileMenuOpen);
+    };
+
+    const handleLogoutClick = async () => {
+        setIsMobileMenuOpen(false); // Close mobile menu if open
+        await confirmLogout();
+    };
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            {/* Navigation */}
-            <nav className="border-b border-gray-100 bg-white">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 justify-between">
-                        <div className="flex">
-                            {/* Logo */}
-                            <div className="flex shrink-0 items-center">
-                                <Link href="/student/dashboard">
-                                    <span className="text-xl font-bold text-[#338078]">IqraQuest Student</span>
-                                </Link>
-                            </div>
+        <div className="min-h-screen bg-[#fafbff] flex flex-col font-['Nunito'] overflow-hidden">
+            {/* Header - Fixed at top */}
+            <StudentHeader onMenuToggle={toggleMobileMenu} showMenuButton={!showLeftSidebar} />
 
-                            {/* Navigation Links */}
-                            <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                <Link
-                                    href="/student/dashboard"
-                                    className="inline-flex items-center border-b-2 border-[#338078] px-1 pt-1 text-sm font-medium text-gray-900"
-                                >
-                                    Dashboard
-                                </Link>
-                            </div>
-                        </div>
+            <div className="flex flex-1 overflow-hidden relative">
+                {/* Left Sidebar - Fixed, scrollable internally */}
+                {showLeftSidebar && (
+                    <aside className="hidden lg:block shrink-0 z-10 ml-[clamp(8rem,2vw,12rem)] overflow-hidden">
+                        <StudentLeftSidebar onLogoutClick={handleLogoutClick} />
+                    </aside>
+                )}
 
-                        {/* User Dropdown */}
-                        <div className="hidden sm:ml-6 sm:flex sm:items-center sm:gap-4">
-                            <NotificationBell />
-                            <span className="text-sm text-gray-700">{auth.user.name}</span>
-                            <Link
-                                href="/logout"
-                                method="post"
-                                as="button"
-                                className="text-sm text-gray-700 hover:text-gray-900"
-                            >
-                                Logout
-                            </Link>
-                        </div>
+                {/* Main Content Area - Scrollable */}
+                <main className="flex-1 overflow-y-auto relative"
+                    style={{
+                        padding: 'clamp(1rem, 2vw, 2rem)',
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: '#ccc #4d9b91',
+                    }}>
+                    {children}
+                </main>
+
+                {/* Right Sidebar - Fixed, scrollable internally */}
+                {showRightSidebar && (
+                    <aside className="hidden xl:block shrink-0 bg-white/50 backdrop-blur-sm border-l border-gray-100 overflow-hidden mr-[clamp(8rem,2vw,12rem)]">
+                        <StudentRightSidebar />
+                    </aside>
+                )}
+            </div>
+
+            {/* Mobile Menu Overlay */}
+            {isMobileMenuOpen && (
+                <>
+                    {/* Backdrop */}
+                    <div
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+                    />
+
+                    {/* Sidebar Drawer */}
+                    <div className="fixed left-0 top-[70px] bottom-0 w-[280px] z-50 lg:hidden overflow-y-auto">
+                        <StudentLeftSidebar onLogoutClick={handleLogoutClick} />
                     </div>
-                </div>
-            </nav>
-
-            {/* Page Content */}
-            <main>{children}</main>
+                </>
+            )}
         </div>
     );
 }

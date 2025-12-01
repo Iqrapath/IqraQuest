@@ -2,6 +2,7 @@ import { useEcho } from '@laravel/echo-react';
 import { usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import axios from 'axios';
 
 interface Notification {
     id: string;
@@ -39,7 +40,7 @@ export function useNotifications() {
                 console.log('🔕 Duplicate notification prevented');
                 return;
             }
-            
+
             isSubscribed = true;
             setTimeout(() => { isSubscribed = false; }, 1000); // Reset af
             console.log('🔔 New notification received:', event);
@@ -69,9 +70,9 @@ export function useNotifications() {
                     description: event.message,
                     action: event.action_url
                         ? {
-                              label: 'View',
-                              onClick: () => (window.location.href = event.action_url),
-                          }
+                            label: 'View',
+                            onClick: () => (window.location.href = event.action_url),
+                        }
                         : undefined,
                     duration: 5000,
                 });
@@ -80,9 +81,9 @@ export function useNotifications() {
                     description: event.message,
                     action: event.action_url
                         ? {
-                              label: 'View Details',
-                              onClick: () => (window.location.href = event.action_url),
-                          }
+                            label: 'View Details',
+                            onClick: () => (window.location.href = event.action_url),
+                        }
                         : undefined,
                     duration: 7000,
                 });
@@ -91,9 +92,9 @@ export function useNotifications() {
                     description: event.message,
                     action: event.action_url
                         ? {
-                              label: 'Review',
-                              onClick: () => (window.location.href = event.action_url),
-                          }
+                            label: 'Review',
+                            onClick: () => (window.location.href = event.action_url),
+                        }
                         : undefined,
                     duration: 5000,
                 });
@@ -109,9 +110,9 @@ export function useNotifications() {
                     description: event.message,
                     action: event.action_url
                         ? {
-                              label: 'View',
-                              onClick: () => (window.location.href = event.action_url),
-                          }
+                            label: 'View',
+                            onClick: () => (window.location.href = event.action_url),
+                        }
                         : undefined,
                     duration: 5000,
                 });
@@ -121,20 +122,38 @@ export function useNotifications() {
         [channelName]
     );
 
-    const markAsRead = (notificationId: string) => {
+    const markAsRead = async (notificationId: string) => {
+        // Optimistic UI update
         setNotifications((prev: Notification[]) =>
             prev.map((n) =>
                 n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n
             )
         );
         setUnreadCount((prev: number) => Math.max(0, prev - 1));
+
+        // Persist to backend
+        try {
+            await axios.post(`/notifications/${notificationId}/read`);
+        } catch (error) {
+            console.error('Failed to mark notification as read:', error);
+            // Optionally revert the optimistic update on error
+        }
     };
 
-    const markAllAsRead = () => {
+    const markAllAsRead = async () => {
+        // Optimistic UI update
         setNotifications((prev: Notification[]) =>
             prev.map((n) => ({ ...n, read_at: new Date().toISOString() }))
         );
         setUnreadCount(0);
+
+        // Persist to backend
+        try {
+            await axios.post('/notifications/mark-all-read');
+        } catch (error) {
+            console.error('Failed to mark all notifications as read:', error);
+            // Optionally revert the optimistic update on error
+        }
     };
 
     const requestPermission = async () => {

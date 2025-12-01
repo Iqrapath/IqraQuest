@@ -1,9 +1,25 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Icon } from '@iconify/react';
 import { useState } from 'react';
+import { SharedData } from '@/types';
+import { UserMenuContent } from '../user-menu-content';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
+import { Button } from '@headlessui/react';
+import { Avatar, AvatarImage, AvatarFallback } from '@radix-ui/react-avatar';
+import NotificationBell from '../NotificationBell';
+
+const getInitials = (name: string) => {
+    return name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2);
+};
 
 export default function Navbar() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const { auth } = usePage<SharedData>().props;
 
     const toggleMobileMenu = () => {
         setMobileMenuOpen(!mobileMenuOpen);
@@ -17,7 +33,7 @@ export default function Navbar() {
                 {/* Logo */}
                 <Link href="/" className="flex shrink-0 items-center gap-[clamp(0.25rem,0.5vw,0.45rem)] rounded-[clamp(0.75rem,2vw,1.8rem)] bg-[#fffcf4] px-[clamp(0.375rem,0.75vw,0.675rem)] py-[clamp(0.25rem,0.5vw,0.45rem)] transition-transform hover:scale-105">
                     <div className="relative">
-                        <img src="/images/Logo.png" alt="IqraQuest Logo" className=" size-full " />
+                        <img src="/images/Logo.png" alt="IqraQuest Logo" className="size-full" />
                     </div>
                 </Link>
 
@@ -57,9 +73,85 @@ export default function Navbar() {
 
                 {/* Desktop Sign Up Button */}
                 <div className="hidden shrink-0 lg:flex">
-                    <Link href="/register" className="rounded-[clamp(1rem,3.89vw,3.5rem)] bg-[#338078] px-[clamp(1rem,1.67vw,1.5rem)] py-[clamp(0.5rem,0.83vw,0.75rem)] font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium capitalize text-white transition-all duration-300 hover:bg-[#2a6b64] hover:shadow-lg">
-                        Sign Up
-                    </Link>
+                    {auth.user ? (
+                        /* Right Section - Icons & Profile */
+                        <div
+                            className="ml-auto flex items-center lg:mr-[clamp(4rem,2vw,6rem)]"
+                            style={{ gap: 'clamp(0.5rem, 2vw, 2rem)' }}
+                        >
+                            {/* Icons Group - Hidden on small mobile */}
+                            <div
+                                className="hidden sm:flex items-center"
+                                style={{ gap: 'clamp(12px, 1vw, 16px)' }}
+                            >
+                                {/* Notification Bell */}
+                                <NotificationBell />
+
+                                {/* Message Icon */}
+                                <button className="text-[#525252] hover:text-[#338078] transition-colors">
+                                    <Icon
+                                        icon="mdi:message-text-outline"
+                                        style={{ width: 'clamp(20px, 1.5vw, 24px)', height: 'clamp(20px, 1.5vw, 24px)' }}
+                                    />
+                                </button>
+                            </div>
+
+                            {/* User Profile Dropdown */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        className="h-auto rounded-full p-0 hover:bg-transparent flex items-center cursor-pointer bg-transparent border-none shadow-none focus:outline-none"
+                                        style={{ gap: 'clamp(8px, 0.75vw, 12px)' }}
+                                    >
+                                        <Avatar
+                                            className="overflow-hidden rounded-full border-2 border-white shadow-sm"
+                                            style={{
+                                                width: 'clamp(35px, 3.5vw, 40px)',
+                                                height: 'clamp(35px, 3.5vw, 40px)'
+                                            }}
+                                        >
+                                            <AvatarImage
+                                                src={auth.user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(auth.user.name)}&background=338078&color=fff`}
+                                                alt={auth.user.name}
+                                            />
+                                            <AvatarFallback className="rounded-full bg-[#338078] text-white flex items-center justify-center w-full h-full">
+                                                {getInitials(auth.user.name)}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div className="text-left hidden lg:block">
+                                            <p
+                                                className="font-['Nunito'] font-bold leading-tight text-[#192020]"
+                                                style={{ fontSize: 'clamp(15px, 1.5vw, 16px)' }}
+                                            >
+                                                {auth.user.name}
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <p
+                                                    className="font-['Nunito'] font-light leading-[1.2] text-gray-500"
+                                                    style={{ fontSize: 'clamp(12px, 1vw, 16px)' }}
+                                                >
+                                                   {auth.user.role}
+                                                </p>
+                                                <Icon
+                                                    icon="nrk:arrow-dropdown"
+                                                    className="text-[#a0a3bd]"
+                                                    style={{ width: 'clamp(18px, 3vw, 24px)', height: 'clamp(18px, 3vw, 24px)' }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-56 " align="end">
+                                    <UserMenuContent user={auth.user} />
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                    ) : (
+                        /* User is not authenticated, show Sign In link */
+                        <Link href="/login" className="rounded-[clamp(1rem,3.89vw,3.5rem)] bg-[#338078] px-[clamp(1rem,1.67vw,1.5rem)] py-[clamp(0.5rem,0.83vw,0.75rem)] font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium capitalize text-white transition-all duration-300 hover:bg-[#2a6b64] hover:shadow-lg">
+                            Sign In
+                        </Link>
+                    )}
                 </div>
 
                 {/* Mobile Menu Button */}
