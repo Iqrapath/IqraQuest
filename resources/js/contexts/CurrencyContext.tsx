@@ -45,7 +45,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
                 setRates(data.rates);
                 setLoading(false);
             } catch (error) {
-                console.error('Failed to fetch exchange rates:', error);
+                // console.error('Failed to fetch exchange rates:', error);
                 setLoading(false);
             }
         };

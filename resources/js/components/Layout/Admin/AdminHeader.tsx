@@ -18,12 +18,35 @@ interface AdminHeaderProps {
 }
 
 export default function AdminHeader({ onMenuToggle, showMenuButton = true }: AdminHeaderProps = {}) {
-    const { auth } = usePage<any>().props;
+    const page = usePage<any>();
+    const { auth } = page.props;
     const user = auth.user;
     const getInitials = useInitials();
 
-    // Example earnings - In production this would come from props or API
-    const earnings = 60000;
+    // Get page title from shared props or fallback to component path
+    const getPageTitle = () => {
+        console.log('page.props.pageTitle:', page.props.pageTitle);
+        console.log('page.component:', page.component);
+
+        // First, check if pageTitle is explicitly set in props
+        if (page.props.pageTitle) {
+            return page.props.pageTitle;
+        }
+
+        // Fallback: Extract from component path
+        const component = page.component || '';
+        const parts = component.split('/').filter(Boolean);
+
+        if (parts.length === 0) return 'Dashboard';
+
+        // If last part is "Index", use the second-to-last part
+        const lastPart = parts[parts.length - 1];
+        if (lastPart === 'Index' && parts.length > 1) {
+            return parts[parts.length - 2];
+        }
+
+        return lastPart;
+    };
 
     return (
         <div className="relative w-full h-[70px] bg-gradient-to-r from-[#fffcf4] to-[#fffcf4] z-20">
@@ -57,33 +80,16 @@ export default function AdminHeader({ onMenuToggle, showMenuButton = true }: Adm
                     <AppLogo />
                 </Link>
 
-                {/* Earnings Display - Centered on desktop, hidden on mobile */}
+                {/* Page Title Display - Centered on desktop, hidden on mobile */}
                 <div
-                    className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center bg-gray-50/50 rounded-full"
-                    style={{
-                        gap: 'clamp(6px, 0.5vw, 8px)',
-                        padding: 'clamp(6px, 0.5vw, 8px) clamp(12px, 1vw, 16px)'
-                    }}
+                    className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center bg-gray-50/50 rounded-full px-6 py-2"
                 >
-                    <Icon
-                        icon="mdi:wallet-outline"
-                        className="text-gray-600"
-                        style={{ width: 'clamp(18px, 1.25vw, 20px)', height: 'clamp(18px, 1.25vw, 20px)' }}
-                    />
-                    <div className="flex flex-col">
-                        <span
-                            className="text-gray-500 font-['Nunito'] uppercase"
-                            style={{ fontSize: 'clamp(9px, 0.65vw, 10px)' }}
-                        >
-                            Earnings:
-                        </span>
-                        <span
-                            className="font-bold text-[#192020] font-['Nunito']"
-                            style={{ fontSize: 'clamp(14px, 1vw, 16px)' }}
-                        >
-                            ₦{earnings.toLocaleString()}
-                        </span>
-                    </div>
+                    <span
+                        className="font-bold text-[#192020] font-['Nunito']"
+                        style={{ fontSize: 'clamp(16px, 1.2vw, 18px)' }}
+                    >
+                        {getPageTitle()}
+                    </span>
                 </div>
 
                 {/* Right Section - Icons & Profile */}
@@ -124,7 +130,7 @@ export default function AdminHeader({ onMenuToggle, showMenuButton = true }: Adm
                                     }}
                                 >
                                     <AvatarImage
-                                        src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=338078&color=fff`}
+                                        src={user.avatar ? `/storage/${user.avatar}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=338078&color=fff`}
                                         alt={user.name}
                                     />
                                     <AvatarFallback className="rounded-full bg-[#338078] text-white">

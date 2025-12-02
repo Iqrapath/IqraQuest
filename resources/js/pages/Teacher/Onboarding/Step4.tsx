@@ -129,7 +129,7 @@ export default function Step4({ teacher }: Props) {
     };
 
     return (
-        <TeacherLayout showLeftSidebar={false} showRightSidebar={false}>
+        <TeacherLayout hideRightSidebar={true} hideLeftSidebar={true}>
             <Head title="Teacher Onboarding - Step 4" />
 
             <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

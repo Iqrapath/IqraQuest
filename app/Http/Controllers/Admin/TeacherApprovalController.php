@@ -69,7 +69,7 @@ class TeacherApprovalController extends Controller
         $this->approvalService->reject(
             $teacher,
             auth()->user(),
-            $request->validated('reason')
+            $request->validated('rejection_reason')
         );
 
         return redirect()

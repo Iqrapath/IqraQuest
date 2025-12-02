@@ -15,8 +15,10 @@ class CertificateService
      */
     public function upload(Teacher $teacher, UploadedFile $file, array $data): TeacherCertificate
     {
-        // Store the file
-        $path = $file->store('certificates', 'public');
+        // Store the file using FileUploadService
+        $uploadService = app(\App\Services\FileUploadService::class);
+        $path = $uploadService->upload($file, 'certificates', $teacher->user->name, 'certificate');
+        
         $originalName = $file->getClientOriginalName();
         $fileSize = $file->getSize();
         $mimeType = $file->getMimeType();

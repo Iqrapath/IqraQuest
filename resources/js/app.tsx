@@ -27,18 +27,18 @@ const echoConfig = {
     authorizer: (channel: any) => {
         return {
             authorize: (socketId: string, callback: Function) => {
-                console.log('🔐 Authorizing channel:', channel.name, 'Socket ID:', socketId);
+                // console.log('🔐 Authorizing channel:', channel.name, 'Socket ID:', socketId);
 
                 axios.post('/broadcasting/auth', {
                     socket_id: socketId,
                     channel_name: channel.name,
                 })
                     .then((response) => {
-                        console.log('✅ Authorization successful:', response.data);
+                        // console.log('✅ Authorization successful:', response.data);
                         callback(null, response.data);
                     })
                     .catch((error) => {
-                        console.error('❌ Broadcasting auth error:', error.response?.status, error.response?.data);
+                        // console.error('❌ Broadcasting auth error:', error.response?.status, error.response?.data);
                         callback(error, null);
                     });
             },
@@ -46,7 +46,7 @@ const echoConfig = {
     },
 };
 
-console.log('🚀 Echo Configuration:', echoConfig);
+// console.log('🚀 Echo Configuration:', echoConfig);
 
 // Initialize Pusher globally for Echo
 (window as any).Pusher = Pusher;
@@ -58,7 +58,7 @@ configureEcho(echoConfig);
 const echoInstance = new Echo(echoConfig);
 (window as any).Echo = echoInstance;
 
-console.log('✅ Echo configured and exposed globally:', echoInstance);
+// console.log('✅ Echo configured and exposed globally:', echoInstance);
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 

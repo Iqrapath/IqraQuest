@@ -27,7 +27,7 @@ class TeacherObserver
             \Log::info('Teacher status changed', [
                 'teacher_id' => $teacher->id,
                 'old_status' => $teacher->getOriginal('status'),
-                'new_status' => $teacher->status->value,
+                'new_status' => $teacher->status,
             ]);
         }
     }

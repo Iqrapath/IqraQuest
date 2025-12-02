@@ -111,7 +111,7 @@ export default function Navbar() {
                                             }}
                                         >
                                             <AvatarImage
-                                                src={auth.user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(auth.user.name)}&background=338078&color=fff`}
+                                                src={auth.user.avatar ? `/storage/${auth.user.avatar}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(auth.user.name)}&background=338078&color=fff`}
                                                 alt={auth.user.name}
                                             />
                                             <AvatarFallback className="rounded-full bg-[#338078] text-white flex items-center justify-center w-full h-full">

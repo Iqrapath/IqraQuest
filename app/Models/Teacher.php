@@ -86,6 +86,22 @@ class Teacher extends Model
     }
 
     /**
+     * Get the reviews for the teacher
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Get the teacher's average rating
+     */
+    public function getAverageRatingAttribute()
+    {
+        return $this->reviews()->where('is_approved', true)->avg('rating') ?? 0;
+    }
+
+    /**
      * Check if teacher is pending approval
      */
     public function isPending(): bool

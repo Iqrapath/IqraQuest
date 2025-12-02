@@ -7,11 +7,13 @@ import { useLogoutDialog } from '@/contexts/LogoutDialogContext';
 
 interface GuardianLayoutProps {
     children: React.ReactNode;
+    hideLeftSidebar?: boolean;
+    hideRightSidebar?: boolean;
 }
 
-export default function GuardianLayout({ children }: GuardianLayoutProps) {
-    const [showLeftSidebar, setShowLeftSidebar] = useState(true);
-    const [showRightSidebar, setShowRightSidebar] = useState(true);
+export default function GuardianLayout({ children, hideLeftSidebar = false, hideRightSidebar = false }: GuardianLayoutProps) {
+    const [showLeftSidebar, setShowLeftSidebar] = useState(!hideLeftSidebar);
+    const [showRightSidebar, setShowRightSidebar] = useState(!hideRightSidebar);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { confirmLogout } = useLogoutDialog();
 
@@ -22,11 +24,11 @@ export default function GuardianLayout({ children }: GuardianLayoutProps) {
                 setShowLeftSidebar(false);
                 setShowRightSidebar(false);
             } else if (window.innerWidth < 1280) {
-                setShowLeftSidebar(true);
+                setShowLeftSidebar(!hideLeftSidebar);
                 setShowRightSidebar(false);
             } else {
-                setShowLeftSidebar(true);
-                setShowRightSidebar(true);
+                setShowLeftSidebar(!hideLeftSidebar);
+                setShowRightSidebar(!hideRightSidebar);
             }
         };
 
@@ -35,7 +37,7 @@ export default function GuardianLayout({ children }: GuardianLayoutProps) {
 
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    }, [hideLeftSidebar, hideRightSidebar]);
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);

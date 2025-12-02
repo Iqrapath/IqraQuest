@@ -124,7 +124,7 @@ export default function StudentHeader({ onMenuToggle, showMenuButton = true }: S
                                     }}
                                 >
                                     <AvatarImage
-                                        src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=338078&color=fff`}
+                                        src={user.avatar ? `/storage/${user.avatar}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=338078&color=fff`}
                                         alt={user.name}
                                     />
                                     <AvatarFallback className="rounded-full bg-[#338078] text-white">

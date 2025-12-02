@@ -7,11 +7,13 @@ import { useLogoutDialog } from '@/contexts/LogoutDialogContext';
 
 interface StudentLayoutProps {
     children: React.ReactNode;
+    hideLeftSidebar?: boolean;
+    hideRightSidebar?: boolean;
 }
 
-export default function StudentLayout({ children }: StudentLayoutProps) {
-    const [showLeftSidebar, setShowLeftSidebar] = useState(true);
-    const [showRightSidebar, setShowRightSidebar] = useState(true);
+export default function StudentLayout({ children, hideLeftSidebar = false, hideRightSidebar = false }: StudentLayoutProps) {
+    const [showLeftSidebar, setShowLeftSidebar] = useState(!hideLeftSidebar);
+    const [showRightSidebar, setShowRightSidebar] = useState(!hideRightSidebar);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { confirmLogout } = useLogoutDialog();
 
@@ -22,11 +24,11 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
                 setShowLeftSidebar(false);
                 setShowRightSidebar(false);
             } else if (window.innerWidth < 1280) {
-                setShowLeftSidebar(true);
+                setShowLeftSidebar(!hideLeftSidebar);
                 setShowRightSidebar(false);
             } else {
-                setShowLeftSidebar(true);
-                setShowRightSidebar(true);
+                setShowLeftSidebar(!hideLeftSidebar);
+                setShowRightSidebar(!hideRightSidebar);
             }
         };
 
@@ -35,7 +37,7 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
 
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    }, [hideLeftSidebar, hideRightSidebar]);
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);

@@ -43,8 +43,7 @@ class OnboardingController extends Controller
         DB::transaction(function () use ($user, $teacher, $request) {
             // Update User details
             if ($request->hasFile('avatar')) {
-                $path = $request->file('avatar')->store('avatars', 'public');
-                $user->avatar = $path;
+                $user->avatar = $request->file('avatar');
             }
             
             $user->phone = $request->phone;

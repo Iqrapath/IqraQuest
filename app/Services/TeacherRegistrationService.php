@@ -53,8 +53,7 @@ class TeacherRegistrationService
 
         // Handle avatar upload if provided
         if (isset($data['avatar'])) {
-            $path = $data['avatar']->store('avatars', 'public');
-            $teacher->user->update(['avatar' => $path]);
+            $teacher->user->update(['avatar' => $data['avatar']]);
         }
 
         return $teacher->fresh();

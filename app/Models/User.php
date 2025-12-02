@@ -149,4 +149,18 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return 'App.Models.User.' . $this->id;
     }
+
+    /**
+     * Set the user's avatar.
+     * Automatically handles file upload if an UploadedFile instance is passed.
+     */
+    public function setAvatarAttribute($value)
+    {
+        if ($value instanceof \Illuminate\Http\UploadedFile) {
+            $uploadService = app(\App\Services\FileUploadService::class);
+            $this->attributes['avatar'] = $uploadService->upload($value, 'avatars', $this->name, 'avatar');
+        } else {
+            $this->attributes['avatar'] = $value;
+        }
+    }
 }
