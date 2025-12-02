@@ -74,7 +74,7 @@ createInertiaApp({
 
         root.render(
             <StrictMode>
-                <AppProvider>
+                <AppProvider initialPage={props.initialPage}>
                     <LogoutDialogProvider>
                         <App {...props} />
                     </LogoutDialogProvider>

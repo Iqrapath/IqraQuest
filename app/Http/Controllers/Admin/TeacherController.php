@@ -124,6 +124,12 @@ class TeacherController extends Controller
             'total_certificates' => $teacher->certificates()->count(),
             'verified_certificates' => $teacher->verifiedCertificates()->count(),
             'availability_days' => $teacher->availableDays()->count(),
+            'total_sessions_taught' => 350, // Placeholder (Booking model not implemented)
+            'average_rating' => round($teacher->average_rating, 1), // Real data from Review model
+            'upcoming_sessions' => [ // Placeholder data (Booking model not implemented)
+                ['id' => 1, 'date' => 'Apr 15', 'time' => '10:00AM', 'student_name' => 'Amina Musa', 'subject' => "Juz' Amma"],
+                ['id' => 2, 'date' => 'Apr 15', 'time' => '11:30AM', 'student_name' => 'Sulaiman Bello', 'subject' => 'Hifz'],
+            ],
         ];
 
         return Inertia::render('Admin/Teachers/Show', [
@@ -139,36 +145,81 @@ class TeacherController extends Controller
     public function updateStatus(Request $request, Teacher $teacher)
     {
         $request->validate([
-            'status' => 'required|in:approved,suspended',
-            'reason' => 'required_if:status,suspended|string|max:500',
+            'status' => 'required|in:approved,suspended,rejected',
+            'reason' => 'required_if:status,suspended,rejected|string|max:500',
         ]);
 
         $teacher->update([
             'status' => $request->status,
-            'suspension_reason' => $request->status === 'suspended' ? $request->reason : null,
+            'suspension_reason' => in_array($request->status, ['suspended', 'rejected']) ? $request->reason : null,
             'suspended_at' => $request->status === 'suspended' ? now() : null,
+            'rejected_at' => $request->status === 'rejected' ? now() : null,
+            'approved_at' => $request->status === 'approved' ? now() : null,
         ]);
 
-        $message = $request->status === 'suspended' 
-            ? "Teacher {$teacher->user->name} has been suspended."
-            : "Teacher {$teacher->user->name} has been activated.";
+        $message = match($request->status) {
+            'suspended' => "Teacher {$teacher->user->name} has been suspended.",
+            'rejected' => "Teacher {$teacher->user->name} has been rejected.",
+            'approved' => "Teacher {$teacher->user->name} has been approved.",
+            default => "Teacher status updated."
+        };
 
         return redirect()->back()->with('success', $message);
     }
 
     /**
-     * Get teacher analytics
+     * Upload a document for a teacher (ID, CV, or Certificate)
      */
-    public function analytics(Teacher $teacher)
+    public function uploadDocument(Request $request, Teacher $teacher, \App\Services\CertificateService $certificateService)
     {
-        // This can be expanded with actual booking/revenue data when those models exist
-        $analytics = [
-            'monthly_bookings' => [], // Placeholder
-            'total_revenue' => $teacher->hourly_rate * 100, // Placeholder calculation
-            'average_rating' => 4.5, // Placeholder
-            'completion_rate' => 95, // Placeholder
-        ];
+        $request->validate([
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB max
+            'type' => 'required|in:id_card_front,id_card_back,cv,certificate',
+            'title' => 'nullable|required_if:type,certificate|string|max:255',
+        ]);
 
-        return response()->json($analytics);
+        $file = $request->file('file');
+        $type = $request->type;
+        
+        // Determine title based on type if not provided
+        $title = $request->title;
+        if (!$title) {
+            $title = match($type) {
+                'id_card_front' => 'ID Card (Front)',
+                'id_card_back' => 'ID Card (Back)',
+                'cv' => 'CV/Resume',
+                default => 'Document'
+            };
+        }
+
+        // Check if document of this type already exists (for ID and CV) and delete it
+        if (in_array($type, ['id_card_front', 'id_card_back', 'cv'])) {
+            $existing = $teacher->certificates()->where('certificate_type', $type)->first();
+            if ($existing) {
+                $certificateService->delete($existing);
+            }
+        }
+
+        $certificateService->upload($teacher, $file, [
+            'certificate_type' => $type,
+            'title' => $title,
+            'description' => $request->description,
+            'issue_date' => $request->issue_date,
+            'expiry_date' => $request->expiry_date,
+            'issuing_organization' => $request->issuing_organization,
+        ]);
+
+        return redirect()->back()->with('success', 'Document uploaded successfully.');
+    }
+    /**
+     * Verify a specific document
+     */
+    public function verifyDocument(Request $request, Teacher $teacher, $certificateId, \App\Services\CertificateService $certificateService)
+    {
+        $certificate = $teacher->certificates()->findOrFail($certificateId);
+        
+        $certificateService->verify($certificate, $request->user());
+
+        return redirect()->back()->with('success', 'Document verified successfully.');
     }
 }

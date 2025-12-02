@@ -63,8 +63,10 @@ export default function TeacherRejectionModal({
         }
 
         setIsSubmitting(true);
-        router.post(`/admin/teachers/${teacher.id}/reject`, {
-            rejection_reason: finalReason.trim(),
+        setIsSubmitting(true);
+        router.put(`/admin/teachers/${teacher.id}/status`, {
+            status: 'rejected',
+            reason: finalReason.trim(),
         }, {
             onSuccess: () => {
                 toast.success('Application Rejected', {
@@ -79,9 +81,9 @@ export default function TeacherRejectionModal({
                 setIsSubmitting(false);
 
                 // Handle specific validation errors
-                if (errors.rejection_reason) {
+                if (errors.reason) {
                     toast.error('Invalid Reason', {
-                        description: errors.rejection_reason,
+                        description: errors.reason,
                     });
                 } else {
                     toast.error('Rejection Failed', {

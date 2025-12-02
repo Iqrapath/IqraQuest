@@ -31,7 +31,7 @@ class CertificateService
             'file_path' => $path,
             'file_name' => $originalName,
             'file_size' => $fileSize,
-            'mime_type' => $mimeType,
+            'file_type' => $mimeType,
             'issue_date' => $data['issue_date'] ?? null,
             'expiry_date' => $data['expiry_date'] ?? null,
             'issuing_organization' => $data['issuing_organization'] ?? null,

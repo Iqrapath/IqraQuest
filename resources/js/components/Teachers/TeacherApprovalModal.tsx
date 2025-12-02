@@ -34,7 +34,9 @@ export default function TeacherApprovalModal({
 
     const handleApprove = () => {
         setIsSubmitting(true);
-        router.post(`/admin/teachers/${teacher.id}/approve`, {}, {
+        router.put(`/admin/teachers/${teacher.id}/status`, {
+            status: 'approved'
+        }, {
             onSuccess: () => {
                 onClose();
                 setIsSubmitting(false);

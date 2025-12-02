@@ -1,4 +1,5 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Icon } from '@iconify/react';
 
 interface TeacherStatusBadgeProps {
     status: 'pending' | 'approved' | 'active' | 'suspended' | 'rejected' | 'under_review';
@@ -17,19 +18,19 @@ export default function TeacherStatusBadge({ status, className = '', tooltipCont
         approved: {
             label: 'Approved',
             className: 'bg-green-100 text-green-800 border-green-200',
-            icon: '✓',
+            icon: <Icon icon="bitcoin-icons:verify-outline" />,
             defaultTooltip: 'Teacher account approved',
         },
         active: {
             label: 'Active',
             className: 'bg-green-100 text-green-800 border-green-200',
-            icon: '✓',
+            icon: <Icon icon="bitcoin-icons:verify-outline" />,
             defaultTooltip: 'Teacher is currently active',
         },
         suspended: {
             label: 'Suspended',
             className: 'bg-red-100 text-red-800 border-red-200',
-            icon: '⊘',
+            icon: <Icon icon="lsicon:suspend-outline" />,
             defaultTooltip: 'Account suspended - contact admin for details',
         },
         rejected: {

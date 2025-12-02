@@ -27,5 +27,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         
         // Show route LAST (catches anything not matched above)
         Route::get('/{teacher}', [\App\Http\Controllers\Admin\TeacherController::class, 'show'])->name('show');
+        // Admin Routes (Should be in admin.php but adding here for visibility/context if needed, or move to admin.php)
+        Route::post('/{teacher}/documents/upload', [\App\Http\Controllers\Admin\TeacherController::class, 'uploadDocument'])->name('teachers.documents.upload');
+        Route::post('/{teacher}/documents/{certificate}/verify', [\App\Http\Controllers\Admin\TeacherController::class, 'verifyDocument'])->name('teachers.documents.verify');
     });
     });

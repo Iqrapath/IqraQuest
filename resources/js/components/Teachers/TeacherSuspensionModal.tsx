@@ -39,7 +39,7 @@ export default function TeacherSuspensionModal({
         }
 
         setIsSubmitting(true);
-        router.post(`/admin/teachers/${teacher.id}/status`, {
+        router.put(`/admin/teachers/${teacher.id}/status`, {
             status: 'suspended',
             reason: reason,
         }, {
