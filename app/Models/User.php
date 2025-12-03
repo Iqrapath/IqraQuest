@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -116,6 +117,33 @@ class User extends Authenticatable implements MustVerifyEmail
     public function student(): HasOne
     {
         return $this->hasOne(Student::class);
+    }
+
+    /**
+     * Get the email verification OTPs for the user
+     */
+    public function emailVerificationOtps()
+    {
+        return $this->hasMany(EmailVerificationOtp::class);
+    }
+
+    /**
+     * Get the latest valid OTP for the user
+     */
+    public function latestOtp()
+    {
+        return $this->emailVerificationOtps()
+            ->active()
+            ->latest()
+            ->first();
+    }
+
+    /**
+     * Check if the user has a valid OTP
+     */
+    public function hasValidOtp(): bool
+    {
+        return $this->latestOtp() !== null;
     }
 
     /**

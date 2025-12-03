@@ -20,8 +20,21 @@ class RegisterController extends Controller
 
         sleep(10);
 
-        // Send email verification notification directly (like teacher registration)
-        $user->sendEmailVerificationNotification();
+        // Check verification method from config
+        $verificationMethod = config('auth.verification.method', 'link');
+
+        if ($verificationMethod === 'otp') {
+            // Generate and send OTP
+            $otpService = app(\App\Services\OtpVerificationService::class);
+            $otpCode = $otpService->generateOtp($user);
+            $expiryMinutes = config('auth.verification.otp_expiry_minutes', 10);
+            
+            // Send OTP via email
+            $user->notify(new \App\Notifications\EmailVerificationOtpNotification($otpCode, $expiryMinutes));
+        } else {
+            // Use default link-based email verification
+            $user->sendEmailVerificationNotification();
+        }
 
         // Do NOT log the user in (unlike default Fortify behavior)
         // This allows us to keep them on the registration page to show the success modal

@@ -32,7 +32,7 @@ export default function StudentGuardianRoleSelection() {
                             How do you want to use this platform?
                         </h1>
                         <p className="text-center font-['Nunito'] text-[16px] font-light leading-[30px] text-[#6f6c90]">
-                            Kindly select how you like to use Iqrapath for learning
+                            Kindly select how you like to use IQRAQUEST for learning
                         </p>
                     </div>
 

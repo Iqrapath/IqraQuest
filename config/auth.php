@@ -112,4 +112,21 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 900),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Email Verification
+    |--------------------------------------------------------------------------
+    |
+    | Configure how email verification works in your application. You can
+    | choose between traditional link-based verification or OTP (one-time
+    | password) verification. The OTP expiry and length can be customized.
+    |
+    */
+
+    'verification' => [
+        'method' => env('EMAIL_VERIFICATION_METHOD', 'link'), // 'link' or 'otp'
+        'otp_expiry_minutes' => env('OTP_EXPIRY_MINUTES', 10),
+        'otp_length' => 6,
+    ],
+
 ];

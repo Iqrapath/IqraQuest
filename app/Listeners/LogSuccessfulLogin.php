@@ -14,11 +14,15 @@ class LogSuccessfulLogin
     public function handle(Login $event): void
     {
         $request = request();
+        $ip = $request->ip();
+
+        // Update user's last login IP
+        $event->user->update(['last_login_ip' => $ip]);
 
         // Log successful login attempt
         LoginAttempt::logAttempt(
             email: $event->user->email,
-            ipAddress: $request->ip(),
+            ipAddress: $ip,
             successful: true,
             userAgent: $request->userAgent()
         );
@@ -26,7 +30,7 @@ class LogSuccessfulLogin
         // Log security event
         SecurityLog::logEvent(
             eventType: 'login_success',
-            ipAddress: $request->ip(),
+            ipAddress: $ip,
             userId: $event->user->id,
             description: 'User logged in successfully',
             metadata: [

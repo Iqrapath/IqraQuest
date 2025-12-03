@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Listeners\LogFailedLogin;
 use App\Listeners\LogLogout;
 use App\Listeners\LogPasswordReset;
 use App\Listeners\LogSuccessfulLogin;

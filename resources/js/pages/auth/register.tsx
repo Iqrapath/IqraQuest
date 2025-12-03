@@ -1,11 +1,19 @@
-import { Head, Link, useForm } from '@inertiajs/react';
-import { FormEventHandler, useState } from 'react';
+import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
+import { FormEventHandler, useState, useEffect } from 'react';
 import AuthSplitLayout from '@/layouts/auth/auth-split-layout';
 import { Icon } from '@iconify/react';
 import { cn } from '@/lib/utils';
 import RegistrationSuccessModal from '@/components/RegistrationSuccessModal';
+import { toast } from 'sonner';
+
+interface RegisterProps {
+    verificationMethod?: 'link' | 'otp';
+}
 
 export default function Register() {
+    const { props } = usePage<{ verificationMethod?: 'link' | 'otp' }>();
+    const verificationMethod = props.verificationMethod || 'link';
+
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -36,6 +44,18 @@ export default function Register() {
             preserveScroll: true,
         });
     };
+
+    // Auto-redirect for OTP mode
+    useEffect(() => {
+        if (showSuccessModal && verificationMethod === 'otp') {
+            const timer = setTimeout(() => {
+                toast.info('Redirecting to OTP verification...');
+                router.visit('/email/verify/otp');
+            }, 2500); // 2.5 seconds
+
+            return () => clearTimeout(timer);
+        }
+    }, [showSuccessModal, verificationMethod]);
 
     return (
         <AuthSplitLayout>
@@ -243,17 +263,33 @@ export default function Register() {
                         </button>
                     </div>
 
-                    {/* Login Link */}
-                    <div className="flex items-center justify-center gap-1">
-                        <p className="font-['Nunito'] text-[13.253px] font-normal text-gray-500">
-                            Already have an account?
-                        </p>
-                        <Link
-                            href="/login"
-                            className="rounded-[6.626px] px-[7.573px] py-[3.786px] font-['Inter'] text-[13.253px] font-medium text-[#338078] transition-colors hover:bg-[#338078]/10"
-                        >
-                            Login
-                        </Link>
+                    {/* Login and Registration Links */}
+                    <div className="space-y-3">
+                        {/* Already have account */}
+                        <div className="flex items-center justify-center gap-1">
+                            <p className="font-['Nunito'] text-[13.253px] font-normal text-gray-500">
+                                Already have an account?
+                            </p>
+                            <Link
+                                href="/login"
+                                className="rounded-[6.626px] px-[7.573px] py-[3.786px] font-['Inter'] text-[13.253px] font-medium text-[#338078] transition-colors hover:bg-[#338078]/10"
+                            >
+                                Login
+                            </Link>
+                        </div>
+
+                        {/* Register as teacher */}
+                        <div className="flex items-center justify-center gap-1">
+                            <p className="font-['Nunito'] text-[13.253px] font-normal text-gray-500">
+                                Want to teach?
+                            </p>
+                            <Link
+                                href="/register/teacher"
+                                className="rounded-[6.626px] px-[7.573px] py-[3.786px] font-['Inter'] text-[13.253px] font-medium text-[#338078] transition-colors hover:bg-[#338078]/10"
+                            >
+                                Register as Teacher
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -262,6 +298,7 @@ export default function Register() {
             <RegistrationSuccessModal
                 isOpen={showSuccessModal}
                 onClose={() => setShowSuccessModal(false)}
+                verificationMethod={verificationMethod}
             />
         </AuthSplitLayout>
     );

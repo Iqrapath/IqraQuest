@@ -18,7 +18,9 @@ class TeacherRegistrationController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('auth/TeacherRegister');
+        return Inertia::render('auth/TeacherRegister', [
+            'verificationMethod' => config('auth.verification.method', 'link'),
+        ]);
     }
 
     /**
@@ -41,8 +43,21 @@ class TeacherRegistrationController extends Controller
             'onboarding_step' => 1,
         ]);
 
-        // Send email verification (Laravel's default)
-        $user->sendEmailVerificationNotification();
+        // Check verification method from config
+        $verificationMethod = config('auth.verification.method', 'link');
+
+        if ($verificationMethod === 'otp') {
+            // Generate and send OTP
+            $otpService = app(\App\Services\OtpVerificationService::class);
+            $otpCode = $otpService->generateOtp($user);
+            $expiryMinutes = config('auth.verification.otp_expiry_minutes', 10);
+            
+            // Send OTP via email
+            $user->notify(new \App\Notifications\EmailVerificationOtpNotification($otpCode, $expiryMinutes));
+        } else {
+            // Use default link-based email verification
+            $user->sendEmailVerificationNotification();
+        }
 
         // DON'T log the user in - they need to verify email first
         // Stay on page to show modal

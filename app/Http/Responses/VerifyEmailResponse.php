@@ -13,6 +13,10 @@ class VerifyEmailResponse implements VerifyEmailResponseContract
     {
         $user = $request->user();
         
+        // Clean up any existing OTPs since email is now verified
+        $otpService = app(\App\Services\OtpVerificationService::class);
+        $otpService->clearUserOtps($user);
+        
         // Send welcome email after verification (for teachers)
         if ($user->role->value === 'teacher') {
             // Send welcome email with onboarding instructions

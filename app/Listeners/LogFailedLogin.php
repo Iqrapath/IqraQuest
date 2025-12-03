@@ -6,6 +6,7 @@ use App\Http\Middleware\BlockSuspiciousIPs;
 use App\Models\LoginAttempt;
 use App\Models\SecurityLog;
 use Illuminate\Auth\Events\Failed;
+use Illuminate\Support\Facades\Cache;
 
 class LogFailedLogin
 {
@@ -16,11 +17,12 @@ class LogFailedLogin
     {
         $request = request();
         $email = $event->credentials['email'] ?? 'unknown';
+        $ip = $request->ip();
 
         // Log failed login attempt
         LoginAttempt::logAttempt(
             email: $email,
-            ipAddress: $request->ip(),
+            ipAddress: $ip,
             successful: false,
             userAgent: $request->userAgent()
         );
@@ -28,7 +30,7 @@ class LogFailedLogin
         // Log security event
         SecurityLog::logEvent(
             eventType: 'login_failed',
-            ipAddress: $request->ip(),
+            ipAddress: $ip,
             userId: null,
             description: "Failed login attempt for email: {$email}",
             metadata: [
@@ -39,14 +41,26 @@ class LogFailedLogin
         );
 
         // Increment failed attempts for IP blocking
-        BlockSuspiciousIPs::incrementAttempts($request->ip());
+        BlockSuspiciousIPs::incrementAttempts($ip);
+
+        // Calculate remaining attempts before IP block
+        $maxAttempts = config('security.ip_blocking.max_attempts', 10);
+        $currentAttempts = Cache::get("failed_attempts:{$ip}", 0);
+        $remainingAttempts = max(0, $maxAttempts - $currentAttempts);
+
+        // Flash remaining attempts to session for frontend display
+        if ($remainingAttempts <= 5 && $remainingAttempts > 0) {
+            session()->flash('login_warning', "Warning: {$remainingAttempts} attempt(s) remaining before your IP is temporarily blocked.");
+        } elseif ($remainingAttempts === 0) {
+            session()->flash('login_error', 'Your IP has been blocked due to too many failed attempts. Please try again later.');
+        }
 
         // Check for brute force attempts
         $recentFailures = LoginAttempt::recentFailedAttempts($email, 15);
         if ($recentFailures >= 5) {
             SecurityLog::logEvent(
                 eventType: 'brute_force_detected',
-                ipAddress: $request->ip(),
+                ipAddress: $ip,
                 userId: null,
                 description: "Possible brute force attack detected for email: {$email}",
                 metadata: [

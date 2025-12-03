@@ -4,9 +4,14 @@ import AppLogoIcon from './app-logo-icon';
 interface RegistrationSuccessModalProps {
     isOpen: boolean;
     onClose: () => void;
+    verificationMethod?: 'link' | 'otp';
 }
 
-export default function RegistrationSuccessModal({ isOpen, onClose }: RegistrationSuccessModalProps) {
+export default function RegistrationSuccessModal({
+    isOpen,
+    onClose,
+    verificationMethod = 'link'
+}: RegistrationSuccessModalProps) {
     if (!isOpen) return null;
 
     const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -15,8 +20,10 @@ export default function RegistrationSuccessModal({ isOpen, onClose }: Registrati
         }
     };
 
+    const isOtpMode = verificationMethod === 'otp';
+
     return (
-        <div 
+        <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
             onClick={handleBackdropClick}
         >
@@ -36,7 +43,7 @@ export default function RegistrationSuccessModal({ isOpen, onClose }: Registrati
                     <div className="absolute left-[81.34%] right-0 top-[22.92%] bottom-[56.61%] rounded-[10px] bg-[#a2fff6] opacity-50" />
                     <div className="absolute left-0 right-[79.96%] top-[52.21%] bottom-[25.81%] rounded-[8px] bg-[#ebfffd] opacity-50" />
                     <div className="absolute left-[72.63%] right-[4.12%] top-[74.48%] bottom-0 rounded-[8px] bg-[#ebfffd] opacity-50" />
-                    
+
                     {/* Check mark circle */}
                     <div className="absolute left-1/2 top-1/2 flex h-[100px] w-[100px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#338078]">
                         <Icon icon="mdi:check" className="h-[60px] w-[60px] text-white" />
@@ -49,10 +56,21 @@ export default function RegistrationSuccessModal({ isOpen, onClose }: Registrati
                         Thank you for signing up!
                     </h2>
                     <div className="font-['Nunito'] text-[16px] font-medium leading-[1.5] text-gray-500">
-                        <p className="mb-0">
-                            A message with a confirmation link has been sent to your email address.
-                        </p>
-                        <p>Kindly open the link to activate your account.</p>
+                        {isOtpMode ? (
+                            <>
+                                <p className="mb-0">
+                                    A 6-digit verification code has been sent to your email address.
+                                </p>
+                                <p>You will be redirected to the verification page shortly...</p>
+                            </>
+                        ) : (
+                            <>
+                                <p className="mb-0">
+                                    A message with a confirmation link has been sent to your email address.
+                                </p>
+                                <p>Kindly open the link to activate your account.</p>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

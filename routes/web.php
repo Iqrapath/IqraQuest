@@ -42,6 +42,16 @@ Route::post('/onboarding/skip', function () {
     return back();
 })->middleware(['auth', 'verified'])->name('onboarding.skip');
 
+// OTP Email Verification Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/email/verify/otp', [\App\Http\Controllers\Auth\OtpVerificationController::class, 'show'])
+        ->name('verification.otp');
+    Route::post('/email/verify/otp', [\App\Http\Controllers\Auth\OtpVerificationController::class, 'verify'])
+        ->name('verification.otp.verify');
+    Route::post('/email/verify/otp/resend', [\App\Http\Controllers\Auth\OtpVerificationController::class, 'resend'])
+        ->name('verification.otp.resend');
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
     // Redirect to role-specific dashboard
     Route::get('dashboard', function () {
