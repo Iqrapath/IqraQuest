@@ -18,6 +18,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         // Specific routes BEFORE dynamic parameter routes
         Route::get('/pending', [TeacherApprovalController::class, 'index'])->name('pending');
         Route::get('/history', [TeacherApprovalController::class, 'history'])->name('history');
+        Route::get('/create', [\App\Http\Controllers\Admin\TeacherController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\TeacherController::class, 'store'])->name('store');
         
         // Dynamic parameter routes
         Route::get('/{teacher}/analytics', [\App\Http\Controllers\Admin\TeacherController::class, 'analytics'])->name('analytics');

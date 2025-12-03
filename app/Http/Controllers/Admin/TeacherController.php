@@ -108,6 +108,110 @@ class TeacherController extends Controller
     }
 
     /**
+     * Show the form for creating a new teacher
+     */
+    public function create(): Response
+    {
+        return Inertia::render('Admin/Teachers/Create', [
+            'subjects' => Subject::active()->ordered()->get(['id', 'name']),
+        ]);
+    }
+
+    /**
+     * Store a newly created teacher in storage
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'nullable|string|max:20',
+            'country' => 'nullable|string|max:100',
+            'city' => 'nullable|string|max:100',
+            'subject_ids' => 'required|array|min:1',
+            'subject_ids.*' => 'exists:subjects,id',
+            'experience_years' => 'nullable|integer|min:0',
+            'qualification_level' => 'nullable|string|max:100',
+            'bio' => 'nullable|string|max:1000',
+            'teaching_mode' => 'required|in:full-time,part-time',
+            'teaching_type' => 'nullable|string|in:online,in-person,both',
+            'availability' => 'nullable|array',
+            'preferred_currency' => 'nullable|string|in:NGN,USD',
+            'hourly_rate' => 'nullable|numeric|min:0',
+            'payment_type' => 'nullable|string|in:bank_transfer,paystack,paypal,stripe',
+            'bank_name' => 'nullable|string|max:255',
+            'bank_code' => 'nullable|string|max:50',
+            'account_number' => 'nullable|string|max:50',
+            'account_name' => 'nullable|string|max:255',
+            'routing_number' => 'nullable|string|max:50',
+            'paypal_email' => 'nullable|email|max:255',
+            'stripe_account_id' => 'nullable|string|max:255',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        \DB::transaction(function () use ($validated, &$teacher) {
+            // Create user account
+            $user = \App\Models\User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? null,
+                'password' => \Hash::make($validated['password']),
+                'role' => 'teacher',
+            ]);
+
+            // Create teacher profile
+            $teacher = Teacher::create([
+                'user_id' => $user->id,
+                'country' => $validated['country'] ?? null,
+                'city' => $validated['city'] ?? null,
+                'experience_years' => $validated['experience_years'] ?? 0,
+                'qualification_level' => $validated['qualification_level'] ?? null,
+                'bio' => $validated['bio'] ?? null,
+                'status' => 'pending',
+                'teaching_mode' => $validated['teaching_mode'],
+                'teaching_type' => $validated['teaching_type'] ?? null,
+                'preferred_currency' => $validated['preferred_currency'] ?? 'USD',
+                'hourly_rate' => $validated['hourly_rate'] ?? null,
+            ]);
+
+            // Attach subjects
+            $teacher->subjects()->attach($validated['subject_ids']);
+
+            // Save availability if provided
+            if (!empty($validated['availability'])) {
+                foreach ($validated['availability'] as $slot) {
+                    $teacher->availability()->create([
+                        'day_of_week' => $slot['day'],
+                        'start_time' => $slot['start'],
+                        'end_time' => $slot['end'],
+                        'is_available' => true,
+                    ]);
+                }
+            }
+
+            // Save payment method if provided
+            if (!empty($validated['payment_type'])) {
+                $paymentData = [
+                    'payment_type' => $validated['payment_type'],
+                    'is_primary' => true,
+                    'bank_name' => $validated['bank_name'] ?? null,
+                    'bank_code' => $validated['bank_code'] ?? null,
+                    'account_number' => $validated['account_number'] ?? null,
+                    'account_name' => $validated['account_name'] ?? null,
+                    'routing_number' => $validated['routing_number'] ?? null,
+                    'email' => $validated['paypal_email'] ?? null,
+                    'account_id' => $validated['stripe_account_id'] ?? null,
+                ];
+
+                $teacher->paymentMethods()->create($paymentData);
+            }
+        });
+
+        return redirect()->route('admin.teachers.show', $teacher->id)
+            ->with('success', 'Teacher created successfully');
+    }
+
+    /**
      * Show teacher analytics/performance page
      */
     public function analytics(Teacher $teacher): Response

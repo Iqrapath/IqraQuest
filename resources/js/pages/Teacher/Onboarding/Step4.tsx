@@ -88,6 +88,17 @@ export default function Step4({ teacher }: Props) {
     }, [data.hourly_rate, config, minRate, maxRate, loading]);
 
     const handleCurrencyChange = (newCurrency: 'NGN' | 'USD') => {
+        const oldCurrency = currency;
+
+        // Convert the hourly rate if there's an existing value
+        if (data.hourly_rate && !loading) {
+            const currentRate = Number(data.hourly_rate);
+            if (!isNaN(currentRate) && currentRate > 0) {
+                const convertedRate = convert(currentRate, oldCurrency, newCurrency);
+                setData('hourly_rate', convertedRate.toFixed(2));
+            }
+        }
+
         setCurrency(newCurrency);
         setData('preferred_currency', newCurrency);
         // Clear any existing backend errors when currency changes

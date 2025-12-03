@@ -218,73 +218,91 @@ export default function Step1({ teacher }: Props) {
                                         {errors.country && <p className="mt-2 text-sm text-red-600">{errors.country}</p>}
                                     </div>
 
-                                    {/* City Field - Combobox */}
+                                    {/* City Field - Combobox or Text Input */}
                                     <div>
                                         <label htmlFor="city" className="block text-[#170F49] text-[16px] font-medium mb-4" style={{ fontFamily: 'Nunito' }}>
                                             City
                                         </label>
-                                        <Popover open={cityComboboxOpen} onOpenChange={setCityComboboxOpen}>
-                                            <PopoverTrigger asChild>
-                                                <button
-                                                    type="button"
-                                                    disabled={!selectedCountryCode}
-                                                    className={cn(
-                                                        "w-full h-[48px] px-[18px] border border-[#9E9E9E] rounded-[5px] text-[16px] flex items-center justify-between focus:outline-none focus:border-[#338078] focus:ring-1 focus:ring-[#338078] disabled:opacity-50 disabled:cursor-not-allowed",
-                                                        data.city ? "text-[#000000]" : "text-[#6B7280]"
-                                                    )}
-                                                    style={{ fontFamily: 'Nunito' }}
-                                                >
-                                                    {data.city || (selectedCountryCode ? "Select city" : "Select a country first")}
-                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                                </button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-[307px] p-0" align="start">
-                                                <Command>
-                                                    <CommandInput
-                                                        placeholder="Search or type city..."
-                                                        value={citySearchValue}
-                                                        onValueChange={setCitySearchValue}
-                                                    />
-                                                    <CommandList>
-                                                        <CommandEmpty>
-                                                            <button
-                                                                type="button"
-                                                                className="w-full text-left px-2 py-1.5 text-sm hover:bg-gray-100 rounded"
-                                                                onClick={() => {
-                                                                    setData('city', citySearchValue);
-                                                                    setCitySearchValue('');
-                                                                    setCityComboboxOpen(false);
-                                                                }}
-                                                            >
-                                                                Use "{citySearchValue}"
-                                                            </button>
-                                                        </CommandEmpty>
-                                                        <CommandGroup>
-                                                            {cities.map((city) => (
+                                        {cities.length > 0 ? (
+                                            <Popover open={cityComboboxOpen} onOpenChange={setCityComboboxOpen}>
+                                                <PopoverTrigger asChild>
+                                                    <button
+                                                        type="button"
+                                                        disabled={!selectedCountryCode}
+                                                        className={cn(
+                                                            "w-full h-[48px] px-[18px] border border-[#9E9E9E] rounded-[5px] text-[16px] flex items-center justify-between focus:outline-none focus:border-[#338078] focus:ring-1 focus:ring-[#338078] disabled:opacity-50 disabled:cursor-not-allowed",
+                                                            data.city ? "text-[#000000]" : "text-[#6B7280]"
+                                                        )}
+                                                        style={{ fontFamily: 'Nunito' }}
+                                                    >
+                                                        {data.city || (selectedCountryCode ? "Select city" : "Select a country first")}
+                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                    </button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-[307px] p-0" align="start">
+                                                    <Command>
+                                                        <CommandInput
+                                                            placeholder="Search city..."
+                                                            value={citySearchValue}
+                                                            onValueChange={setCitySearchValue}
+                                                        />
+                                                        <CommandList>
+                                                            <CommandEmpty>No city found.</CommandEmpty>
+                                                            <CommandGroup>
+                                                                {cities.map((city) => (
+                                                                    <CommandItem
+                                                                        key={city.name}
+                                                                        value={city.name}
+                                                                        onSelect={(currentValue) => {
+                                                                            setData('city', currentValue);
+                                                                            setCitySearchValue('');
+                                                                            setCityComboboxOpen(false);
+                                                                        }}
+                                                                    >
+                                                                        <Check
+                                                                            className={cn(
+                                                                                "mr-2 h-4 w-4",
+                                                                                data.city === city.name ? "opacity-100" : "opacity-0"
+                                                                            )}
+                                                                        />
+                                                                        {city.name}
+                                                                    </CommandItem>
+                                                                ))}
+                                                                {/* Add "Other" option for manual entry */}
                                                                 <CommandItem
-                                                                    key={city.name}
-                                                                    value={city.name}
-                                                                    onSelect={(currentValue) => {
-                                                                        setData('city', currentValue);
-                                                                        setCitySearchValue('');
+                                                                    value="__other__"
+                                                                    onSelect={() => {
+                                                                        setData('city', '');
                                                                         setCityComboboxOpen(false);
                                                                     }}
+                                                                    className="border-t"
                                                                 >
-                                                                    <Check
-                                                                        className={cn(
-                                                                            "mr-2 h-4 w-4",
-                                                                            data.city === city.name ? "opacity-100" : "opacity-0"
-                                                                        )}
-                                                                    />
-                                                                    {city.name}
+                                                                    <span className="italic text-gray-500">Other (type manually)</span>
                                                                 </CommandItem>
-                                                            ))}
-                                                        </CommandGroup>
-                                                    </CommandList>
-                                                </Command>
-                                            </PopoverContent>
-                                        </Popover>
+                                                            </CommandGroup>
+                                                        </CommandList>
+                                                    </Command>
+                                                </PopoverContent>
+                                            </Popover>
+                                        ) : (
+                                            <input
+                                                id="city"
+                                                type="text"
+                                                value={data.city}
+                                                onChange={(e) => setData('city', e.target.value)}
+                                                disabled={!selectedCountryCode}
+                                                className={cn(
+                                                    "w-full h-[48px] px-[18px] border border-[#9E9E9E] rounded-[5px] text-[#000000] text-[16px] focus:ring-[#338078] outline-none",
+                                                    !selectedCountryCode && "opacity-50 cursor-not-allowed"
+                                                )}
+                                                placeholder={selectedCountryCode ? "Enter city name" : "Select a country first"}
+                                                style={{ fontFamily: 'Nunito' }}
+                                            />
+                                        )}
                                         {errors.city && <p className="mt-2 text-sm text-red-600">{errors.city}</p>}
+                                        {selectedCountryCode && cities.length === 0 && (
+                                            <p className="mt-1 text-xs text-gray-500">No cities available for this country. Please enter manually.</p>
+                                        )}
                                     </div>
                                 </div>
                             </div>

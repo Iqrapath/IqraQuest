@@ -185,18 +185,27 @@ export default function TeachersIndex({ teachers, stats, filters, filter_options
             <Head title="Teacher Management" />
 
             <div className="w-full">
-                {/* Breadcrumb */}
-                <div className="flex items-center gap-2 md:gap-3.5 mb-6 md:mb-8 overflow-x-auto">
+                {/* Breadcrumb with Action Button */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 md:mb-8">
+                    <div className="flex items-center gap-2 md:gap-3.5 overflow-x-auto">
+                        <Link
+                            href="/admin/dashboard"
+                            className="text-gray-500 text-[16px] md:text-[20px] font-light font-['Nunito'] hover:text-gray-700 transition-colors whitespace-nowrap"
+                        >
+                            Dashboard
+                        </Link>
+                        <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gray-400 flex-shrink-0" />
+                        <span className="text-[#141522] text-[16px] md:text-[20px] font-semibold font-['Nunito'] whitespace-nowrap">
+                            Teacher Management
+                        </span>
+                    </div>
                     <Link
-                        href="/admin/dashboard"
-                        className="text-gray-500 text-[16px] md:text-[20px] font-light font-['Nunito'] hover:text-gray-700 transition-colors whitespace-nowrap"
+                        href="/admin/teachers/create"
+                        className="flex items-center justify-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-[#338078] hover:bg-[#2a6a63] text-white rounded-xl font-['Nunito'] font-medium text-sm md:text-base transition-colors shadow-sm whitespace-nowrap"
                     >
-                        Dashboard
+                        <Icon icon="mdi:plus" className="w-5 h-5" />
+                        Create New Teacher
                     </Link>
-                    <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-gray-400 flex-shrink-0" />
-                    <span className="text-[#141522] text-[16px] md:text-[20px] font-semibold font-['Nunito'] whitespace-nowrap">
-                        Teacher Management
-                    </span>
                 </div>
 
                 {/* Search and Filters Row */}
