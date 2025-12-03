@@ -31,6 +31,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'status',
         'onboarding_completed_at',
         'onboarding_skipped',
+        'google_id',
+        'facebook_id',
+        'email_verified_at',
     ];
 
     /**

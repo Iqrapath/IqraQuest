@@ -28,6 +28,12 @@ Route::get('/select-role', [\App\Http\Controllers\Auth\RoleSelectionController::
     ->middleware(['auth', 'verified'])
     ->name('select-role');
 
+// Social Login Routes
+Route::get('/auth/{provider}/redirect', [\App\Http\Controllers\Auth\SocialLoginController::class, 'redirect'])
+    ->name('social.redirect');
+Route::get('/auth/{provider}/callback', [\App\Http\Controllers\Auth\SocialLoginController::class, 'callback'])
+    ->name('social.callback');
+
 Route::post('/select-role', [\App\Http\Controllers\Auth\RoleSelectionController::class, 'store'])
     ->middleware(['auth', 'verified']);
 

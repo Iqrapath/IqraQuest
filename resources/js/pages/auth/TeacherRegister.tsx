@@ -240,7 +240,8 @@ export default function TeacherRegister() {
                     <div className="flex flex-col gap-[15px]">
                         <button
                             type="button"
-                            className="flex h-[50px] w-full items-center justify-center gap-[11px] rounded-[53px] border border-[#d0d5dd] bg-white px-[15px] py-[15px] font-['Nunito'] text-[15px] font-semibold text-[#344054] transition-colors hover:bg-gray-50"
+                            className="flex h-[50px] w-full items-center justify-center gap-[11px] rounded-[53px] border border-[#d0d5dd] bg-white px-[15px] py-[15px] font-['Nunito'] text-[15px] font-semibold text-[#344054] transition-colors hover:bg-gray-50 cursor-pointer"
+                            onClick={() => window.location.href = '/auth/google/redirect?role=teacher'}
                         >
                             <Icon icon="flat-color-icons:google" className="h-[19px] w-[19px]" />
                             Continue with Google
@@ -248,7 +249,8 @@ export default function TeacherRegister() {
 
                         <button
                             type="button"
-                            className="flex h-[50px] w-full items-center justify-center gap-[11px] rounded-[53px] border border-[#d0d5dd] bg-white px-[15px] py-[15px] font-['Nunito'] text-[15px] font-semibold text-[#344054] transition-colors hover:bg-gray-50"
+                            className="flex h-[50px] w-full items-center justify-center gap-[11px] rounded-[53px] border border-[#d0d5dd] bg-white px-[15px] py-[15px] font-['Nunito'] text-[15px] font-semibold text-[#344054] transition-colors hover:bg-gray-50 cursor-pointer"
+                            onClick={() => window.location.href = '/auth/facebook/redirect?role=teacher'}
                         >
                             <Icon icon="logos:facebook" className="h-[19px] w-[19px]" />
                             Continue with Facebook
