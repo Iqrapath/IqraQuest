@@ -73,9 +73,13 @@ interface Props {
             subject: string;
         }[];
     };
+    availableSubjects: {
+        id: number;
+        name: string;
+    }[];
 }
 
-export default function TeacherShow({ teacher, stats }: Props) {
+export default function TeacherShow({ teacher, stats, availableSubjects }: Props) {
     // Prepare earnings data for the header component
     const earnings = {
         wallet_balance: 18500, // TODO: Get from backend
@@ -121,7 +125,7 @@ export default function TeacherShow({ teacher, stats }: Props) {
                 <TeacherAboutSection teacher={teacher} />
 
                 {/* Subjects & Specialization Section */}
-                <TeacherSubjectsSection teacher={teacher} />
+                <TeacherSubjectsSection teacher={teacher} availableSubjects={availableSubjects} />
 
                 {/* Documents Section */}
                 <TeacherDocumentsSection teacher={teacher} />

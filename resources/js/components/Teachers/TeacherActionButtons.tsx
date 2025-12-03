@@ -28,12 +28,12 @@ export default function TeacherActionButtons({ teacher }: TeacherActionButtonsPr
 
     return (
         <>
-            <div className="flex items-center gap-4 py-3">
+            <div className="flex flex-wrap items-center gap-2 md:gap-4 py-3">
                 {/* Approve Button */}
                 {teacher.status !== 'approved' && (
                     <button
                         onClick={() => setIsApproveModalOpen(true)}
-                        className="bg-[#338078] hover:bg-[#2a6a63] text-white font-['Poppins'] text-[13.34px] px-5 py-3 rounded-[24px] transition-colors"
+                        className="bg-[#338078] hover:bg-[#2a6a63] text-white font-['Poppins'] text-xs md:text-[13.34px] px-4 md:px-5 py-2 md:py-3 rounded-[24px] transition-colors"
                     >
                         Approve
                     </button>
@@ -42,7 +42,7 @@ export default function TeacherActionButtons({ teacher }: TeacherActionButtonsPr
                 {/* Send Message Button */}
                 <button
                     onClick={handleSendMessage}
-                    className="border-[1.25px] border-[#338078] text-[#338078] hover:bg-[#338078] hover:text-white font-['Poppins'] text-[13.34px] px-5 py-3 rounded-[24px] transition-colors"
+                    className="border-[1.25px] border-[#338078] text-[#338078] hover:bg-[#338078] hover:text-white font-['Poppins'] text-xs md:text-[13.34px] px-4 md:px-5 py-2 md:py-3 rounded-[24px] transition-colors"
                 >
                     Send Message
                 </button>
@@ -51,7 +51,7 @@ export default function TeacherActionButtons({ teacher }: TeacherActionButtonsPr
                 {teacher.status !== 'rejected' && (
                     <button
                         onClick={() => setIsRejectModalOpen(true)}
-                        className="text-[#111928] hover:bg-gray-100 font-['Poppins'] text-[13.34px] px-5 py-3 rounded-[24px] transition-colors"
+                        className="text-[#111928] hover:bg-gray-100 font-['Poppins'] text-xs md:text-[13.34px] px-4 md:px-5 py-2 md:py-3 rounded-[24px] transition-colors"
                     >
                         Reject
                     </button>
@@ -60,7 +60,7 @@ export default function TeacherActionButtons({ teacher }: TeacherActionButtonsPr
                 {/* Delete/Suspend Button */}
                 <button
                     onClick={() => setIsSuspendModalOpen(true)}
-                    className="text-[#ff3b30] hover:bg-red-50 font-['Poppins'] text-[13.34px] px-5 py-3 rounded-[24px] transition-colors"
+                    className="text-[#ff3b30] hover:bg-red-50 font-['Poppins'] text-xs md:text-[13.34px] px-4 md:px-5 py-2 md:py-3 rounded-[24px] transition-colors"
                 >
                     Delete Account
                 </button>

@@ -87,16 +87,16 @@ export default function TeacherDocumentsSection({ teacher }: TeacherDocumentsSec
     };
 
     return (
-        <div className="bg-white border border-[rgba(0,0,0,0.1)] rounded-[16px] p-[32px] w-full mb-8">
+        <div className="bg-white border border-[rgba(0,0,0,0.1)] rounded-[16px] p-4 md:p-[32px] w-full mb-6 md:mb-8">
             {/* Title */}
-            <h3 className="font-['Nunito'] font-semibold text-[24px] text-[#101928] leading-[1.2] mb-[32px]">
+            <h3 className="font-['Nunito'] font-semibold text-xl md:text-[24px] text-[#101928] leading-[1.2] mb-6 md:mb-[32px]">
                 Document Section
             </h3>
 
             {/* ID Verification Section */}
-            <div className="border border-[rgba(0,0,0,0.1)] rounded-[12px] p-[24px] mb-[24px]">
+            <div className="border border-[rgba(0,0,0,0.1)] rounded-[12px] p-4 md:p-[24px] mb-4 md:mb-[24px]">
                 <div className="flex items-center gap-2 mb-[20px]">
-                    <p className="font-['Outfit'] font-normal text-[16px] text-[#101928]">
+                    <p className="font-['Outfit'] font-normal text-sm md:text-[16px] text-[#101928]">
                         ID Verification:
                     </p>
                     <div className="flex items-center gap-1">
@@ -107,18 +107,18 @@ export default function TeacherDocumentsSection({ teacher }: TeacherDocumentsSec
                         ) : (
                             <Icon icon="mdi:alert-circle" className="w-4 h-4 text-red-500" />
                         )}
-                        <span className={`font-['Outfit'] font-light text-[14px] ${isIdVerified ? 'text-green-600' : 'text-[#6B7280]'}`}>
+                        <span className={`font-['Outfit'] font-light text-xs md:text-[14px] ${isIdVerified ? 'text-green-600' : 'text-[#6B7280]'}`}>
                             {idVerificationStatus}
                         </span>
                     </div>
                 </div>
 
                 {/* ID Documents Grid */}
-                <div className="grid grid-cols-2 gap-[24px] mb-[16px]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-[24px] mb-[16px]">
                     {/* Document Front */}
                     <div>
                         <div className="flex justify-between items-center mb-[12px]">
-                            <p className="font-['Outfit'] font-normal text-[14px] text-[#101928]">
+                            <p className="font-['Outfit'] font-normal text-xs md:text-[14px] text-[#101928]">
                                 Document Front
                             </p>
                             {idFront && idFront.verification_status === 'pending' && (
@@ -134,7 +134,6 @@ export default function TeacherDocumentsSection({ teacher }: TeacherDocumentsSec
                             {hasIdFront ? (
                                 <>
                                     <Icon icon="mdi:card-account-details" className="w-12 h-12 text-gray-400" />
-                                    {/* Overlay for viewing if needed */}
                                     <a href={`/storage/${idFront.file_path}`} target="_blank" rel="noreferrer" className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center text-white font-['Outfit'] text-sm">
                                         View
                                     </a>
@@ -154,7 +153,7 @@ export default function TeacherDocumentsSection({ teacher }: TeacherDocumentsSec
                     {/* Document Back */}
                     <div>
                         <div className="flex justify-between items-center mb-[12px]">
-                            <p className="font-['Outfit'] font-normal text-[14px] text-[#101928]">
+                            <p className="font-['Outfit'] font-normal text-xs md:text-[14px] text-[#101928]">
                                 Document Back
                             </p>
                             {idBack && idBack.verification_status === 'pending' && (
@@ -192,7 +191,7 @@ export default function TeacherDocumentsSection({ teacher }: TeacherDocumentsSec
                     {!isIdUploaded && (
                         <button
                             onClick={() => openUploadModal('id_card_front')}
-                            className="font-['Outfit'] font-normal text-[14px] text-gray-600 hover:text-gray-800 transition-colors"
+                            className="font-['Outfit'] font-normal text-xs md:text-[14px] text-gray-600 hover:text-gray-800 transition-colors"
                         >
                             Upload ID
                         </button>
@@ -201,7 +200,7 @@ export default function TeacherDocumentsSection({ teacher }: TeacherDocumentsSec
                         <>
                             <button
                                 onClick={() => openUploadModal('id_card_front')}
-                                className="font-['Outfit'] font-normal text-[14px] text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
+                                className="font-['Outfit'] font-normal text-xs md:text-[14px] text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
                             >
                                 Re-upload ID
                             </button>
@@ -211,39 +210,26 @@ export default function TeacherDocumentsSection({ teacher }: TeacherDocumentsSec
             </div>
 
             {/* Certificates Section */}
-            <div className="border border-[rgba(0,0,0,0.1)] rounded-[12px] p-[24px] mb-[24px]">
-                <div className="flex items-center justify-between mb-[20px]">
-                    <div className="flex items-center gap-2">
-                        <p className="font-['Outfit'] font-normal text-[16px] text-[#101928]">
-                            Certificates:
-                        </p>
-                        <div className="flex items-center gap-1">
-                            {otherCertificates.length > 0 ? (
-                                <Icon icon="mdi:check-circle" className="w-4 h-4 text-green-600" />
-                            ) : (
-                                <Icon icon="mdi:alert-circle" className="w-4 h-4 text-gray-400" />
-                            )}
-                            <span className="font-['Outfit'] font-light text-[14px] text-[#6B7280]">
-                                {otherCertificates.length > 0 ? 'Uploaded' : 'None Uploaded'}
-                            </span>
-                        </div>
-                    </div>
+            <div className="border border-[rgba(0,0,0,0.1)] rounded-[12px] p-4 md:p-[24px] mb-4 md:mb-[24px]">
+                <div className="flex items-center justify-between mb-4 md:mb-[20px]">
+                    <p className="font-['Outfit'] font-normal text-sm md:text-[16px] text-[#101928]">
+                        Certificates:
+                    </p>
                     <button
                         onClick={() => openUploadModal('certificate')}
-                        className="font-['Outfit'] font-normal text-[14px] text-[#338078] hover:text-[#2a6a63] transition-colors flex items-center gap-1 cursor-pointer"
+                        className="px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm text-white bg-[#338078] hover:bg-[#2a6a63] rounded-lg transition-colors cursor-pointer"
                     >
-                        <Icon icon="mdi:plus" className="w-4 h-4" />
                         Add Certificate
                     </button>
                 </div>
 
-                {/* Certificates Grid */}
-                <div className="grid grid-cols-2 gap-[24px]">
+                {/* Certificate Grid - Responsive */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                     {otherCertificates.length > 0 ? (
                         otherCertificates.map((cert) => (
                             <div key={cert.id}>
                                 <div className="flex justify-between items-center mb-[12px]">
-                                    <p className="font-['Outfit'] font-normal text-[14px] text-[#338078]">
+                                    <p className="font-['Outfit'] font-normal text-xs md:text-[14px] text-[#338078] truncate">
                                         {cert.title || cert.name}
                                     </p>
                                     {cert.verification_status === 'pending' ? (
@@ -269,23 +255,21 @@ export default function TeacherDocumentsSection({ teacher }: TeacherDocumentsSec
                                         href={`/storage/${cert.file_path}`}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="font-['Outfit'] font-normal text-[14px] text-gray-600 hover:text-gray-800 transition-colors"
+                                        className="font-['Outfit'] font-normal text-xs md:text-[14px] text-gray-600 hover:text-gray-800 transition-colors"
                                     >
                                         View
                                     </a>
-                                    {/* Re-upload for specific certificate not implemented in modal yet, would need to pass cert ID */}
-                                    {/* For now, just show View */}
                                 </div>
                             </div>
                         ))
                     ) : (
-                        <div className="col-span-2 text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
-                            <p className="font-['Outfit'] font-light text-[14px] text-gray-400 mb-2">
+                        <div className="col-span-full text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
+                            <p className="font-['Outfit'] font-light text-xs md:text-[14px] text-gray-400 mb-2">
                                 No certificates uploaded
                             </p>
                             <button
                                 onClick={() => openUploadModal('certificate')}
-                                className="font-['Outfit'] font-medium text-[14px] text-[#338078] hover:underline"
+                                className="font-['Outfit'] font-medium text-xs md:text-[14px] text-[#338078] hover:underline"
                             >
                                 Upload a certificate
                             </button>
@@ -295,10 +279,10 @@ export default function TeacherDocumentsSection({ teacher }: TeacherDocumentsSec
             </div>
 
             {/* CV/Resume Section */}
-            <div className="border border-[rgba(0,0,0,0.1)] rounded-[12px] p-[24px]">
+            <div className="border border-[rgba(0,0,0,0.1)] rounded-[12px] p-4 md:p-[24px]">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <p className="font-['Outfit'] font-normal text-[16px] text-[#101928]">
+                        <p className="font-['Outfit'] font-normal text-sm md:text-[16px] text-[#101928]">
                             CV/Resume:
                         </p>
                         <div className="flex items-center gap-1">
@@ -309,56 +293,47 @@ export default function TeacherDocumentsSection({ teacher }: TeacherDocumentsSec
                             ) : (
                                 <Icon icon="mdi:alert-circle" className="w-4 h-4 text-gray-400" />
                             )}
-                            <span className={`font-['Outfit'] font-light text-[14px] ${isCvVerified ? 'text-green-600' : 'text-[#6B7280]'}`}>
-                                {isCvVerified ? 'Verified' : (hasCvUploaded ? 'Pending Verification' : 'Not Uploaded')}
+                            <span className={`font-['Outfit'] font-light text-xs md:text-[14px] ${isCvVerified ? 'text-green-600' : hasCvUploaded ? 'text-amber-600' : 'text-[#6B7280]'}`}>
+                                {isCvVerified ? 'Verified' : hasCvUploaded ? 'Pending Verification' : 'Not Uploaded'}
                             </span>
                         </div>
                     </div>
-
-                    <div className="flex items-center gap-4">
-                        {cv && (
-                            <div className="flex flex-col items-end mr-2">
-                                <span className="text-sm text-gray-700 font-medium">{cv.file_name}</span>
-                            </div>
-                        )}
-
-                        {cv && cv.verification_status === 'pending' && (
-                            <button
-                                onClick={() => handleVerifyClick(cv.id, 'CV/Resume')}
-                                className="text-xs bg-[#338078] text-white px-3 py-1.5 rounded hover:bg-[#2a6a63] transition-colors"
+                    {hasCvUploaded && (
+                        <div className="flex items-center gap-2">
+                            <a
+                                href={`/storage/${cv.file_path}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="font-['Outfit'] font-normal text-xs md:text-[14px] text-gray-600 hover:text-gray-800 transition-colors"
                             >
-                                Verify CV
-                            </button>
-                        )}
-
-                        {hasCvUploaded ? (
-                            <>
+                                {cv.file_name}
+                            </a>
+                            {cv && cv.verification_status === 'pending' && (
                                 <button
-                                    onClick={() => openUploadModal('cv')}
-                                    className="font-['Outfit'] font-normal text-[14px] text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
+                                    onClick={() => handleVerifyClick(cv.id, 'CV/Resume')}
+                                    className="text-xs bg-[#338078] text-white px-2 py-1 rounded hover:bg-[#2a6a63] transition-colors"
                                 >
-                                    Re-upload
+                                    Verify
                                 </button>
-                                <a
-                                    href={`/storage/${cv.file_path}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="font-['Outfit'] font-normal text-[14px] text-[#338078] hover:text-[#2a6a63] transition-colors flex items-center gap-1"
-                                >
-                                    Download CV.pdf
-                                    <Icon icon="mdi:download" className="w-4 h-4" />
-                                </a>
-                            </>
-                        ) : (
-                            <button
-                                onClick={() => openUploadModal('cv')}
-                                className="font-['Outfit'] font-normal text-[14px] text-[#338078] hover:text-[#2a6a63] transition-colors flex items-center gap-1"
-                            >
-                                <Icon icon="mdi:cloud-upload-outline" className="w-4 h-4" />
-                                Upload CV
-                            </button>
-                        )}
-                    </div>
+                            )}
+                        </div>
+                    )}
+                    {!hasCvUploaded && (
+                        <button
+                            onClick={() => openUploadModal('cv')}
+                            className="font-['Outfit'] font-normal text-xs md:text-[14px] text-[#338078] hover:text-[#2a6a63] transition-colors cursor-pointer"
+                        >
+                            Upload CV
+                        </button>
+                    )}
+                    {hasCvUploaded && (
+                        <button
+                            onClick={() => openUploadModal('cv')}
+                            className="font-['Outfit'] font-normal text-xs md:text-[14px] text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
+                        >
+                            Re-upload
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -373,7 +348,7 @@ export default function TeacherDocumentsSection({ teacher }: TeacherDocumentsSec
                 isOpen={isVerifyModalOpen}
                 onClose={() => setIsVerifyModalOpen(false)}
                 onConfirm={confirmVerify}
-                documentTitle={certToVerify?.title || 'Document'}
+                documentTitle={certToVerify?.title || ''}
                 isProcessing={isVerifying}
             />
         </div>

@@ -135,8 +135,108 @@ class TeacherController extends Controller
         return Inertia::render('Admin/Teachers/Show', [
             'teacher' => $teacher,
             'stats' => $stats,
+            'availableSubjects' => Subject::active()->ordered()->get(['id', 'name']),
             'pageTitle' => 'Teacher Management',
         ]);
+    }
+
+    /**
+     * Update teacher contact information
+     */
+    public function update(Request $request, Teacher $teacher)
+    {
+        $validated = $request->validate([
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255|unique:users,email,' . $teacher->user_id,
+            'phone' => 'nullable|string|max:20',
+            'city' => 'nullable|string|max:100',
+            'bio' => 'nullable|string|min:20|max:1000',
+        ]);
+
+        // Update user information (only if provided)
+        $userUpdates = [];
+        if (isset($validated['name'])) $userUpdates['name'] = $validated['name'];
+        if (isset($validated['email'])) $userUpdates['email'] = $validated['email'];
+        if (isset($validated['phone'])) $userUpdates['phone'] = $validated['phone'];
+        
+        if (!empty($userUpdates)) {
+            $teacher->user->update($userUpdates);
+        }
+
+        // Update teacher information (only if provided)
+        $teacherUpdates = [];
+        if (isset($validated['city'])) $teacherUpdates['city'] = $validated['city'];
+        if (isset($validated['bio'])) $teacherUpdates['bio'] = $validated['bio'];
+        
+        if (!empty($teacherUpdates)) {
+            $teacher->update($teacherUpdates);
+        }
+
+        return redirect()->back()->with('success', 'Teacher information updated successfully.');
+    }
+
+    /**
+     * Update teacher subjects
+     */
+    public function updateSubjects(Request $request, Teacher $teacher)
+    {
+        $validated = $request->validate([
+            'subject_ids' => 'required|array|min:1',
+            'subject_ids.*' => 'exists:subjects,id',
+        ]);
+
+        // Sync subjects (adds new ones, removes unselected ones)
+        $teacher->subjects()->sync($validated['subject_ids']);
+
+        return redirect()->back()->with('success', 'Subject specializations updated successfully.');
+    }
+
+    /**
+     * Update teacher subjects and related details (comprehensive)
+     */
+    public function updateSubjectsDetails(Request $request, Teacher $teacher)
+    {
+        $validated = $request->validate([
+            'subject_ids' => 'required|array|min:1',
+            'subject_ids.*' => 'exists:subjects,id',
+            'teaching_mode' => 'required|string|in:full-time,part-time',
+            'teaching_type' => 'required|string|in:online,in-person,both',
+            'years_of_experience' => 'required|integer|min:0|max:50',
+            'qualification' => 'nullable|string|max:100',
+            'availability' => 'nullable|array',
+            'availability.*.day' => 'required|string',
+            'availability.*.start' => 'required|string',
+            'availability.*.end' => 'required|string',
+        ]);
+
+        // Sync subjects
+        $teacher->subjects()->sync($validated['subject_ids']);
+
+        // Update teacher details
+        $teacher->update([
+            'teaching_mode' => $validated['teaching_mode'],
+            'teaching_type' => $validated['teaching_type'],
+            'experience_years' => $validated['years_of_experience'],
+            'qualification_level' => $validated['qualification'] ?? $teacher->qualification_level,
+        ]);
+
+        // Update availability if provided
+        if (isset($validated['availability'])) {
+            // Delete existing availability
+            $teacher->availability()->delete();
+            
+            // Create new availability slots
+            foreach ($validated['availability'] as $slot) {
+                $teacher->availability()->create([
+                    'day_of_week' => $slot['day'],
+                    'start_time' => $slot['start'],
+                    'end_time' => $slot['end'],
+                    'is_available' => true,
+                ]);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Subjects & experience updated successfully.');
     }
 
     /**

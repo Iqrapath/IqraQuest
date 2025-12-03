@@ -24,6 +24,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::patch('/{teacher}/status', [\App\Http\Controllers\Admin\TeacherController::class, 'updateStatus'])->name('update-status');
         Route::post('/{teacher}/approve', [TeacherApprovalController::class, 'approve'])->name('approve');
         Route::post('/{teacher}/reject', [TeacherApprovalController::class, 'reject'])->name('reject');
+        Route::put('/{teacher}', [\App\Http\Controllers\Admin\TeacherController::class, 'update'])->name('update');
+        Route::put('/{teacher}/subjects', [\App\Http\Controllers\Admin\TeacherController::class, 'updateSubjects'])->name('update-subjects');
+        Route::put('/{teacher}/subjects-details', [\App\Http\Controllers\Admin\TeacherController::class, 'updateSubjectsDetails'])->name('update-subjects-details');
         
         // Show route LAST (catches anything not matched above)
         Route::get('/{teacher}', [\App\Http\Controllers\Admin\TeacherController::class, 'show'])->name('show');

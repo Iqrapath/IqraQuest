@@ -18,30 +18,30 @@ interface TeacherPerformanceStatsProps {
 
 export default function TeacherPerformanceStats({ stats }: TeacherPerformanceStatsProps) {
     return (
-        <div className="bg-white border border-[rgba(0,0,0,0.1)] rounded-[16px] p-[32px] w-full mb-8">
+        <div className="bg-white border border-[rgba(0,0,0,0.1)] rounded-[16px] p-4 md:p-[32px] w-full mb-6 md:mb-8">
             {/* Title */}
-            <h3 className="font-['Nunito'] font-semibold text-[24px] text-[#101928] leading-[1.2] mb-[35px]">
+            <h3 className="font-['Nunito'] font-semibold text-xl md:text-[24px] text-[#101928] leading-[1.2] mb-6 md:mb-[35px]">
                 Performance Stats
             </h3>
 
-            <div className="flex flex-col gap-[15px]">
+            <div className="flex flex-col gap-3 md:gap-[15px]">
                 {/* Total Sessions Taught */}
-                <div className="flex items-center gap-[47px]">
-                    <p className="font-['Outfit'] font-normal text-[17.3px] text-[#101928] leading-[1.45]">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-8 lg:gap-[47px]">
+                    <p className="font-['Outfit'] font-normal text-sm md:text-[17.3px] text-[#101928] leading-[1.45] whitespace-nowrap">
                         Total Sessions Taught:
                     </p>
-                    <p className="font-['Outfit'] font-light text-[17.3px] text-[rgba(0,0,0,0.6)] leading-[1.45]">
+                    <p className="font-['Outfit'] font-light text-sm md:text-[17.3px] text-[rgba(0,0,0,0.6)] leading-[1.45]">
                         {stats.total_sessions_taught}
                     </p>
                 </div>
 
                 {/* Average Rating */}
-                <div className="flex items-center gap-[92px]">
-                    <p className="font-['Outfit'] font-normal text-[17.3px] text-[#101928] leading-[1.45]">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-8 lg:gap-[92px]">
+                    <p className="font-['Outfit'] font-normal text-sm md:text-[17.3px] text-[#101928] leading-[1.45] whitespace-nowrap">
                         Average Rating:
                     </p>
                     <div className="flex items-center gap-2">
-                        <p className="font-['Outfit'] font-light text-[17.3px] text-[rgba(0,0,0,0.6)] leading-[1.45]">
+                        <p className="font-['Outfit'] font-light text-sm md:text-[17.3px] text-[rgba(0,0,0,0.6)] leading-[1.45]">
                             {stats.average_rating}
                         </p>
                         <div className="flex text-amber-400">
@@ -57,11 +57,11 @@ export default function TeacherPerformanceStats({ stats }: TeacherPerformanceSta
                 </div>
 
                 {/* Upcoming Sessions */}
-                <div className="flex items-start gap-[65px]">
-                    <p className="font-['Outfit'] font-normal text-[17.3px] text-[#101928] leading-[1.45] whitespace-nowrap">
+                <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-8 lg:gap-[65px]">
+                    <p className="font-['Outfit'] font-normal text-sm md:text-[17.3px] text-[#101928] leading-[1.45] whitespace-nowrap">
                         Upcoming Sessions:
                     </p>
-                    <div className="font-['Outfit'] font-light text-[17.3px] text-[rgba(0,0,0,0.6)] leading-[1.45]">
+                    <div className="font-['Outfit'] font-light text-sm md:text-[17.3px] text-[rgba(0,0,0,0.6)] leading-[1.45]">
                         {stats.upcoming_sessions.length > 0 ? (
                             stats.upcoming_sessions.map((session, index) => (
                                 <p key={session.id} className="mb-0">
