@@ -28,6 +28,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::put('/{teacher}/subjects', [\App\Http\Controllers\Admin\TeacherController::class, 'updateSubjects'])->name('update-subjects');
         Route::put('/{teacher}/subjects-details', [\App\Http\Controllers\Admin\TeacherController::class, 'updateSubjectsDetails'])->name('update-subjects-details');
         
+        // Edit route (must be before show route)
+        Route::get('/{teacher}/edit', [\App\Http\Controllers\Admin\TeacherController::class, 'edit'])->name('edit');
+        
         // Show route LAST (catches anything not matched above)
         Route::get('/{teacher}', [\App\Http\Controllers\Admin\TeacherController::class, 'show'])->name('show');
         // Admin Routes (Should be in admin.php but adding here for visibility/context if needed, or move to admin.php)

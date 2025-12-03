@@ -35,7 +35,7 @@ export default function TeacherSubjectsSection({ teacher, availableSubjects }: T
     // Format availability schedule from availability data
     const formatAvailability = () => {
         if (!teacher.availability || teacher.availability.length === 0) {
-            return '- Mon-Fri: 9:00AM – 1:00PM, 5:00PM – 7:00PM\n- Saturday: 10:00AM – 12:00PM';
+            return 'No availability set';
         }
 
         // Group by day
@@ -60,8 +60,8 @@ export default function TeacherSubjectsSection({ teacher, availableSubjects }: T
     };
 
     const availabilitySchedule = formatAvailability();
-    const teachingType = teacher.teaching_type || 'Online';
-    const languagesSpoken = teacher.preferred_language || 'English, Hausa, Arabic';
+    const teachingType = teacher.teaching_type || 'Not specified';
+    const languagesSpoken = teacher.preferred_language || 'Not specified';
 
     return (
         <>

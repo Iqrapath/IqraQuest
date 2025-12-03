@@ -106,6 +106,89 @@ class TeacherController extends Controller
             'pageTitle' => 'Teacher Management',
         ]);
     }
+
+    /**
+     * Show teacher analytics/performance page
+     */
+    public function analytics(Teacher $teacher): Response
+    {
+        $teacher->load(['user', 'subjects']);
+
+        // Mock overview statistics (replace with real data when Booking/Session models are ready)
+        $overview = [
+            'total_sessions' => 342,
+            'total_students' => 87,
+            'average_rating' => round($teacher->average_rating, 1),
+            'total_revenue' => 856000,
+            'active_students' => 24,
+            'completion_rate' => 94,
+        ];
+
+        // Mock chart data
+        $charts = [
+            'sessions_timeline' => [
+                ['month' => 'Jan', 'sessions' => 28],
+                ['month' => 'Feb', 'sessions' => 35],
+                ['month' => 'Mar', 'sessions' => 42],
+                ['month' => 'Apr', 'sessions' => 38],
+                ['month' => 'May', 'sessions' => 45],
+                ['month' => 'Jun', 'sessions' => 52],
+            ],
+            'subject_distribution' => [
+                ['name' => "Juz' Amma", 'value' => 120],
+                ['name' => 'Hifz', 'value' => 95],
+                ['name' => 'Tajweed', 'value' => 67],
+                ['name' => 'Arabic', 'value' => 42],
+                ['name' => 'Tafsir', 'value' => 18],
+            ],
+            'peak_hours' => [
+                ['hour' => '8AM', 'sessions' => 15],
+                ['hour' => '10AM', 'sessions' => 32],
+                ['hour' => '12PM', 'sessions' => 28],
+                ['hour' => '2PM', 'sessions' => 45],
+                ['hour' => '4PM', 'sessions' => 52],
+                ['hour' => '6PM', 'sessions' => 38],
+                ['hour' => '8PM', 'sessions' => 22],
+            ],
+            'rating_timeline' => [
+                ['month' => 'Jan', 'rating' => 4.2],
+                ['month' => 'Feb', 'rating' => 4.4],
+                ['month' => 'Mar', 'rating' => 4.3],
+                ['month' => 'Apr', 'rating' => 4.6],
+                ['month' => 'May', 'rating' => 4.7],
+                ['month' => 'Jun', 'rating' => 4.8],
+            ],
+        ];
+
+        // Mock recent sessions
+        $recent_sessions = [
+            ['id' => 1, 'date' => 'Dec 1, 2024', 'time' => '2:00 PM', 'student_name' => 'Amina Musa', 'subject' => "Juz' Amma", 'duration' => '60 min', 'rating' => 5, 'status' => 'completed'],
+            ['id' => 2, 'date' => 'Nov 30, 2024', 'time' => '4:00 PM', 'student_name' => 'Sulaiman Bello', 'subject' => 'Hifz', 'duration' => '45 min', 'rating' => 5, 'status' => 'completed'],
+            ['id' => 3, 'date' => 'Nov 29, 2024', 'time' => '10:00 AM', 'student_name' => 'Fatima Ahmed', 'subject' => 'Tajweed', 'duration' => '60 min', 'rating' => 4, 'status' => 'completed'],
+            ['id' => 4, 'date' => 'Nov 28, 2024', 'time' => '3:30 PM', 'student_name' => 'Ibrahim Yusuf', 'subject' => 'Arabic', 'duration' => '50 min', 'rating' => 5, 'status' => 'completed'],
+            ['id' => 5, 'date' => 'Nov 27, 2024', 'time' => '11:00 AM', 'student_name' => 'Zainab Hassan', 'subject' => "Juz' Amma", 'duration' => '60 min', 'rating' => 4, 'status' => 'completed'],
+            ['id' => 6, 'date' => 'Dec 5, 2024', 'time' => '2:00 PM', 'student_name' => 'Omar Abdullahi', 'subject' => 'Hifz', 'duration' => '60 min', 'rating' => 0, 'status' => 'upcoming'],
+            ['id' => 7, 'date' => 'Dec 6, 2024', 'time' => '10:00 AM', 'student_name' => 'Aisha Mohammed', 'subject' => 'Tajweed', 'duration' => '45 min', 'rating' => 0, 'status' => 'upcoming'],
+        ];
+
+        // Mock top students
+        $top_students = [
+            ['id' => 1, 'name' => 'Amina Musa', 'sessions_count' => 45, 'total_hours' => 52],
+            ['id' => 2, 'name' => 'Sulaiman Bello', 'sessions_count' => 38, 'total_hours' => 43],
+            ['id' => 3, 'name' => 'Fatima Ahmed', 'sessions_count' => 32, 'total_hours' => 38],
+            ['id' => 4, 'name' => 'Ibrahim Yusuf', 'sessions_count' => 28, 'total_hours' => 31],
+            ['id' => 5, 'name' => 'Zainab Hassan', 'sessions_count' => 24, 'total_hours' => 27],
+        ];
+
+        return Inertia::render('Admin/Teachers/Analytics', [
+            'teacher' => $teacher,
+            'overview' => $overview,
+            'charts' => $charts,
+            'recent_sessions' => $recent_sessions,
+            'top_students' => $top_students,
+        ]);
+    }
+
     public function show(Teacher $teacher): Response
     {
         $teacher->load([
@@ -137,6 +220,43 @@ class TeacherController extends Controller
             'stats' => $stats,
             'availableSubjects' => Subject::active()->ordered()->get(['id', 'name']),
             'pageTitle' => 'Teacher Management',
+        ]);
+    }
+
+    /**
+     * Show the form for editing the teacher
+     */
+    public function edit(Teacher $teacher): Response
+    {
+        $teacher->load([
+            'user',
+            'subjects',
+            'certificates',
+            'availability',
+            'paymentMethods',
+            'approver',
+            'rejecter',
+        ]);
+
+        // Get teacher stats
+        $stats = [
+            'total_subjects' => $teacher->subjects()->count(),
+            'total_certificates' => $teacher->certificates()->count(),
+            'verified_certificates' => $teacher->verifiedCertificates()->count(),
+            'availability_days' => $teacher->availableDays()->count(),
+            'total_sessions_taught' => 350, // Placeholder (Booking model not implemented)
+            'average_rating' => round($teacher->average_rating, 1), // Real data from Review model
+            'upcoming_sessions' => [ // Placeholder data (Booking model not implemented)
+                ['id' => 1, 'date' => 'Apr 15', 'time' => '10:00AM', 'student_name' => 'Amina Musa', 'subject' => "Juz' Amma"],
+                ['id' => 2, 'date' => 'Apr 15', 'time' => '11:30AM', 'student_name' => 'Sulaiman Bello', 'subject' => 'Hifz'],
+            ],
+        ];
+
+        return Inertia::render('Admin/Teachers/Edit', [
+            'teacher' => $teacher,
+            'stats' => $stats,
+            'availableSubjects' => Subject::active()->ordered()->get(['id', 'name']),
+            'pageTitle' => 'Edit Teacher',
         ]);
     }
 
