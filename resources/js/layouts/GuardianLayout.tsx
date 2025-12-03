@@ -4,6 +4,8 @@ import GuardianHeader from '@/components/Layout/Guardian/GuardianHeader';
 import GuardianLeftSidebar from '@/components/Layout/Guardian/GuardianLeftSidebar';
 import GuardianRightSidebar from '@/components/Layout/Guardian/GuardianRightSidebar';
 import { useLogoutDialog } from '@/contexts/LogoutDialogContext';
+import GuardianOnboardingModal from '@/components/GuardianOnboardingModal';
+import { SharedData } from '@/types';
 
 interface GuardianLayoutProps {
     children: React.ReactNode;
@@ -16,6 +18,11 @@ export default function GuardianLayout({ children, hideLeftSidebar = false, hide
     const [showRightSidebar, setShowRightSidebar] = useState(!hideRightSidebar);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { confirmLogout } = useLogoutDialog();
+    const { auth } = usePage<SharedData>().props;
+
+    // Check if user needs onboarding
+    const needsOnboarding = !auth.user.onboarding_completed_at && !auth.user.onboarding_skipped;
+    const [showOnboarding, setShowOnboarding] = useState(needsOnboarding);
 
     // Handle responsive sidebars
     useEffect(() => {
@@ -96,6 +103,13 @@ export default function GuardianLayout({ children, hideLeftSidebar = false, hide
                     </div>
                 </>
             )}
+
+            {/* Onboarding Modal */}
+            <GuardianOnboardingModal
+                isOpen={showOnboarding}
+                onComplete={() => setShowOnboarding(false)}
+                onSkip={() => setShowOnboarding(false)}
+            />
         </div>
     );
 }

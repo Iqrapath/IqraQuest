@@ -9,9 +9,6 @@ use Illuminate\Http\RedirectResponse;
 
 class VerifyEmailResponse implements VerifyEmailResponseContract
 {
-    /**
-     * Create an HTTP response that represents the object.
-     */
     public function toResponse($request): RedirectResponse|JsonResponse
     {
         $user = $request->user();
@@ -27,10 +24,23 @@ class VerifyEmailResponse implements VerifyEmailResponseContract
                 ->with('success', 'Email verified! Please complete your teacher onboarding.');
         }
         
+        // Check if student/guardian needs to select role
+        if ($user->role->value === 'student' && !$user->student) {
+            return redirect()->route('select-role')
+                ->with('success', 'Email verified! Please select your role to continue.');
+        }
+        
+        if ($user->role->value === 'guardian' && !$user->guardian) {
+            return redirect()->route('select-role')
+                ->with('success', 'Email verified! Please select your role to continue.');
+        }
+        
         // Redirect based on user role
         return match ($user->role->value) {
-            'student', 'guardian' => redirect()->route('profile.complete')
-                ->with('success', 'Email verified! Please complete your profile.'),
+            'student' => redirect()->route('student.dashboard')
+                ->with('success', 'Email verified successfully!'),
+            'guardian' => redirect()->route('guardian.dashboard')
+                ->with('success', 'Email verified successfully!'),
             'admin' => redirect()->route('admin.dashboard')
                 ->with('success', 'Email verified successfully!'),
             default => redirect()->route('dashboard')

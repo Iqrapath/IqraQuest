@@ -55,7 +55,7 @@ export default function HeroSection() {
             {/* CTA Buttons */}
             <div className="relative z-10 flex flex-wrap items-start justify-center gap-[clamp(1rem,1.67vw,1.5rem)]">
                 <Link
-                    href="#find-teacher"
+                    href="/register"
                     className="rounded-[clamp(1.5rem,3.89vw,3.5rem)] bg-[#338078] px-[clamp(1rem,1.67vw,1.5rem)] py-[clamp(0.5rem,0.83vw,0.75rem)] font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium capitalize text-white transition-all duration-300 hover:bg-[#2a6b64] hover:shadow-lg"
                 >
                     Find a Teacher

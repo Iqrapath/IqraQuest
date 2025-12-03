@@ -53,7 +53,7 @@ class SendLoginNotification
             'attempt_count' => $attempt['count'],
             'time_since_first' => $timeSinceFirst,
         ]);
-        
+
         // Only send notification on the LAST event (after a small delay, send on count 1 if no more events)
         // For now, send on first event and ignore subsequent ones within 2 seconds
         if ($attempt['count'] === 1) {

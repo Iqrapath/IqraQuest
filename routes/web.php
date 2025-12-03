@@ -19,6 +19,29 @@ Route::get('/register/teacher', [\App\Http\Controllers\Auth\TeacherRegistrationC
 Route::post('/register/teacher', [\App\Http\Controllers\Auth\TeacherRegistrationController::class, 'store'])
     ->middleware('guest');
 
+// Override default Fortify registration to prevent auto-login and show success modal
+Route::post('/register', [\App\Http\Controllers\Auth\RegisterController::class, 'store'])
+    ->middleware('guest');
+
+// Role Selection Routes (After Email Verification)
+Route::get('/select-role', [\App\Http\Controllers\Auth\RoleSelectionController::class, 'show'])
+    ->middleware(['auth', 'verified'])
+    ->name('select-role');
+
+Route::post('/select-role', [\App\Http\Controllers\Auth\RoleSelectionController::class, 'store'])
+    ->middleware(['auth', 'verified']);
+
+// Onboarding Completion Routes
+Route::post('/onboarding/complete', function () {
+    auth()->user()->update(['onboarding_completed_at' => now()]);
+    return back();
+})->middleware(['auth', 'verified'])->name('onboarding.complete');
+
+Route::post('/onboarding/skip', function () {
+    auth()->user()->update(['onboarding_skipped' => true]);
+    return back();
+})->middleware(['auth', 'verified'])->name('onboarding.skip');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     // Redirect to role-specific dashboard
     Route::get('dashboard', function () {
@@ -58,3 +81,5 @@ Route::get('/preview-email/{type}', function ($type) {
 require __DIR__.'/settings.php';
 require __DIR__.'/admin.php';
 require __DIR__.'/teacher.php';
+require __DIR__.'/student.php';
+require __DIR__.'/guardian.php';

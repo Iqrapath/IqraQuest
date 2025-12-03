@@ -4,6 +4,8 @@ import StudentHeader from '@/components/Layout/Student/StudentHeader';
 import StudentLeftSidebar from '@/components/Layout/Student/StudentLeftSidebar';
 import StudentRightSidebar from '@/components/Layout/Student/StudentRightSidebar';
 import { useLogoutDialog } from '@/contexts/LogoutDialogContext';
+import StudentOnboardingModal from '@/components/StudentOnboardingModal';
+import { SharedData } from '@/types';
 
 interface StudentLayoutProps {
     children: React.ReactNode;
@@ -16,6 +18,11 @@ export default function StudentLayout({ children, hideLeftSidebar = false, hideR
     const [showRightSidebar, setShowRightSidebar] = useState(!hideRightSidebar);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { confirmLogout } = useLogoutDialog();
+    const { auth } = usePage<SharedData>().props;
+
+    // Check if user needs onboarding
+    const needsOnboarding = !auth.user.onboarding_completed_at && !auth.user.onboarding_skipped;
+    const [showOnboarding, setShowOnboarding] = useState(needsOnboarding);
 
     // Handle responsive sidebars
     useEffect(() => {
@@ -94,6 +101,13 @@ export default function StudentLayout({ children, hideLeftSidebar = false, hideR
                     </div>
                 </>
             )}
+
+            {/* Onboarding Modal */}
+            <StudentOnboardingModal
+                isOpen={showOnboarding}
+                onComplete={() => setShowOnboarding(false)}
+                onSkip={() => setShowOnboarding(false)}
+            />
         </div>
     );
 }
