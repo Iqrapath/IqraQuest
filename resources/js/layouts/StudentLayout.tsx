@@ -56,20 +56,22 @@ export default function StudentLayout({ children, hideLeftSidebar = false, hideR
     };
 
     return (
-        <div className="min-h-screen bg-[#fafbff] flex flex-col font-['Nunito'] overflow-hidden">
-            {/* Header - Fixed at top */}
-            <StudentHeader onMenuToggle={toggleMobileMenu} showMenuButton={!showLeftSidebar} />
+        <div className="h-screen bg-[#fafbff] flex flex-col font-['Nunito'] overflow-hidden">
+            {/* Header - Sticky at top */}
+            <div className="sticky top-0 z-30 shrink-0">
+                <StudentHeader onMenuToggle={toggleMobileMenu} showMenuButton={!showLeftSidebar} />
+            </div>
 
             <div className="flex flex-1 overflow-hidden relative">
                 {/* Left Sidebar - Fixed, scrollable internally */}
                 {showLeftSidebar && (
-                    <aside className="hidden lg:block shrink-0 z-10 ml-[clamp(8rem,2vw,12rem)] overflow-hidden">
+                    <aside className="hidden lg:block shrink-0 z-10 ml-[clamp(8rem,2vw,12rem)] h-full overflow-y-auto">
                         <StudentLeftSidebar onLogoutClick={handleLogoutClick} />
                     </aside>
                 )}
 
                 {/* Main Content Area - Scrollable */}
-                <main className="flex-1 overflow-y-auto relative"
+                <main className="flex-1 overflow-y-auto relative h-full"
                     style={{
                         padding: 'clamp(1rem, 2vw, 2rem)',
                         scrollbarWidth: 'thin',
@@ -80,7 +82,7 @@ export default function StudentLayout({ children, hideLeftSidebar = false, hideR
 
                 {/* Right Sidebar - Fixed, scrollable internally */}
                 {showRightSidebar && (
-                    <aside className="hidden xl:block shrink-0 bg-white/50 backdrop-blur-sm border-l border-gray-100 overflow-hidden mr-[clamp(8rem,2vw,12rem)]">
+                    <aside className="hidden xl:block shrink-0 bg-white/50 backdrop-blur-sm border-l border-gray-100 h-full overflow-y-auto mr-[clamp(8rem,2vw,12rem)]">
                         <StudentRightSidebar />
                     </aside>
                 )}

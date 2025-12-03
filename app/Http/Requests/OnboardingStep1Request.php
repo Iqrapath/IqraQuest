@@ -19,7 +19,7 @@ class OnboardingStep1Request extends FormRequest
             'city' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:20'],
             'preferred_language' => ['nullable', 'string', 'max:50'],
-            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:5120'],
         ];
     }
 
@@ -29,7 +29,7 @@ class OnboardingStep1Request extends FormRequest
             'country.required' => 'Please select your country.',
             'city.required' => 'Please enter your city.',
             'avatar.image' => 'Avatar must be an image file.',
-            'avatar.max' => 'Avatar size must not exceed 2MB.',
+            'avatar.max' => 'Avatar size must not exceed 5MB.',
         ];
     }
 }

@@ -74,8 +74,33 @@ export default function Step1({ teacher }: Props) {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
+            const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+
+            // Validate file type
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!validTypes.includes(file.type)) {
+                toast.error('Invalid File Type', {
+                    description: 'Please upload a JPG or PNG image.',
+                });
+                e.target.value = ''; // Clear the input
+                return;
+            }
+
+            // Validate file size
+            if (file.size > maxSize) {
+                toast.error('File Too Large', {
+                    description: `Image size must not exceed 5MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`,
+                });
+                e.target.value = ''; // Clear the input
+                return;
+            }
+
+            // File is valid, proceed
             setData('avatar', file);
             setAvatarPreview(URL.createObjectURL(file));
+            toast.success('Image Selected', {
+                description: 'Your profile photo is ready to upload.',
+            });
         }
     };
 
@@ -154,7 +179,7 @@ export default function Step1({ teacher }: Props) {
                                         </label>
                                         <PhoneInput
                                             international
-                                            defaultCountry={selectedCountryCode as any || 'US'}
+                                            defaultCountry={selectedCountryCode as any || 'NG'}
                                             value={data.phone}
                                             onChange={(value) => setData('phone', value || '')}
                                             className="w-full h-[48px] px-[18px] border border-[#9E9E9E] rounded-[5px] text-[#000000] text-[16px] focus:outline-none focus:border-[#338078] focus:ring-1 focus:ring-[#338078]"
