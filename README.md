@@ -236,6 +236,31 @@ Toggle dark mode by adding `.dark` class to root element:
 
 ### Recent Updates
 
+#### 2025-12-03 - Authentication & Social Login
+- ✅ **Implemented Social Login with Laravel Socialite**
+  - Google OAuth integration
+  - Facebook OAuth integration
+  - Automatic email verification for social accounts
+  - Role-based registration flow (Teacher vs Student/Guardian)
+  - Stateless OAuth to preserve role parameters during redirects
+- ✅ **OTP Email Verification System**
+  - Alternative to traditional email verification links
+  - 6-digit OTP with 10-minute expiration
+  - Configurable via `.env` (`EMAIL_VERIFICATION_METHOD=otp` or `link`)
+  - Auto-resend functionality with countdown timer
+  - Rate limiting and security features
+- ✅ **Enhanced Authentication Security**
+  - IP blocking for suspicious login attempts
+  - Login attempt tracking and notifications
+  - Session configuration optimized for OAuth (`SameSite=lax`)
+  - Strong password requirements (12+ chars, complexity rules)
+  - Consistent password validation across all registration flows
+- ✅ **Multi-Role Registration System**
+  - Separate registration flows for Teachers and Students/Guardians
+  - Role selection page for Student/Guardian accounts
+  - Automated profile creation based on user role
+  - Email verification integration with role-based redirects
+
 #### 2025-11-27
 - ✅ Implemented responsive Navbar component with Figma design
 - ✅ Applied automated scaling system using `clamp()` formulas
@@ -264,6 +289,47 @@ Toggle dark mode by adding `.dark` class to root element:
 - Established automated scaling formula: `clamp(min, px/1440*100vw, max)`
 - Defined responsive defaults for typography, spacing, and components
 - Integrated Nunito, Poppins, and Inter fonts
+
+---
+
+## 🔐 Authentication Features
+
+### Social Login
+Users can register and login using:
+- **Google** - OAuth 2.0 integration
+- **Facebook** - OAuth 2.0 integration
+
+**Configuration Required:**
+Add credentials to `.env`:
+```env
+GOOGLE_CLIENT_ID=your-client-id
+GOOGLE_CLIENT_SECRET=your-client-secret
+GOOGLE_REDIRECT_URI="${APP_URL}/auth/google/callback"
+
+FACEBOOK_CLIENT_ID=your-client-id
+FACEBOOK_CLIENT_SECRET=your-client-secret
+FACEBOOK_REDIRECT_URI="${APP_URL}/auth/facebook/callback"
+```
+
+### Email Verification Methods
+
+**Option 1: Traditional Link (default)**
+```env
+EMAIL_VERIFICATION_METHOD=link
+```
+
+**Option 2: OTP System**
+```env
+EMAIL_VERIFICATION_METHOD=otp
+OTP_EXPIRY_MINUTES=10
+```
+
+### Security Features
+- IP-based login attempt tracking
+- Automatic IP blocking after failed attempts
+- Email notifications for suspicious activity
+- Strong password enforcement (12+ characters, complexity)
+- Session security optimized for OAuth flows
 
 ---
 
