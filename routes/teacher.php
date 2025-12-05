@@ -4,6 +4,9 @@ use App\Http\Controllers\Teacher\CertificateController;
 use App\Http\Controllers\Teacher\DashboardController;
 use App\Http\Controllers\Teacher\OnboardingController;
 use App\Http\Controllers\Teacher\WaitingAreaController;
+use App\Http\Controllers\Teacher\EarningsController;
+use App\Http\Controllers\Teacher\PayoutController;
+use App\Http\Controllers\Student\WalletController; // Shared wallet controller
 use Illuminate\Support\Facades\Route;
 
 // Onboarding Routes (Auth only - no email verification required)
@@ -40,6 +43,21 @@ Route::middleware(['auth', 'verified', 'role:teacher'])
         Route::middleware('teacher.approved')->group(function () {
             Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
             
-            // Add more approved teacher routes here
+            // Wallet Routes (teachers can view their wallet like students)
+            Route::get('/wallet', [WalletController::class, 'index'])->name('wallet');
+            Route::get('/wallet/transactions', [WalletController::class, 'transactions'])->name('wallet.transactions');
+            Route::get('/wallet/transactions/export', [WalletController::class, 'exportTransactions'])->name('wallet.transactions.export');
+            
+            // Earnings Routes
+            Route::get('/earnings', [EarningsController::class, 'index'])->name('earnings');
+            Route::get('/earnings/transactions', [EarningsController::class, 'transactions'])->name('earnings.transactions');
+            Route::get('/earnings/export', [EarningsController::class, 'exportReport'])->name('earnings.export');
+            
+            // Payout Routes
+            Route::get('/payouts', [PayoutController::class, 'index'])->name('payouts.index');
+            Route::get('/payouts/create', [PayoutController::class, 'create'])->name('payouts.create');
+            Route::post('/payouts', [PayoutController::class, 'store'])->name('payouts.store');
+            Route::get('/payouts/{id}', [PayoutController::class, 'show'])->name('payouts.show');
+            Route::post('/payouts/{id}/cancel', [PayoutController::class, 'cancel'])->name('payouts.cancel');
         });
     });

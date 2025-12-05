@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\TeacherApprovalController;
+use App\Http\Controllers\Admin\FinancialDashboardController;
+use App\Http\Controllers\Admin\TransactionController;
+use App\Http\Controllers\Admin\PayoutController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'role:admin'])
@@ -10,6 +13,29 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
+    // Financial Management Routes
+    Route::prefix('finances')->name('finances.')->group(function () {
+        Route::get('/', [FinancialDashboardController::class, 'index'])->name('index');
+    });
+
+    // Transaction Routes
+    Route::prefix('transactions')->name('transactions.')->group(function () {
+        Route::get('/', [TransactionController::class, 'index'])->name('index');
+        Route::get('/export', [TransactionController::class, 'export'])->name('export');
+        Route::get('/{id}', [TransactionController::class, 'show'])->name('show');
+        Route::post('/{id}/refund', [TransactionController::class, 'refund'])->name('refund');
+    });
+
+    // Payout Routes
+    Route::prefix('payouts')->name('payouts.')->group(function () {
+        Route::get('/', [PayoutController::class, 'index'])->name('index');
+        Route::get('/{id}', [PayoutController::class, 'show'])->name('show');
+        Route::post('/{id}/approve', [PayoutController::class, 'approve'])->name('approve');
+        Route::post('/{id}/reject', [PayoutController::class, 'reject'])->name('reject');
+        Route::post('/bulk-approve', [PayoutController::class, 'bulkApprove'])->name('bulk-approve');
+        Route::post('/{id}/process', [PayoutController::class, 'process'])->name('process');
+    });
+
     // Teacher Management Routes
     Route::prefix('teachers')->name('teachers.')->group(function () {
         // List/Index route

@@ -21,6 +21,7 @@ class TeacherPaymentMethod extends Model
         'routing_number',
         'email',
         'account_id',
+        'recipient_code',
         'is_verified',
         'verified_at',
     ];

@@ -32,7 +32,7 @@ class SecurityHeaders
             // Relaxed CSP for development
             $csp = implode('; ', [
                 "default-src 'self'",
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' http: https:",
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' http: https: blob:",
                 "style-src 'self' 'unsafe-inline' http: https:",
                 "font-src 'self' https://fonts.bunny.net https://fonts.gstatic.com data:",
                 "img-src 'self' data: https: http: blob:",

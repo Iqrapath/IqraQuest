@@ -31,6 +31,7 @@ return new class extends Migration
             // Online payment details (for paypal, stripe, etc)
             $table->string('email')->nullable();
             $table->string('account_id')->nullable();
+            $table->string('recipient_code')->nullable(); // For Paystack transfers
             
             // Verification
             $table->boolean('is_verified')->default(false);

@@ -47,4 +47,21 @@ return [
         'redirect' => env('FACEBOOK_REDIRECT_URI'),
     ],
 
+    'paystack' => [
+        'public_key' => env('PAYSTACK_PUBLIC_KEY'),
+        'secret_key' => env('PAYSTACK_SECRET_KEY'),
+    ],
+
+    'paypal' => [
+        'mode' => env('PAYPAL_MODE', 'sandbox'), // sandbox or live
+        'client_id' => env('PAYPAL_CLIENT_ID'),
+        'client_secret' => env('PAYPAL_CLIENT_SECRET'),
+        'webhook_id' => env('PAYPAL_WEBHOOK_ID'),
+    ],
+
+    'payout' => [
+        'minimum_amount' => env('PAYOUT_MINIMUM_AMOUNT', 5000),
+        'platform_commission_percentage' => env('PLATFORM_COMMISSION_PERCENTAGE', 15),
+    ],
+
 ];

@@ -1,0 +1,57 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('student_payment_methods', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
+            $table->enum('type', ['card', 'bank_account', 'paypal']);
+            $table->string('gateway'); // paystack, paypal
+            $table->boolean('is_primary')->default(false);
+            
+            // For Cards (Paystack)
+            $table->string('card_authorization_code')->nullable(); // From Paystack
+            $table->string('card_last4')->nullable();
+            $table->string('card_brand')->nullable(); // visa, mastercard, verve
+            $table->string('card_exp_month')->nullable();
+            $table->string('card_exp_year')->nullable();
+            
+            // For Bank Accounts (Paystack Direct Debit)
+            $table->string('bank_name')->nullable();
+            $table->string('bank_account_number')->nullable();
+            $table->string('bank_account_name')->nullable();
+            $table->string('bank_code')->nullable();
+            
+            // For PayPal
+            $table->string('paypal_email')->nullable();
+            
+            // Verification
+            $table->boolean('is_verified')->default(false);
+            $table->timestamp('verified_at')->nullable();
+            
+            $table->timestamps();
+            
+            // Indexes
+            $table->index('student_id');
+            $table->index('type');
+            $table->index('is_primary');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('student_payment_methods');
+    }
+};

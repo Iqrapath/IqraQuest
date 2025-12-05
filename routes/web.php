@@ -94,6 +94,10 @@ Route::get('/preview-email/{type}', function ($type) {
     };
 })->name('preview.email');
 
+// Payment Webhooks
+Route::post('/webhooks/paystack', [\App\Http\Controllers\Webhooks\PaystackWebhookController::class, 'handle'])
+    ->name('webhooks.paystack');
+
 require __DIR__.'/settings.php';
 require __DIR__.'/admin.php';
 require __DIR__.'/teacher.php';
