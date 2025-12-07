@@ -17,17 +17,19 @@ class PaystackService
     }
 
     /**
-     * Initialize a card payment
+     * Initialize a payment transaction
      */
-    public function initializeCardPayment(string $email, float $amount, string $reference, array $metadata = []): array
+    public function initializePayment(string $email, float $amount, string $reference, array $metadata = [], array $channels = ['card'], string $currency = 'NGN', ?string $callbackUrl = null): array
     {
         try {
             $tranx = $this->paystack->transaction->initialize([
                 'email' => $email,
-                'amount' => $amount * 100, // Convert to kobo
+                'amount' => (int) ($amount * 100), // Convert to kobo and cast to int
                 'reference' => $reference,
                 'metadata' => $metadata,
-                'channels' => ['card'],
+                'channels' => $channels,
+                'currency' => $currency,
+                'callback_url' => ($callbackUrl ?? route('student.payment.callback')) . '?gateway=paystack&reference=' . $reference,
             ]);
 
             return [
@@ -158,7 +160,7 @@ class PaystackService
     public function verifyBankAccount(string $accountNumber, string $bankCode): array
     {
         try {
-            $response = $this->paystack->verification->resolveAccountNumber([
+            $response = $this->paystack->bank->resolve([
                 'account_number' => $accountNumber,
                 'bank_code' => $bankCode,
             ]);

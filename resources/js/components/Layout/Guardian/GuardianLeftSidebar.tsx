@@ -9,15 +9,15 @@ export default function GuardianLeftSidebar({ onLogoutClick }: GuardianLeftSideb
     const { url } = usePage();
 
     const menuItems = [
-        { name: 'Dashboard', icon: 'mage:dashboard', route: '/student/dashboard' },
-        { name: 'Browse Teachers', icon: 'hugeicons:teacher', route: '/student/courses' },
-        { name: 'My Bookings', icon: 'tabler:message-user', route: '/student/schedule' },
-        { name: 'Payments', icon: 'stash:wallet', route: '/student/earnings' },
-        { name: 'Messages', icon: 'mdi:message-text-outline', route: '/student/messages' },
-        { name: 'Profile', icon: 'iconamoon:profile', route: '/student/profile' },
-        { name: 'Rating & Feedback', icon: 'carbon:review', route: '/student/ratings' },
-        { name: 'Settings', icon: 'solar:settings-outline', route: '/student/settings' },
-        { name: 'Notification', icon: 'mdi:bell-outline', route: '/student/notifications' },
+        { name: 'Dashboard', icon: 'mage:dashboard', route: '/guardian/dashboard' },
+        { name: 'Browse Teachers', icon: 'hugeicons:teacher', route: '/guardian/courses' },
+        { name: 'My Bookings', icon: 'tabler:message-user', route: '/guardian/schedule' },
+        { name: 'Payments', icon: 'stash:wallet', route: '/guardian/wallet' },
+        { name: 'Messages', icon: 'mdi:message-text-outline', route: '/guardian/messages' },
+        { name: 'Profile', icon: 'iconamoon:profile', route: '/guardian/profile' },
+        { name: 'Rating & Feedback', icon: 'carbon:review', route: '/guardian/ratings' },
+        { name: 'Settings', icon: 'solar:settings-outline', route: '/guardian/settings' },
+        { name: 'Notification', icon: 'mdi:bell-outline', route: '/guardian/notifications' },
     ];
 
     const isActive = (route: string) => url.startsWith(route);

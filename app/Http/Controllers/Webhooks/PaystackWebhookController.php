@@ -103,17 +103,35 @@ class PaystackWebhookController extends Controller
         $transaction->markAsCompleted();
 
         // If it's a wallet credit, update wallet balance
-        if ($transaction->type === 'credit' && $transaction->wallet_id) {
-            $transaction->wallet->increment('balance', $amount);
+        // We check metadata or type to ensure it's a wallet funding transaction
+        if ($transaction->type === 'credit' && isset($transaction->metadata['type']) && $transaction->metadata['type'] === 'wallet_credit') {
             
-            // Broadcast real-time notification to user
-            broadcast(new \App\Events\WalletCredited(
-                $transaction->user_id,
-                $amount,
-                $transaction->wallet->balance,
-                $transaction->payment_gateway ?? 'paystack',
-                $reference
-            ))->toOthers();
+            // Get or create user wallet
+            $wallet = $transaction->user->wallet ?? $transaction->user->wallet()->create(['balance' => 0]);
+            
+            // Increment balance
+            $wallet->increment('balance', $amount);
+            
+            // Ensure transaction is linked to wallet if not already
+            if (!$transaction->wallet_id) {
+                $transaction->update(['wallet_id' => $wallet->id]);
+            }
+            
+            Log::info('Wallet credited via webhook', [
+                'reference' => $reference,
+                'user_id' => $transaction->user_id,
+                'amount' => $amount,
+                'new_balance' => $wallet->fresh()->balance
+            ]);
+
+            // Broadcast real-time notification to user (Uncomment if event exists)
+            // broadcast(new \App\Events\WalletCredited(
+            //     $transaction->user_id,
+            //     $amount,
+            //     $wallet->balance,
+            //     $transaction->payment_gateway ?? 'paystack',
+            //     $reference
+            // ))->toOthers();
         }
 
         Log::info('Paystack charge success processed', [

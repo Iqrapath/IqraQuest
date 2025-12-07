@@ -29,25 +29,27 @@ class SecurityHeaders
 
         // Content Security Policy - Development friendly
         if (app()->environment('local', 'development')) {
-            // Relaxed CSP for development
+            // Relaxed CSP for development (includes Paystack)
             $csp = implode('; ', [
                 "default-src 'self'",
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' http: https: blob:",
-                "style-src 'self' 'unsafe-inline' http: https:",
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' http: https: blob: https://js.paystack.co https://checkout.paystack.com",
+                "style-src 'self' 'unsafe-inline' http: https: https://paystack.com https://checkout.paystack.com",
                 "font-src 'self' https://fonts.bunny.net https://fonts.gstatic.com data:",
                 "img-src 'self' data: https: http: blob:",
-                "connect-src 'self' ws: wss: http: https:",
+                "connect-src 'self' ws: wss: http: https: https://api.paystack.co https://checkout.paystack.com",
+                "frame-src 'self' https://checkout.paystack.com https://js.paystack.co",
                 "frame-ancestors 'self'",
             ]);
         } else {
-            // Strict CSP for production
+            // Strict CSP for production (includes Paystack)
             $csp = implode('; ', [
                 "default-src 'self'",
-                "script-src 'self' 'unsafe-inline' https://fonts.bunny.net",
-                "style-src 'self' 'unsafe-inline' https://fonts.bunny.net https://fonts.googleapis.com",
+                "script-src 'self' 'unsafe-inline' https://fonts.bunny.net https://js.paystack.co",
+                "style-src 'self' 'unsafe-inline' https://fonts.bunny.net https://fonts.googleapis.com https://paystack.com",
                 "font-src 'self' https://fonts.bunny.net https://fonts.gstatic.com data:",
                 "img-src 'self' data: https: blob:",
-                "connect-src 'self' https:",
+                "connect-src 'self' https: https://api.paystack.co",
+                "frame-src 'self' https://checkout.paystack.com https://js.paystack.co",
                 "frame-ancestors 'self'",
             ]);
         }

@@ -22,6 +22,9 @@ class StudentPaymentMethod extends Model
         'bank_account_name',
         'bank_code',
         'paypal_email',
+        'wallet_provider',
+        'wallet_phone_number',
+        'wallet_account_name',
         'is_verified',
         'verified_at',
     ];

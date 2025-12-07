@@ -34,11 +34,11 @@ function FlashMessageListener({ initialPage }: { initialPage?: any }) {
 
 export function AppProvider({ children, initialPage }: { children: ReactNode; initialPage?: any }) {
     return (
-        <CurrencyProvider>
-            <PageLoadingIndicator />
-            <FlashMessageListener initialPage={initialPage} />
-            {children}
-            <Toaster position="top-right" richColors />
-        </CurrencyProvider>
+            <CurrencyProvider>
+                <PageLoadingIndicator />
+                <FlashMessageListener initialPage={initialPage} />
+                {children}
+                <Toaster position="top-center" />
+            </CurrencyProvider>
     );
 }

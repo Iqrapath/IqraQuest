@@ -14,7 +14,7 @@ Route::middleware(['auth', 'verified', 'role:student'])
         
         // Wallet Routes
         Route::get('/wallet', [WalletController::class, 'index'])->name('wallet');
-        Route::get('/wallet/credit', [WalletController::class, 'creditWallet'])->name('wallet.credit');
+        Route::post('/wallet/currency', [WalletController::class, 'updateCurrency'])->name('wallet.currency');
         Route::get('/wallet/transactions', [WalletController::class, 'transactions'])->name('wallet.transactions');
         Route::get('/wallet/transactions/export', [WalletController::class, 'exportTransactions'])->name('wallet.transactions.export');
         
@@ -22,4 +22,14 @@ Route::middleware(['auth', 'verified', 'role:student'])
         Route::post('/payment/initialize', [PaymentController::class, 'initializePayment'])->name('payment.initialize');
         Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
         Route::get('/payment/verify/{reference}', [PaymentController::class, 'verifyPayment'])->name('payment.verify');
+        Route::get('/payment/banks', [PaymentController::class, 'getBanks'])->name('payment.banks');
+        Route::get('/payment/resolve-account', [PaymentController::class, 'resolveAccount'])->name('payment.resolve-account');
+        Route::post('/payment/methods/bank', [PaymentController::class, 'storeBankDetails'])->name('payment.methods.bank.store');
+        Route::put('/payment/methods/bank-details/{id}', [PaymentController::class, 'updateBankDetails'])->name('payment.methods.bank.update');
+        Route::post('/payment/methods/mobile-wallet', [PaymentController::class, 'storeMobileWalletDetails'])->name('payment.methods.mobile-wallet.store');
+        Route::post('/payment/methods/paypal', [PaymentController::class, 'storePayPalDetails'])->name('payment.methods.paypal.store');
+        
+        // PayPal OAuth Routes
+        Route::get('/payment/methods/paypal/initiate', [PaymentController::class, 'initiatePayPalLinking'])->name('payment.methods.paypal.initiate');
+        Route::get('/payment/methods/paypal/callback', [PaymentController::class, 'handlePayPalCallback'])->name('payment.methods.paypal.callback');
     });

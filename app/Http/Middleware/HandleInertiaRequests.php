@@ -44,6 +44,20 @@ class HandleInertiaRequests extends Middleware
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
+                'wallet_balance' => $request->user()?->wallet?->balance ?? 0,
+                'wallet_currency' => $request->user()?->wallet?->currency ?? 'NGN',
+                'payment_gateways_currencies' => [
+                    'paystack' => config('services.paystack.currency', 'NGN'),
+                    'paypal' => 'USD',
+                ],
+            ],
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+                'warning' => $request->session()->get('warning'),
+                'info' => $request->session()->get('info'),
+                'payment_amount' => $request->session()->get('payment_amount'),
+                'payment_currency' => $request->session()->get('payment_currency'),
             ],
             'notifications' => $request->user() 
                 ? $request->user()->notifications()->latest()->take(10)->get()->map(function ($notification) {

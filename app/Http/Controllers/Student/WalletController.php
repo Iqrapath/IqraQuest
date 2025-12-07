@@ -10,8 +10,34 @@ use App\Services\Payment\PaymentGatewayFactory;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+
 class WalletController extends Controller
 {
+    /**
+     * Update wallet currency
+     */
+    public function updateCurrency(Request $request)
+    {
+        $request->validate([
+            'currency' => 'required|in:NGN,USD',
+        ]);
+
+        $user = auth()->user();
+        
+        // Ensure wallet exists
+        if (!$user->wallet) {
+            $user->wallet()->create(['balance' => 0]);
+        }
+
+        $user->wallet->update([
+            'currency' => $request->input('currency'),
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'currency' => $request->input('currency')
+        ]);
+    }
     protected WalletService $walletService;
     protected PaystackService $paystackService;
     protected PayPalService $payPalService;
@@ -33,6 +59,7 @@ class WalletController extends Controller
     {
         $userId = auth()->id();
         $userRole = auth()->user()->role;
+        $userRole = $userRole instanceof \BackedEnum ? $userRole->value : $userRole;
         $balance = $this->walletService->getBalance($userId);
         
         // Get recent transactions
@@ -51,10 +78,30 @@ class WalletController extends Controller
             default => 'Student/Wallet/Index',
         };
 
+        // Get saved payment methods
+        $paymentMethods = [];
+        $student = auth()->user()->student;
+        $guardian = auth()->user()->guardian;
+        
+        if ($student) {
+             $paymentMethods = \App\Models\StudentPaymentMethod::where('student_id', $student->id)
+                ->orderBy('is_primary', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } elseif ($guardian) {
+             $paymentMethods = \App\Models\GuardianPaymentMethod::where('guardian_id', $guardian->id)
+                ->orderBy('is_primary', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+
         return Inertia::render($viewPath, [
             'balance' => $balance,
+            'currency' => auth()->user()->wallet->currency ?? 'NGN',
             'transactions' => $transactions,
+            'paymentMethods' => $paymentMethods,
             'gateways' => $gateways,
+            'paystack_public_key' => config('services.paystack.public_key'),
         ]);
     }
 
@@ -64,6 +111,7 @@ class WalletController extends Controller
     public function creditWallet()
     {
         $userRole = auth()->user()->role;
+        $userRole = $userRole instanceof \BackedEnum ? $userRole->value : $userRole;
         $gateways = PaymentGatewayFactory::available();
 
         // Determine view path based on role
@@ -86,6 +134,7 @@ class WalletController extends Controller
     {
         $userId = auth()->id();
         $userRole = auth()->user()->role;
+        $userRole = $userRole instanceof \BackedEnum ? $userRole->value : $userRole;
         
         $filters = [
             'type' => $request->input('type'),

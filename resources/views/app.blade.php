@@ -44,6 +44,11 @@
         <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet">
 
+        {{-- Paystack Inline JS --}}
+        <script src="https://js.paystack.co/v1/inline.js"></script>
+
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+
         @viteReactRefresh
         @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         @inertiaHead

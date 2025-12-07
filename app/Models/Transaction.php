@@ -114,7 +114,24 @@ class Transaction extends Model
      */
     public function markAsCompleted(): bool
     {
-        return $this->update(['status' => 'completed']);
+        // Only proceed if currently pending
+        if ($this->status !== 'pending') {
+            return false;
+        }
+
+        \DB::transaction(function () {
+            // Update transaction status
+            $this->update(['status' => 'completed']);
+
+            // If this is a credit transaction, update wallet balance
+            if ($this->type === 'credit' && $this->wallet_id) {
+                $this->wallet()->increment('balance', $this->amount);
+            } elseif ($this->type === 'debit' && $this->wallet_id) {
+                $this->wallet()->decrement('balance', $this->amount);
+            }
+        });
+
+        return true;
     }
 
     /**

@@ -2,6 +2,7 @@ import { InertiaLinkProps } from '@inertiajs/react';
 import { LucideIcon } from 'lucide-react';
 
 export interface Auth {
+    [x: string]: any;
     user: User;
 }
 
@@ -43,3 +44,7 @@ export interface User {
     role: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
+    auth: Auth;
+};

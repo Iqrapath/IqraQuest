@@ -2,16 +2,13 @@
 
 namespace App\Services;
 
-use Money\Money;
-use Money\Currency;
-use Money\Converter;
-use Money\Exchange\FixedExchange;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class CurrencyService
 {
+
     /**
      * Convert amount from one currency to another
      */
@@ -23,15 +20,9 @@ class CurrencyService
 
         $rate = $this->getExchangeRate($fromCurrency, $toCurrency);
         
-        // Use Money package for precise calculation
-        $fromMoney = new Money($amount * 100, new Currency($fromCurrency)); // Convert to cents
-        $converter = new Converter(new FixedExchange([
-            $fromCurrency => [$toCurrency => $rate],
-        ]));
-
-        $converted = $converter->convert($fromMoney, new Currency($toCurrency));
-        
-        return $converted->getAmount() / 100; // Convert back from cents
+        // Simple conversion without Money package
+        // Round to 2 decimal places
+        return round($amount * $rate, 2);
     }
 
     /**
@@ -52,20 +43,25 @@ class CurrencyService
     protected function fetchExchangeRate(string $from, string $to): float
     {
         try {
-            // Use ExchangeRate-API (Free tier)
-            $response = Http::timeout(5)->get("https://api.exchangerate-api.com/v4/latest/{$from}");
+            // Use same API as frontend for consistency (https://open.er-api.com/v6/latest/USD)
+            $response = Http::timeout(5)->get("https://open.er-api.com/v6/latest/USD");
 
             if ($response->successful()) {
                 $rates = $response->json()['rates'];
                 
-                if (isset($rates[$to])) {
+                // If we have both rates (relative to USD)
+                if (isset($rates[$from]) && isset($rates[$to])) {
+                    // Calculate cross rate
+                    // Formula: Rate(From->To) = Rate(USD->To) / Rate(USD->From)
+                    $rate = $rates[$to] / $rates[$from];
+
                     Log::info('Exchange rate fetched successfully', [
                         'from' => $from,
                         'to' => $to,
-                        'rate' => $rates[$to],
+                        'rate' => $rate,
                     ]);
 
-                    return (float) $rates[$to];
+                    return (float) $rate;
                 }
             }
 

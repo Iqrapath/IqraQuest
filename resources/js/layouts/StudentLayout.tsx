@@ -6,6 +6,7 @@ import StudentRightSidebar from '@/components/Layout/Student/StudentRightSidebar
 import { useLogoutDialog } from '@/contexts/LogoutDialogContext';
 import StudentOnboardingModal from '@/components/StudentOnboardingModal';
 import { SharedData } from '@/types';
+import { CurrencyProvider } from '@/contexts/CurrencyContext';
 
 interface StudentLayoutProps {
     children: React.ReactNode;
@@ -56,60 +57,62 @@ export default function StudentLayout({ children, hideLeftSidebar = false, hideR
     };
 
     return (
-        <div className="h-screen bg-[#fafbff] flex flex-col font-['Nunito'] overflow-hidden">
-            {/* Header - Sticky at top */}
-            <div className="sticky top-0 z-30 shrink-0">
-                <StudentHeader onMenuToggle={toggleMobileMenu} showMenuButton={!showLeftSidebar} />
-            </div>
+        <CurrencyProvider initialCurrency={auth.wallet_currency as any || 'NGN'}>
+            <div className="h-screen bg-[#fafbff] flex flex-col font-['Nunito'] overflow-hidden">
+                {/* Header - Sticky at top */}
+                <div className="sticky top-0 z-30 shrink-0">
+                    <StudentHeader onMenuToggle={toggleMobileMenu} showMenuButton={!showLeftSidebar} />
+                </div>
 
-            <div className="flex flex-1 overflow-hidden relative">
-                {/* Left Sidebar - Fixed, scrollable internally */}
-                {showLeftSidebar && (
-                    <aside className="hidden lg:block shrink-0 z-10 ml-[clamp(8rem,2vw,12rem)] h-full overflow-y-auto">
-                        <StudentLeftSidebar onLogoutClick={handleLogoutClick} />
-                    </aside>
+                <div className="flex flex-1 overflow-hidden relative">
+                    {/* Left Sidebar - Fixed, scrollable internally */}
+                    {showLeftSidebar && (
+                        <aside className="hidden lg:block shrink-0 z-10 ml-[clamp(8rem,2vw,12rem)] h-full overflow-y-auto">
+                            <StudentLeftSidebar onLogoutClick={handleLogoutClick} />
+                        </aside>
+                    )}
+
+                    {/* Main Content Area - Scrollable */}
+                    <main className="flex-1 overflow-y-auto relative h-full"
+                        style={{
+                            padding: 'clamp(1rem, 2vw, 2rem)',
+                            scrollbarWidth: 'thin',
+                            scrollbarColor: '#ccc #4d9b91',
+                        }}>
+                        {children}
+                    </main>
+
+                    {/* Right Sidebar - Fixed, scrollable internally */}
+                    {showRightSidebar && (
+                        <aside className="hidden xl:block shrink-0 bg-white/50 backdrop-blur-sm border-l border-gray-100 h-full overflow-y-auto mr-[clamp(8rem,2vw,12rem)]">
+                            <StudentRightSidebar />
+                        </aside>
+                    )}
+                </div>
+
+                {/* Mobile Menu Overlay */}
+                {isMobileMenuOpen && (
+                    <>
+                        {/* Backdrop */}
+                        <div
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+                        />
+
+                        {/* Sidebar Drawer */}
+                        <div className="fixed left-0 top-[70px] bottom-0 w-[280px] z-50 lg:hidden overflow-y-auto">
+                            <StudentLeftSidebar onLogoutClick={handleLogoutClick} />
+                        </div>
+                    </>
                 )}
 
-                {/* Main Content Area - Scrollable */}
-                <main className="flex-1 overflow-y-auto relative h-full"
-                    style={{
-                        padding: 'clamp(1rem, 2vw, 2rem)',
-                        scrollbarWidth: 'thin',
-                        scrollbarColor: '#ccc #4d9b91',
-                    }}>
-                    {children}
-                </main>
-
-                {/* Right Sidebar - Fixed, scrollable internally */}
-                {showRightSidebar && (
-                    <aside className="hidden xl:block shrink-0 bg-white/50 backdrop-blur-sm border-l border-gray-100 h-full overflow-y-auto mr-[clamp(8rem,2vw,12rem)]">
-                        <StudentRightSidebar />
-                    </aside>
-                )}
+                {/* Onboarding Modal */}
+                <StudentOnboardingModal
+                    isOpen={showOnboarding}
+                    onComplete={() => setShowOnboarding(false)}
+                    onSkip={() => setShowOnboarding(false)}
+                />
             </div>
-
-            {/* Mobile Menu Overlay */}
-            {isMobileMenuOpen && (
-                <>
-                    {/* Backdrop */}
-                    <div
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
-                    />
-
-                    {/* Sidebar Drawer */}
-                    <div className="fixed left-0 top-[70px] bottom-0 w-[280px] z-50 lg:hidden overflow-y-auto">
-                        <StudentLeftSidebar onLogoutClick={handleLogoutClick} />
-                    </div>
-                </>
-            )}
-
-            {/* Onboarding Modal */}
-            <StudentOnboardingModal
-                isOpen={showOnboarding}
-                onComplete={() => setShowOnboarding(false)}
-                onSkip={() => setShowOnboarding(false)}
-            />
-        </div>
+        </CurrencyProvider>
     );
 }

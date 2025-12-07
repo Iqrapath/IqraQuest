@@ -195,4 +195,95 @@ class PayPalService
         // See: https://developer.paypal.com/api/rest/webhooks/
         return true;
     }
+    /**
+     * Get PayPal Login URL for OAuth
+     */
+    public function getLoginUrl(string $redirectUri): string
+    {
+        $clientId = config('services.paypal.client_id');
+        $scopes = [
+            'openid',
+            'email',
+            'https://uri.paypal.com/services/payouts'
+        ];
+        
+        // Use sandbox or live URL based on config
+        $baseUrl = config('services.paypal.mode') === 'live' 
+            ? 'https://www.paypal.com' 
+            : 'https://www.sandbox.paypal.com';
+
+        $query = http_build_query([
+            'flowEntry' => 'static',
+            'client_id' => $clientId,
+            'response_type' => 'code',
+            'scope' => implode(' ', $scopes),
+            'redirect_uri' => $redirectUri,
+        ]);
+
+        $fullUrl = "{$baseUrl}/connect?{$query}";
+        
+        Log::info('PayPal Connect Debug:', [
+            'mode' => config('services.paypal.mode'),
+            'client_id' => $clientId,
+            'redirect_uri' => $redirectUri,
+            'full_url' => $fullUrl
+        ]);
+
+        return $fullUrl;
+    }
+
+    /**
+     * Get User Info from PayPal using Auth Code
+     */
+    public function getUserInfo(string $code): array
+    {
+        try {
+            $clientId = config('services.paypal.client_id');
+            $clientSecret = config('services.paypal.client_secret');
+            
+            $baseUrl = config('services.paypal.mode') === 'live' 
+                ? 'https://api-m.paypal.com' 
+                : 'https://api-m.sandbox.paypal.com';
+
+            // 1. Exchange code for access token
+            $tokenResponse = \Illuminate\Support\Facades\Http::asForm()
+                ->withBasicAuth($clientId, $clientSecret)
+                ->post("{$baseUrl}/v1/oauth2/token", [
+                    'grant_type' => 'authorization_code',
+                    'code' => $code,
+                ]);
+
+            if (!$tokenResponse->successful()) {
+                throw new \Exception('Failed to exchange code for token: ' . $tokenResponse->body());
+            }
+
+            $accessToken = $tokenResponse->json()['access_token'];
+
+            // 2. Get User Info
+            $userResponse = \Illuminate\Support\Facades\Http::withToken($accessToken)
+                ->get("{$baseUrl}/v1/identity/openidconnect/userinfo?schema=openid");
+
+            if (!$userResponse->successful()) {
+                throw new \Exception('Failed to get user info: ' . $userResponse->body());
+            }
+
+            $userData = $userResponse->json();
+
+            return [
+                'status' => true,
+                'data' => [
+                    'email' => $userData['email'] ?? null,
+                    'payer_id' => $userData['payer_id'] ?? $userData['user_id'] ?? null,
+                    'name' => $userData['name'] ?? null,
+                ]
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('PayPal User Info Error', ['message' => $e->getMessage()]);
+            return [
+                'status' => false,
+                'message' => $e->getMessage()
+            ];
+        }
+    }
 }

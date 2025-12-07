@@ -33,13 +33,7 @@ return new class extends Migration
             
             $table->timestamps();
             
-            // Indexes
-            $table->index('user_id');
-            $table->index('wallet_id');
-            $table->index('type');
-            $table->index('status');
-            $table->index('payment_gateway');
-            $table->index('gateway_reference');
+
             // Indexes
             $table->index('user_id');
             $table->index('wallet_id');

@@ -22,6 +22,14 @@ class EnsureUserHasRole
         }
 
         $userRole = $request->user()->role->value;
+        
+        \Illuminate\Support\Facades\Log::info('EnsureUserHasRole Check', [
+            'user_id' => $request->user()->id,
+            'user_role' => $userRole,
+            'required_roles' => $roles,
+            'url' => $request->fullUrl(),
+            'route_name' => $request->route()->getName(),
+        ]);
 
         if (! in_array($userRole, $roles)) {
             // Log unauthorized role access attempt

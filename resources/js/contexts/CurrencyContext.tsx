@@ -30,8 +30,8 @@ interface CurrencyContextType {
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
-export function CurrencyProvider({ children }: { children: ReactNode }) {
-    const [currency, setCurrency] = useState<CurrencyCode>('NGN');
+export function CurrencyProvider({ children, initialCurrency = 'NGN' }: { children: ReactNode, initialCurrency?: CurrencyCode }) {
+    const [currency, setCurrency] = useState<CurrencyCode>(initialCurrency);
     const [rates, setRates] = useState<Record<string, number>>({});
     const [loading, setLoading] = useState(true);
 
@@ -53,13 +53,18 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         fetchRates();
     }, []);
 
+    useEffect(() => {
+        if (initialCurrency) {
+            setCurrency(initialCurrency);
+        }
+    }, [initialCurrency]);
+
     const formatAmount = (amount: number) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: currency,
+        return `${config.symbol}${new Intl.NumberFormat('en-US', {
+            style: 'decimal',
             minimumFractionDigits: 0,
             maximumFractionDigits: 2
-        }).format(amount);
+        }).format(amount)}`;
     };
 
     const convert = (amount: number, from: CurrencyCode, to: CurrencyCode): number => {

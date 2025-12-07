@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('student_payment_methods', function (Blueprint $table) {
             $table->id();
             $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
-            $table->enum('type', ['card', 'bank_account', 'paypal']);
+            $table->enum('type', ['card', 'bank_account', 'paypal', 'mobile_wallet']);
             $table->string('gateway'); // paystack, paypal
             $table->boolean('is_primary')->default(false);
             
@@ -33,6 +33,11 @@ return new class extends Migration
             
             // For PayPal
             $table->string('paypal_email')->nullable();
+            
+            // For Mobile Wallets (MTN, Airtel, etc.)
+            $table->string('wallet_provider')->nullable(); // mtn, airtel, vodafone, etc.
+            $table->string('wallet_phone_number')->nullable();
+            $table->string('wallet_account_name')->nullable();
             
             // Verification
             $table->boolean('is_verified')->default(false);
