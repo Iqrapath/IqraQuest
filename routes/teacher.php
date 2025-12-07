@@ -6,6 +6,7 @@ use App\Http\Controllers\Teacher\OnboardingController;
 use App\Http\Controllers\Teacher\WaitingAreaController;
 use App\Http\Controllers\Teacher\EarningsController;
 use App\Http\Controllers\Teacher\PayoutController;
+use App\Http\Controllers\Teacher\PaymentController;
 use App\Http\Controllers\Student\WalletController; // Shared wallet controller
 use Illuminate\Support\Facades\Route;
 
@@ -51,6 +52,7 @@ Route::middleware(['auth', 'verified', 'role:teacher'])
             // Earnings Routes
             Route::get('/earnings', [EarningsController::class, 'index'])->name('earnings');
             Route::get('/earnings/transactions', [EarningsController::class, 'transactions'])->name('earnings.transactions');
+            Route::post('/earnings/settings', [EarningsController::class, 'updateSettings'])->name('earnings.settings');
             Route::get('/earnings/export', [EarningsController::class, 'exportReport'])->name('earnings.export');
             
             // Payout Routes
@@ -59,5 +61,28 @@ Route::middleware(['auth', 'verified', 'role:teacher'])
             Route::post('/payouts', [PayoutController::class, 'store'])->name('payouts.store');
             Route::get('/payouts/{id}', [PayoutController::class, 'show'])->name('payouts.show');
             Route::post('/payouts/{id}/cancel', [PayoutController::class, 'cancel'])->name('payouts.cancel');
+            
+            // Payment Method Routes
+            Route::get('/payment/banks', [PaymentController::class, 'getBanks'])->name('payment.banks');
+            Route::get('/payment/resolve-account', [PaymentController::class, 'resolveAccount'])->name('payment.resolve-account');
+            
+            // Bank Account Management
+            Route::post('/payment/methods/bank', [PaymentController::class, 'storeBankDetails'])->name('payment.methods.bank.store');
+            Route::put('/payment/methods/bank/{id}', [PaymentController::class, 'updateBankDetails'])->name('payment.methods.bank.update');
+            Route::delete('/payment/methods/bank/{id}', [PaymentController::class, 'deleteBankDetails'])->name('payment.methods.bank.delete');
+            
+            // Mobile Wallet Management
+            Route::post('/payment/methods/mobile-wallet', [PaymentController::class, 'storeMobileWalletDetails'])->name('payment.methods.mobile-wallet.store');
+            Route::put('/payment/methods/mobile-wallet/{id}', [PaymentController::class, 'updateMobileWalletDetails'])->name('payment.methods.mobile-wallet.update');
+            Route::delete('/payment/methods/mobile-wallet/{id}', [PaymentController::class, 'deleteMobileWalletDetails'])->name('payment.methods.mobile-wallet.delete');
+            
+            // PayPal Management
+            Route::post('/payment/methods/paypal', [PaymentController::class, 'storePayPalDetails'])->name('payment.methods.paypal.store');
+            Route::put('/payment/methods/paypal/{id}', [PaymentController::class, 'updatePayPalDetails'])->name('payment.methods.paypal.update');
+            Route::delete('/payment/methods/paypal/{id}', [PaymentController::class, 'deletePayPalDetails'])->name('payment.methods.paypal.delete');
+            
+            // PayPal OAuth
+            Route::get('/payment/methods/paypal/initiate', [PaymentController::class, 'initiatePayPalLinking'])->name('payment.methods.paypal.initiate');
+            Route::get('/payment/methods/paypal/callback', [PaymentController::class, 'handlePayPalCallback'])->name('payment.methods.paypal.callback');
         });
     });

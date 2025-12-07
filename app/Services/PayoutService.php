@@ -56,7 +56,7 @@ class PayoutService
     /**
      * Approve a payout
      */
-    public function approvePayout(int $payoutId, int $adminId): Payout
+    public function approvePayout(int $payoutId, ?int $adminId = null): Payout
     {
         $payout = Payout::findOrFail($payoutId);
 

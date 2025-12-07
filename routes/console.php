@@ -27,3 +27,8 @@ Schedule::call(function () {
         ->where('created_at', '<', now()->subDays(90))
         ->delete();
 })->monthly();
+
+// Finance: Process automatic payouts daily at midnight
+Schedule::command('payouts:process-automatic')
+    ->dailyAt('00:00')
+    ->appendOutputTo(storage_path('logs/payouts.log'));

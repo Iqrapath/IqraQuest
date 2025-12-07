@@ -39,12 +39,14 @@ class Teacher extends Model
         'holiday_mode',
         // Payment
         'preferred_currency',
+        'automatic_payouts',
         'hourly_rate',
     ];
 
     protected $casts = [
         'specializations' => 'array',
         'holiday_mode' => 'boolean',
+        'automatic_payouts' => 'boolean',
         'hourly_rate' => 'decimal:2',
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
@@ -195,5 +197,13 @@ class Teacher extends Model
     public function primaryPaymentMethod(): HasMany
     {
         return $this->paymentMethods()->where('is_primary', true);
+    }
+
+    /**
+     * Get the payouts for this teacher
+     */
+    public function payouts(): HasMany
+    {
+        return $this->hasMany(Payout::class);
     }
 }

@@ -217,6 +217,7 @@ export const WalletBalance: React.FC<WalletBalanceProps> = ({ balance, paystackP
                 </Link>
             </div>
 
+            {/* Statistics card */}
             <div className="flex flex-col items-center justify-center mb-6">
                 <div className="flex flex-col items-center justify-center mb-2 gap-3 pl-6 pr-4 py-2 rounded-[25px] bg-gradient-to-r from-transparent to-[#c0b7e8]/30 border border-white/20 min-w-[200px] w-full max-w-[280px] md:w-auto">
                     <span className="text-gray-500 text-sm">Wallet Balance</span>

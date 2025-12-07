@@ -111,7 +111,7 @@ class Payout extends Model
     /**
      * Approve the payout
      */
-    public function approve(int $adminId): bool
+    public function approve(?int $adminId = null): bool
     {
         return $this->update([
             'status' => 'approved',

@@ -65,7 +65,59 @@ class EarningsController extends Controller
             'thisMonthEarnings' => $thisMonthEarnings,
             'earningsChart' => $earningsChart,
             'recentTransactions' => $recentTransactions,
+            // Pass the automatic_payouts setting to the view
+            'automaticPayouts' => (bool) $teacher->automatic_payouts,
+            'paymentMethods' => $teacher->paymentMethods->map(function ($method) {
+                $data = [
+                    'id' => $method->id,
+                    'is_primary' => $method->is_primary,
+                    'is_verified' => $method->is_verified,
+                ];
+
+                if ($method->payment_type === 'bank_transfer') {
+                    $data['type'] = 'bank_account';
+                    $data['bank_name'] = $method->bank_name;
+                    $data['bank_account_number'] = $method->account_number;
+                    $data['bank_account_name'] = $method->account_name;
+                    $data['bank_code'] = $method->bank_code;
+                } elseif ($method->payment_type === 'mobile_wallet') {
+                    $data['type'] = 'mobile_wallet';
+                    $data['wallet_provider'] = $method->routing_number; // Using routing_number for provider
+                    $data['wallet_phone_number'] = $method->account_number;
+                    $data['wallet_account_name'] = $method->account_name;
+                } elseif ($method->payment_type === 'paypal') {
+                    $data['type'] = 'paypal';
+                    $data['paypal_email'] = $method->email;
+                }
+
+                return $data;
+            }),
         ]);
+    }
+
+    /**
+     * Update earnings settings
+     */
+    public function updateSettings(Request $request)
+    {
+        $request->validate([
+            'preferred_currency' => 'nullable|string|in:NGN,USD,EUR,GBP',
+            'automatic_payouts' => 'boolean',
+        ]);
+
+        $teacher = auth()->user()->teacher;
+
+        if ($request->has('preferred_currency')) {
+            $teacher->preferred_currency = $request->input('preferred_currency');
+        }
+
+        if ($request->has('automatic_payouts')) {
+            $teacher->automatic_payouts = $request->input('automatic_payouts');
+        }
+
+        $teacher->save();
+
+        return redirect()->back()->with('success', 'Earnings settings updated successfully.');
     }
 
     /**
