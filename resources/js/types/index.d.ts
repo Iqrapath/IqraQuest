@@ -23,6 +23,31 @@ export interface NavItem {
     isActive?: boolean;
 }
 
+export interface TeacherPaymentMethod {
+    id: number;
+    payment_type: string;
+    bank_name?: string;
+    account_number?: string;
+    bank_code?: string;
+    account_name?: string;
+    email?: string;
+    is_primary: boolean;
+}
+
+export interface Payout {
+    [key: string]: any;
+    id: number;
+    amount: string; // Decimal is usually string in JSON
+    status: 'pending' | 'approved' | 'rejected' | 'processing' | 'completed' | 'failed';
+    requested_at: string;
+    gateway: string;
+    teacher: {
+        id: number;
+        user: User;
+    };
+    payment_method?: TeacherPaymentMethod;
+}
+
 export interface SharedData {
     name: string;
     quote: { message: string; author: string };

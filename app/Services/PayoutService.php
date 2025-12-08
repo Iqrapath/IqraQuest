@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Payout;
 use App\Models\Teacher;
 use App\Models\Transaction;
+use App\Models\PaymentSetting; // Import PaymentSetting
 use App\Services\Payment\PaystackService;
 use Illuminate\Support\Facades\DB;
 
@@ -31,14 +32,17 @@ class PayoutService
             throw new \Exception('Insufficient available balance for payout');
         }
 
-        $minimumPayout = config('services.payout.minimum_amount', 5000);
-        if ($amount < $minimumPayout) {
-            throw new \Exception("Minimum payout amount is ₦{$minimumPayout}");
+        $settings = PaymentSetting::first();
+        $minAmount = $settings->min_withdrawal_amount ?? 10000;
+        $verificationEnabled = $settings->bank_verification_enabled ?? true;
+
+        if ($amount < $minAmount) {
+            throw new \Exception("Minimum payout amount is ₦" . number_format($minAmount, 2));
         }
 
         $paymentMethod = $teacher->paymentMethods()->findOrFail($paymentMethodId);
 
-        if (!$paymentMethod->is_verified) {
+        if ($verificationEnabled && !$paymentMethod->is_verified) {
             throw new \Exception('Payment method must be verified before requesting payout');
         }
 
@@ -152,10 +156,16 @@ class PayoutService
 
         // Create transfer recipient if not exists
         if (!$paymentMethod->recipient_code) {
+            // Handle Test Account Bypass
+            $bankCode = $paymentMethod->bank_code;
+            if ($paymentMethod->account_number === '0000000000') {
+                $bankCode = '057'; // Force Zenith Bank for test account
+            }
+
             $recipientResult = $this->paystackService->createTransferRecipient(
                 $paymentMethod->account_name,
                 $paymentMethod->account_number,
-                $paymentMethod->bank_code
+                $bankCode
             );
 
             if (!$recipientResult['status']) {
@@ -168,12 +178,31 @@ class PayoutService
         // Initiate transfer
         $reference = 'PAYOUT-' . $payout->id . '-' . time();
         
-        return $this->paystackService->transferToBank(
+        $transferResult = $this->paystackService->transferToBank(
             $paymentMethod->recipient_code,
             $payout->amount,
             "IqraQuest Payout - " . now()->format('M Y'),
             $reference
         );
+
+        // Handle "Starter Business" limitation in Test Mode ONLY
+        // We check if the key starts with 'sk_test_' to ensure this NEVER happens in production
+        $isTestMode = str_starts_with(config('services.paystack.secret_key'), 'sk_test_');
+
+        if ($isTestMode && !$transferResult['status'] && str_contains($transferResult['message'], 'starter business')) {
+            \Log::warning('Paystack Transfer Simulated (Starter Business Limitation): ' . $transferResult['message']);
+            return [
+                'status' => true,
+                'reference' => $reference,
+                'data' => [
+                    'transfer_code' => 'TRF_SIMULATED_' . time(),
+                    'status' => 'success',
+                    'message' => 'Simulated success (Starter Business)'
+                ]
+            ];
+        }
+
+        return $transferResult;
     }
 
     /**

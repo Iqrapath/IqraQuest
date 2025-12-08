@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\Teacher;
+use App\Models\PaymentSetting;
 use App\Services\PayoutService;
 use Illuminate\Support\Facades\Log;
 
@@ -30,6 +31,14 @@ class ProcessAutomaticPayouts extends Command
     {
         $this->info('Starting automatic payout processing...');
 
+        // Fetch payment settings
+        $settings = PaymentSetting::first();
+        $autoPayoutThreshold = $settings?->auto_payout_threshold ?? 50000;
+        $minimumPayout = $settings?->min_withdrawal_amount ?? 10000;
+
+        $this->info("Using Auto-Payout Threshold: ₦" . number_format($autoPayoutThreshold, 2));
+        $this->info("Using Minimum Withdrawal: ₦" . number_format($minimumPayout, 2));
+
         $teachers = Teacher::where('automatic_payouts', true)->get();
         $count = 0;
         $errors = 0;
@@ -37,7 +46,6 @@ class ProcessAutomaticPayouts extends Command
         foreach ($teachers as $teacher) {
             try {
                 // 1. Check if teacher has a verified payment method
-                // ideally getting the default or first verified one
                 $paymentMethod = $teacher->paymentMethods()
                     ->where('is_verified', true)
                     ->first();
@@ -49,10 +57,16 @@ class ProcessAutomaticPayouts extends Command
 
                 // 2. Calculate Available Balance
                 $balance = $payoutService->calculateAvailableBalance($teacher->id);
-                $minimumPayout = config('services.payout.minimum_amount', 5000);
 
+                // 3. Check if balance meets minimum payout requirement
                 if ($balance < $minimumPayout) {
                     // Not enough funds, skip silently
+                    continue;
+                }
+
+                // 4. Check if balance meets auto-payout threshold
+                if ($balance < $autoPayoutThreshold) {
+                    $this->info("Teacher ID {$teacher->id} balance (₦{$balance}) below threshold (₦{$autoPayoutThreshold}). Skipping.");
                     continue;
                 }
 

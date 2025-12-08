@@ -28,12 +28,17 @@ Route::middleware(['auth', 'verified', 'role:admin'])
 
     // Payout Routes
     Route::prefix('payouts')->name('payouts.')->group(function () {
+        // Bank Resolution Routes (Must be before /{id})
+        Route::get('/banks', [PayoutController::class, 'getBanks'])->name('banks');
+        Route::get('/resolve-account', [PayoutController::class, 'resolveAccount'])->name('resolve-account');
+
         Route::get('/', [PayoutController::class, 'index'])->name('index');
         Route::get('/{id}', [PayoutController::class, 'show'])->name('show');
         Route::post('/{id}/approve', [PayoutController::class, 'approve'])->name('approve');
         Route::post('/{id}/reject', [PayoutController::class, 'reject'])->name('reject');
         Route::post('/bulk-approve', [PayoutController::class, 'bulkApprove'])->name('bulk-approve');
         Route::post('/{id}/process', [PayoutController::class, 'process'])->name('process');
+        Route::post('/{id}/update-method', [PayoutController::class, 'updatePaymentMethod'])->name('update-method');
     });
 
     // Teacher Management Routes
@@ -65,4 +70,11 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::post('/{teacher}/documents/upload', [\App\Http\Controllers\Admin\TeacherController::class, 'uploadDocument'])->name('teachers.documents.upload');
         Route::post('/{teacher}/documents/{certificate}/verify', [\App\Http\Controllers\Admin\TeacherController::class, 'verifyDocument'])->name('teachers.documents.verify');
     });
+
+    // Payment Management Hub
+    Route::prefix('payments')->name('payments.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('index');
+        Route::put('/settings', [\App\Http\Controllers\Admin\PaymentController::class, 'updateSettings'])->name('update-settings');
+    });
+
     });

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Wallet;
 use App\Models\Transaction;
+use App\Models\PaymentSetting;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -151,10 +152,14 @@ class WalletService
         int $studentId,
         int $teacherId,
         float $amount,
-        float $platformCommissionPercentage,
         int $bookingId
     ): array {
-        return DB::transaction(function () use ($studentId, $teacherId, $amount, $platformCommissionPercentage, $bookingId) {
+        return DB::transaction(function () use ($studentId, $teacherId, $amount, $bookingId) {
+            // Fetch commission settings
+            $settings = PaymentSetting::first();
+            $commissionRate = $settings?->commission_rate ?? 10.00;
+            $commissionType = $settings?->commission_type ?? 'fixed_percentage';
+
             // Debit student wallet
             $studentTransaction = $this->debitWallet(
                 $studentId,
@@ -163,8 +168,14 @@ class WalletService
                 ['booking_id' => $bookingId, 'type' => 'booking_payment']
             );
 
-            // Calculate commission
-            $platformCommission = ($amount * $platformCommissionPercentage) / 100;
+            // Calculate commission based on type
+            if ($commissionType === 'fixed_percentage') {
+                $platformCommission = ($amount * $commissionRate) / 100;
+            } else {
+                // Fixed amount commission
+                $platformCommission = min($commissionRate, $amount); // Don't exceed payment amount
+            }
+            
             $teacherEarnings = $amount - $platformCommission;
 
             // Credit teacher wallet
@@ -180,7 +191,7 @@ class WalletService
                 'transaction_id' => $studentTransaction->id,
                 'booking_id' => $bookingId,
                 'amount' => $platformCommission,
-                'percentage' => $platformCommissionPercentage,
+                'percentage' => $commissionType === 'fixed_percentage' ? $commissionRate : 0,
             ]);
 
             return [
