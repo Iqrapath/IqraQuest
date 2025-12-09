@@ -26,6 +26,17 @@ class PayoutService
     public function requestPayout(int $teacherId, float $amount, int $paymentMethodId): Payout
     {
         $teacher = Teacher::findOrFail($teacherId);
+
+        // Check daily payout limit (24 hours since last request)
+        if ($teacher->last_payout_requested_at && 
+            $teacher->last_payout_requested_at->gt(now()->subDay())) {
+            $nextAvailable = $teacher->last_payout_requested_at->addDay();
+            throw new \Exception(
+                "You can only request one payout per day. Next available: " . 
+                $nextAvailable->diffForHumans() . " (" . $nextAvailable->format('M d, Y g:i A') . ")"
+            );
+        }
+
         $availableBalance = $this->calculateAvailableBalance($teacherId);
 
         if ($amount > $availableBalance) {
@@ -46,7 +57,7 @@ class PayoutService
             throw new \Exception('Payment method must be verified before requesting payout');
         }
 
-        return Payout::create([
+        $payout = Payout::create([
             'teacher_id' => $teacherId,
             'amount' => $amount,
             'currency' => 'NGN',
@@ -55,6 +66,11 @@ class PayoutService
             'gateway' => $paymentMethod->payment_type === 'paypal' ? 'paypal' : 'paystack',
             'requested_at' => now(),
         ]);
+
+        // Update teacher's last payout request timestamp
+        $teacher->update(['last_payout_requested_at' => now()]);
+
+        return $payout;
     }
 
     /**
@@ -185,22 +201,10 @@ class PayoutService
             $reference
         );
 
-        // Handle "Starter Business" limitation in Test Mode ONLY
-        // We check if the key starts with 'sk_test_' to ensure this NEVER happens in production
-        $isTestMode = str_starts_with(config('services.paystack.secret_key'), 'sk_test_');
-
-        if ($isTestMode && !$transferResult['status'] && str_contains($transferResult['message'], 'starter business')) {
-            \Log::warning('Paystack Transfer Simulated (Starter Business Limitation): ' . $transferResult['message']);
-            return [
-                'status' => true,
-                'reference' => $reference,
-                'data' => [
-                    'transfer_code' => 'TRF_SIMULATED_' . time(),
-                    'status' => 'success',
-                    'message' => 'Simulated success (Starter Business)'
-                ]
-            ];
-        }
+        // NOTE: We do NOT simulate success for failed transfers
+        // If Paystack fails (even in test mode with "starter business"), 
+        // the payout should properly fail and be marked as 'failed'
+        // This ensures data integrity and prevents false positives
 
         return $transferResult;
     }

@@ -40,6 +40,8 @@ class Teacher extends Model
         // Payment
         'preferred_currency',
         'automatic_payouts',
+        'last_payout_requested_at',
+        'last_auto_payout_at',
         'hourly_rate',
     ];
 
@@ -51,6 +53,8 @@ class Teacher extends Model
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
         'application_submitted_at' => 'datetime',
+        'last_payout_requested_at' => 'datetime',
+        'last_auto_payout_at' => 'datetime',
     ];
 
     /**

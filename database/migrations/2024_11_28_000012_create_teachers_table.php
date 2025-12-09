@@ -45,6 +45,8 @@ return new class extends Migration
             // Step 4: Payment & Earnings
             $table->string('preferred_currency', 10)->default('NGN');
             $table->boolean('automatic_payouts')->default(false);
+            $table->timestamp('last_payout_requested_at')->nullable(); // Last manual OR auto payout request
+            $table->timestamp('last_auto_payout_at')->nullable(); // Last automatic payout specifically
             $table->decimal('hourly_rate', 10, 2)->nullable();
             
             $table->timestamps();

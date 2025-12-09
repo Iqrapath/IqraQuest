@@ -194,6 +194,21 @@ class WalletService
                 'percentage' => $commissionType === 'fixed_percentage' ? $commissionRate : 0,
             ]);
 
+            // Trigger auto-payout check if enabled
+            $teacher = \App\Models\Teacher::where('user_id', $teacherId)->first();
+            if ($teacher && $teacher->automatic_payouts) {
+                $settings = PaymentSetting::first();
+                $threshold = $settings?->auto_payout_threshold ?? 50000;
+                
+                $newBalance = $this->getBalance($teacherId);
+                
+                if ($newBalance >= $threshold) {
+                    // Dispatch job to queue (non-blocking)
+                    \App\Jobs\ProcessAutoPayoutJob::dispatch($teacher->id)
+                        ->onQueue('payouts');
+                }
+            }
+
             return [
                 'student_transaction' => $studentTransaction,
                 'teacher_transaction' => $teacherTransaction,
