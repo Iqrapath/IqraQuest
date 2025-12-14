@@ -159,13 +159,29 @@ export const WalletBalance: React.FC<WalletBalanceProps> = ({ balance, paystackP
         }
     };
 
-    const handlePaymentSuccess = () => {
+    const handlePaymentSuccess = async (reference?: string) => {
         setShowModal(false);
         setPaymentData(null);
         setAmount('');
-        toast.success('Payment successful! Your wallet will be credited shortly.');
-        // Refresh the page to update balance
-        window.location.reload();
+
+        const txRef = reference || paymentData?.reference;
+        if (!txRef) {
+             window.location.reload(); 
+             return;
+        }
+
+        const verifyToast = toast.loading('Verifying payment...');
+
+        try {
+            await axios.get(`/student/payment/verify/${txRef}`);
+            toast.dismiss(verifyToast);
+            toast.success('Payment successful! Your wallet has been credited.');
+            window.location.reload();
+        } catch (error) {
+            console.error(error);
+            toast.dismiss(verifyToast);
+            window.location.reload();
+        }
     };
 
     const handlePaymentClose = () => {

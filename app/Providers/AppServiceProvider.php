@@ -28,5 +28,6 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\User::observe(\App\Observers\UserObserver::class);
         \App\Models\Teacher::observe(\App\Observers\TeacherObserver::class);
         \App\Models\TeacherCertificate::observe(\App\Observers\TeacherCertificateObserver::class);
+        \App\Models\Booking::observe(\App\Observers\BookingObserver::class);
     }
 }

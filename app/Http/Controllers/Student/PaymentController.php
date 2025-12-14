@@ -45,9 +45,14 @@ class PaymentController extends Controller
         $gateway = $request->input('gateway');
         $reference = 'WAL-' . Str::upper(Str::random(10));
         
+        // Ensure wallet exists before checking currency or id
+        // Use wallet currency if exists, else NGN for new wallet
+        $walletCurrency = $user->wallet?->currency ?? 'NGN';
+        $wallet = $this->walletService->getOrCreateWallet($user->id, $walletCurrency);
+        $walletCurrency = $wallet->currency; // Refresh in case it was created or different
+
         // Get currencies
         $paystackCurrency = config('services.paystack.currency', 'NGN');
-        $walletCurrency = $user->wallet?->currency ?? 'NGN';
         
         // Convert amount to wallet currency for storage
         // Frontend sends amount in Paystack currency, we need to store in wallet currency
@@ -82,7 +87,7 @@ class PaymentController extends Controller
         // Create pending transaction in user's wallet currency
         $transaction = Transaction::create([
             'user_id' => $user->id,
-            'wallet_id' => $user->wallet->id ?? null,
+            'wallet_id' => $wallet->id, // Use valid wallet ID
             'type' => 'credit',
             'amount' => $walletAmount, // Store in wallet currency
             'currency' => $walletCurrency, // Store wallet currency

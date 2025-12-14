@@ -44,7 +44,7 @@ class HandleInertiaRequests extends Middleware
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
-                'wallet_balance' => $request->user()?->wallet?->balance ?? 0,
+                'wallet_balance' => $request->user()?->wallet()->value('balance') ?? 0,
                 'wallet_currency' => $request->user()?->wallet?->currency ?? 'NGN',
                 'payment_gateways_currencies' => [
                     'paystack' => config('services.paystack.currency', 'NGN'),

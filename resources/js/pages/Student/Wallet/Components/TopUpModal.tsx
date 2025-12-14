@@ -19,7 +19,7 @@ interface TopUpModalProps {
     onConfirm: (channel: string) => void;
     isLoading?: boolean;
     paymentData?: { accessCode: string; reference: string } | null;
-    onPaymentSuccess?: () => void;
+    onPaymentSuccess?: (reference?: string) => void;
     onPaymentClose?: () => void;
     paystackPublicKey: string;
 }
@@ -62,7 +62,7 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
                     onPaymentClose?.();
                 },
                 callback: function (response: any) {
-                    onPaymentSuccess?.();
+                    onPaymentSuccess?.(response.reference);
                 }
             };
 

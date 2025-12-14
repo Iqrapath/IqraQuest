@@ -54,6 +54,13 @@ export interface SharedData {
     auth: Auth;
     sidebarOpen: boolean;
     pageTitle?: string;
+    flash: {
+        success?: string;
+        error?: string;
+        warning?: string;
+        info?: string;
+        [key: string]: any;
+    };
     [key: string]: unknown;
 }
 

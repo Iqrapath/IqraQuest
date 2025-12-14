@@ -7,6 +7,7 @@ import { useLogoutDialog } from '@/contexts/LogoutDialogContext';
 import StudentOnboardingModal from '@/components/StudentOnboardingModal';
 import { SharedData } from '@/types';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
+import { Toaster, toast } from 'sonner';
 
 interface StudentLayoutProps {
     children: React.ReactNode;
@@ -19,7 +20,7 @@ export default function StudentLayout({ children, hideLeftSidebar = false, hideR
     const [showRightSidebar, setShowRightSidebar] = useState(!hideRightSidebar);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { confirmLogout } = useLogoutDialog();
-    const { auth } = usePage<SharedData>().props;
+    const { auth, flash } = usePage<SharedData>().props;
 
     // Check if user needs onboarding
     const needsOnboarding = !auth.user.onboarding_completed_at && !auth.user.onboarding_skipped;
@@ -46,6 +47,14 @@ export default function StudentLayout({ children, hideLeftSidebar = false, hideR
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, [hideLeftSidebar, hideRightSidebar]);
+
+    // Handle Flash Messages
+    // useEffect(() => {
+    //     if (flash?.success) toast.success(flash.success);
+    //     if (flash?.error) toast.error(flash.error);
+    //     if (flash?.warning) toast.warning(flash.warning);
+    //     if (flash?.info) toast.info(flash.info);
+    // }, [flash]);
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -106,12 +115,12 @@ export default function StudentLayout({ children, hideLeftSidebar = false, hideR
                     </>
                 )}
 
-                {/* Onboarding Modal */}
                 <StudentOnboardingModal
                     isOpen={showOnboarding}
                     onComplete={() => setShowOnboarding(false)}
                     onSkip={() => setShowOnboarding(false)}
                 />
+                {/* <Toaster position="top-right" richColors /> */}
             </div>
         </CurrencyProvider>
     );

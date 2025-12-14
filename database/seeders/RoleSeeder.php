@@ -36,6 +36,9 @@ class RoleSeeder extends Seeder
 
         // Create teacher profile
         $teacherProfile = $teacher->teacher()->create([
+            'bio' => 'Experienced Quran teacher with 10 years of experience. Specialized in Tajweed and memorization techniques.',
+            'experience_years' => 10,
+            'hourly_rate' => 18000,
             'status' => 'approved',
             'approved_by' => $admin->id,
             'approved_at' => now(),
@@ -43,9 +46,7 @@ class RoleSeeder extends Seeder
             'country' => 'Nigeria',
             'city' => 'Lagos',
             'preferred_language' => 'English',
-            'bio' => 'Experienced Quran teacher with 10 years of experience.',
             'qualifications' => 'Ijazah in Quran recitation',
-            'experience_years' => 10,
         ]);
 
         // Create Guardian User

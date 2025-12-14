@@ -43,6 +43,12 @@ Route::middleware(['auth', 'verified', 'role:teacher'])
         // Dashboard (Approved teachers only)
         Route::middleware('teacher.approved')->group(function () {
             Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+            // Booking Requests Management
+            Route::get('/requests', [\App\Http\Controllers\Teacher\BookingController::class, 'index'])->name('requests.index');
+            Route::post('/requests/{booking}/accept', [\App\Http\Controllers\Teacher\BookingController::class, 'accept'])->name('requests.accept');
+            Route::post('/requests/{booking}/reject', [\App\Http\Controllers\Teacher\BookingController::class, 'reject'])->name('requests.reject');
+
             
             // Wallet Routes (teachers can view their wallet like students)
             Route::get('/wallet', [WalletController::class, 'index'])->name('wallet');

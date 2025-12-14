@@ -1,6 +1,17 @@
 <?php
 
+use App\Http\Controllers\Api\Student\TeacherController;
+use App\Http\Controllers\Api\SubjectController;
+use App\Http\Controllers\Api\FilterController;
 use App\Http\Controllers\Student\DashboardController;
+
+// API Routes for Browse Teachers
+Route::get('/api/teachers', [TeacherController::class, 'index'])->name('api.teachers.index');
+Route::get('/api/teachers/{id}', [TeacherController::class, 'show'])->name('api.teachers.show');
+Route::get('/api/subjects', [SubjectController::class, 'index'])->name('api.subjects.index');
+Route::get('/api/filter-options', [FilterController::class, 'getOptions'])->name('api.filter-options');
+
+// Page Routes
 use App\Http\Controllers\Student\WalletController;
 use App\Http\Controllers\Student\PaymentController;
 use Illuminate\Support\Facades\Route;
@@ -11,6 +22,15 @@ Route::middleware(['auth', 'verified', 'role:student'])
     ->name('student.')
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        
+        // Teachers Routes
+        Route::get('/teachers', [\App\Http\Controllers\Student\TeacherController::class, 'index'])->name('teachers.index');
+        Route::get('/teachers/{id}', [\App\Http\Controllers\Student\TeacherController::class, 'show'])->name('teachers.show');
+        
+        // Booking Routes
+        Route::get('/book/{teacherId}', [\App\Http\Controllers\Student\BookingController::class, 'index'])->name('book.index');
+        Route::post('/book/process', [\App\Http\Controllers\Student\BookingController::class, 'store'])->name('book.process');
+        Route::post('/book/check-availability', [\App\Http\Controllers\Student\BookingController::class, 'checkAvailability'])->name('book.check-availability');
         
         // Wallet Routes
         Route::get('/wallet', [WalletController::class, 'index'])->name('wallet');
