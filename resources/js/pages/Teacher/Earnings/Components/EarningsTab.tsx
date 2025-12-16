@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { WithdrawModal } from './WithdrawModal';
 
 // Silence TS error for global route helper from Ziggy
-declare var route: any;
+declare let route: any;
 
 interface EarningsTabProps {
     totalEarnings: number;

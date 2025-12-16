@@ -63,6 +63,11 @@ class Booking extends Model
         return $this->hasMany(RescheduleRequest::class);
     }
 
+    public function materials()
+    {
+        return $this->hasMany(ClassroomMaterial::class);
+    }
+
     // Scopes
     public function scopeActive($query)
     {

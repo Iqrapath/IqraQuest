@@ -198,6 +198,14 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get the bookings for the user (as a student).
+     */
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    /**
      * Set the user's avatar.
      * Automatically handles file upload if an UploadedFile instance is passed.
      */

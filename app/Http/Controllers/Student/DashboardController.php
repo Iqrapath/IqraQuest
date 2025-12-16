@@ -13,6 +13,15 @@ class DashboardController extends Controller
      */
     public function index(): Response
     {
-        return Inertia::render('Student/Dashboard');
+        $bookings = auth()->user()->bookings() // Assumes 'bookings()' relationship exists on User model (Student)
+            ->with(['teacher.user', 'subject'])
+            ->where('status', 'confirmed')
+            ->where('start_time', '>=', now())
+            ->orderBy('start_time', 'asc')
+            ->get();
+
+        return Inertia::render('Student/Dashboard', [
+            'bookings' => $bookings
+        ]);
     }
 }

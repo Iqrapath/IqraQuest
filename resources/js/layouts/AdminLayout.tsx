@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { usePage, router } from '@inertiajs/react';
+
 import AdminHeader from '@/components/Layout/Admin/AdminHeader';
 import AdminLeftSidebar from '@/components/Layout/Admin/AdminLeftSidebar';
 import AdminRightSidebar from '@/components/Layout/Admin/AdminRightSidebar';

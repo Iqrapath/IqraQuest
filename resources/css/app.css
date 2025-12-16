@@ -27,6 +27,7 @@
 
     --font-poppins: 'Poppins', sans-serif;
     --font-inter: 'Inter', sans-serif;
+    --font-arabic: 'Amiri', 'Scheherazade New', 'Traditional Arabic', serif;
 
     /* Border Radius */
     --radius-lg: var(--radius);
@@ -212,6 +213,11 @@
 }
 
 @layer utilities {
+
+    /* Arabic Font for Quran */
+    .font-arabic {
+        font-family: 'Amiri', 'Scheherazade New', 'Traditional Arabic', serif;
+    }
 
     /* Desktop Typography - Poppins 8px - 56px */
     .text-h1 {

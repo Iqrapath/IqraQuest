@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react'; // Added router
 import axios from 'axios';
 // @ts-ignore
-declare var route: any;
+declare let route: any;
 import StudentLayout from '@/layouts/StudentLayout';
 import { Icon } from '@iconify/react';
 import { useCurrency } from '@/contexts/CurrencyContext';
@@ -161,7 +161,7 @@ export default function BookingIndex({ teacher, booked_slots = [] }: Props) {
         days.sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b));
 
         // Basic Summary Logic
-        let daySummary = days.length === 7 ? 'Every Day' : (days.length > 2 ? `${days[0]} - ${days[days.length - 1]}` : days.join(', '));
+        const daySummary = days.length === 7 ? 'Every Day' : (days.length > 2 ? `${days[0]} - ${days[days.length - 1]}` : days.join(', '));
         const timeSummary = `${formatTimePill(startTimes[0] || '09:00')} - ${formatTimePill(endTimes[0] || '17:00')}`;
 
         return { days: daySummary, time: timeSummary };

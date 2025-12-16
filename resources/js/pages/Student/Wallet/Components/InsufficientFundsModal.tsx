@@ -54,8 +54,8 @@ export const InsufficientFundsModal: React.FC<InsufficientFundsModalProps> = ({
             const paystackCurrency = auth.payment_gateways_currencies?.paystack || 'NGN';
 
             // Calculate amounts based on currency
-            let backendAmount = numAmount;
-            let usdAmount = numAmount;
+            const backendAmount = numAmount;
+            const usdAmount = numAmount;
 
             // NOTE: requiredAmount is currently Total Cost (NGN)
             // If currency context is USD, we might need conversions. 

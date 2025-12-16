@@ -69,6 +69,38 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('notifications.mark-as-read');
     Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])
         ->name('notifications.mark-all-as-read');
+
+    // Virtual Classroom (The Majlis)
+    Route::get('/classroom/{booking}', [\App\Http\Controllers\ClassroomController::class, 'join'])
+        ->name('classroom.join');
+
+    // Classroom Materials API
+    Route::get('/classroom/{booking}/materials', [\App\Http\Controllers\ClassroomMaterialController::class, 'index'])
+        ->name('classroom.materials.index');
+    Route::post('/classroom/{booking}/materials', [\App\Http\Controllers\ClassroomMaterialController::class, 'store'])
+        ->name('classroom.materials.store');
+    Route::delete('/classroom/{booking}/materials/{material}', [\App\Http\Controllers\ClassroomMaterialController::class, 'destroy'])
+        ->name('classroom.materials.destroy');
+
+    // Classroom Attendance API
+    Route::post('/classroom/{booking}/attendance/join', [\App\Http\Controllers\ClassroomController::class, 'recordJoin'])
+        ->name('classroom.attendance.join');
+    Route::post('/classroom/{booking}/attendance/leave', [\App\Http\Controllers\ClassroomController::class, 'recordLeave'])
+        ->name('classroom.attendance.leave');
+    Route::get('/classroom/{booking}/attendance', [\App\Http\Controllers\ClassroomController::class, 'getAttendance'])
+        ->name('classroom.attendance.index');
+
+    // Classroom Polls/Quiz API
+    Route::get('/classroom/{booking}/poll/active', [\App\Http\Controllers\ClassroomPollController::class, 'getActive'])
+        ->name('classroom.poll.active');
+    Route::post('/classroom/{booking}/poll', [\App\Http\Controllers\ClassroomPollController::class, 'store'])
+        ->name('classroom.poll.store');
+    Route::post('/classroom/poll/{poll}/respond', [\App\Http\Controllers\ClassroomPollController::class, 'respond'])
+        ->name('classroom.poll.respond');
+    Route::post('/classroom/poll/{poll}/end', [\App\Http\Controllers\ClassroomPollController::class, 'end'])
+        ->name('classroom.poll.end');
+    Route::post('/classroom/poll/{poll}/toggle-results', [\App\Http\Controllers\ClassroomPollController::class, 'toggleResults'])
+        ->name('classroom.poll.toggle-results');
 });
 
 // Email Preview Routes (Development Only)

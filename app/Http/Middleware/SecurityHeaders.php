@@ -29,34 +29,39 @@ class SecurityHeaders
 
         // Content Security Policy - Development friendly
         if (app()->environment('local', 'development')) {
-            // Relaxed CSP for development (includes Paystack)
+            // Relaxed CSP for development (includes Paystack and classroom materials)
             $csp = implode('; ', [
                 "default-src 'self'",
                 "script-src 'self' 'unsafe-inline' 'unsafe-eval' http: https: blob: https://js.paystack.co https://checkout.paystack.com",
                 "style-src 'self' 'unsafe-inline' http: https: https://paystack.com https://checkout.paystack.com",
-                "font-src 'self' https://fonts.bunny.net https://fonts.gstatic.com data:",
+                "font-src 'self' https://fonts.bunny.net https://fonts.gstatic.com https://fonts.googleapis.com data:",
                 "img-src 'self' data: https: http: blob:",
-                "connect-src 'self' ws: wss: http: https: https://api.paystack.co https://checkout.paystack.com",
-                "frame-src 'self' https://checkout.paystack.com https://js.paystack.co",
+                "connect-src 'self' ws: wss: http: https: https://api.paystack.co https://checkout.paystack.com https://api.quran.com",
+                "frame-src 'self' blob: data: https://checkout.paystack.com https://js.paystack.co http: https:",
                 "frame-ancestors 'self'",
+                "object-src 'self' blob: data: http: https:",
+                "media-src 'self' blob: data: https://verses.quran.com https://*.quran.com",
             ]);
         } else {
-            // Strict CSP for production (includes Paystack)
+            // Strict CSP for production (includes Paystack and classroom materials)
             $csp = implode('; ', [
                 "default-src 'self'",
                 "script-src 'self' 'unsafe-inline' https://fonts.bunny.net https://js.paystack.co",
                 "style-src 'self' 'unsafe-inline' https://fonts.bunny.net https://fonts.googleapis.com https://paystack.com",
-                "font-src 'self' https://fonts.bunny.net https://fonts.gstatic.com data:",
+                "font-src 'self' https://fonts.bunny.net https://fonts.gstatic.com https://fonts.googleapis.com data:",
                 "img-src 'self' data: https: blob:",
-                "connect-src 'self' https: https://api.paystack.co",
-                "frame-src 'self' https://checkout.paystack.com https://js.paystack.co",
+                "connect-src 'self' https: https://api.paystack.co https://api.quran.com",
+                "frame-src 'self' blob: data: https://checkout.paystack.com https://js.paystack.co https:",
                 "frame-ancestors 'self'",
+                "object-src 'self' blob: data: https:",
+                "media-src 'self' blob: data: https://verses.quran.com https://*.quran.com",
             ]);
         }
         $response->headers->set('Content-Security-Policy', $csp);
 
         // Permissions Policy (formerly Feature Policy)
-        $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+        // Allow camera/microphone for the classroom
+        $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(self), camera=(self)');
 
         // HSTS - Force HTTPS (only in production)
         if (app()->environment('production')) {
