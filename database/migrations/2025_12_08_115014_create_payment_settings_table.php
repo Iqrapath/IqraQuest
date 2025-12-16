@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('payment_settings', function (Blueprint $table) {
             $table->id();
-            $table->decimal('commission_rate', 5, 2)->default(10.00)->comment('Percentage or fixed amount');
+            $table->decimal('commission_rate', 5, 2)->default(15.00)->comment('Platform commission percentage');
             $table->enum('commission_type', ['fixed_percentage', 'fixed_amount'])->default('fixed_percentage');
             
             $table->decimal('auto_payout_threshold', 15, 2)->default(50000.00);

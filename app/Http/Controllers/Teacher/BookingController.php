@@ -8,6 +8,7 @@ use App\Models\Subject;
 use App\Models\Transaction;
 use App\Notifications\BookingConfirmedNotification;
 use App\Notifications\BookingRejectedNotification;
+use App\Services\EscrowService;
 use App\Services\WalletService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,10 +18,12 @@ use Inertia\Inertia;
 class BookingController extends Controller
 {
     protected $walletService;
+    protected $escrowService;
 
-    public function __construct(WalletService $walletService)
+    public function __construct(WalletService $walletService, EscrowService $escrowService)
     {
         $this->walletService = $walletService;
+        $this->escrowService = $escrowService;
     }
 
     public function index()
@@ -94,15 +97,10 @@ class BookingController extends Controller
 
         DB::transaction(function () use ($booking) {
             // 1. Update Status
-            $booking->update(['status' => 'cancelled']);
+            $booking->update(['status' => 'cancelled', 'cancellation_reason' => 'Teacher declined']);
 
-            // 2. Refund Student
-            $this->walletService->creditWallet(
-                $booking->user_id,
-                $booking->total_price,
-                "Refund for declined booking #{$booking->id}",
-                ['booking_id' => $booking->id, 'action' => 'teacher_rejection']
-            );
+            // 2. Refund Student via Escrow Service
+            $this->escrowService->refundFunds($booking, null, 'Teacher declined the booking request');
 
             // 3. Notify Student
             $booking->student->notify(new BookingRejectedNotification($booking));

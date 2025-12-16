@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Booking;
+use App\Services\EscrowService;
 use App\Services\WalletService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -30,24 +31,16 @@ class ProcessBookingPaymentJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(WalletService $walletService): void
+    public function handle(EscrowService $escrowService): void
     {
         Log::info("Processing payment for Booking ID: {$this->booking->id}");
 
         $student = $this->booking->student;
-        $amount = $this->booking->total_price;
 
-        if ($walletService->canDebit($student->id, $amount)) {
-            // Deduct funds
-            $walletService->debitWallet(
-                $student->id, 
-                $amount, 
-                "Payment for class with " . $this->booking->teacher->user->name,
-                ['booking_id' => $this->booking->id, 'type' => 'booking_payment']
-            );
-            
-            // Confirm Booking
-            $this->booking->update(['status' => 'awaiting_approval']); // Changed status to awaiting_approval
+        // Hold funds in escrow (will be released after session completion)
+        if ($escrowService->holdFunds($this->booking)) {
+            // Update booking status to awaiting teacher approval
+            $this->booking->update(['status' => 'awaiting_approval']);
             
             // Send Success Notification to Student
             $student->notify(new BookingRequestedNotification($this->booking));
@@ -55,9 +48,9 @@ class ProcessBookingPaymentJob implements ShouldQueue
             // Send Notification to Teacher (Delayed 20s to ensure Student email completes and Mailtrap limit resets)
             $this->booking->teacher->user->notify((new NewBookingRequestNotification($this->booking))->delay(now()->addSeconds(20)));
             
-            Log::info("Payment successful. Booking confirmed.");
+            Log::info("Payment held in escrow. Booking awaiting teacher approval.");
         } else {
-            // Insufficient funds
+            // Insufficient funds or escrow failed
             $this->booking->update(['status' => 'cancelled', 'cancellation_reason' => 'Insufficient wallet balance']);
             
             // Send Failure Notification

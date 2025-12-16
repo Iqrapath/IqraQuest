@@ -36,4 +36,7 @@ Route::middleware(['auth', 'verified', 'role:guardian'])
         Route::get('/payment/methods/paypal/callback', [PaymentController::class, 'handlePayPalCallback'])->name('payment.methods.paypal.callback');
         
         Route::post('/payment/initialize', [PaymentController::class, 'initializePayment'])->name('payment.initialize');
+        
+        // Dispute Routes (guardians can dispute bookings they made for their children)
+        Route::post('/booking/{booking}/dispute', [\App\Http\Controllers\Student\DisputeController::class, 'store'])->name('booking.dispute');
     });

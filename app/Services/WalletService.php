@@ -157,7 +157,7 @@ class WalletService
         return DB::transaction(function () use ($studentId, $teacherId, $amount, $bookingId) {
             // Fetch commission settings
             $settings = PaymentSetting::first();
-            $commissionRate = $settings?->commission_rate ?? 10.00;
+            $commissionRate = $settings?->commission_rate ?? 15.00;
             $commissionType = $settings?->commission_type ?? 'fixed_percentage';
 
             // Debit student wallet

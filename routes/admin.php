@@ -77,4 +77,13 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::put('/settings', [\App\Http\Controllers\Admin\PaymentController::class, 'updateSettings'])->name('update-settings');
     });
 
+    // Dispute Management Routes
+    Route::prefix('disputes')->name('disputes.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\DisputeController::class, 'index'])->name('index');
+        Route::get('/{booking}', [\App\Http\Controllers\Admin\DisputeController::class, 'show'])->name('show');
+        Route::post('/{booking}/resolve-teacher', [\App\Http\Controllers\Admin\DisputeController::class, 'resolveForTeacher'])->name('resolve-teacher');
+        Route::post('/{booking}/resolve-student', [\App\Http\Controllers\Admin\DisputeController::class, 'resolveForStudent'])->name('resolve-student');
+        Route::post('/{booking}/resolve-partial', [\App\Http\Controllers\Admin\DisputeController::class, 'resolvePartial'])->name('resolve-partial');
+    });
+
     });

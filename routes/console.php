@@ -32,3 +32,9 @@ Schedule::call(function () {
 Schedule::command('payouts:process-automatic')
     ->dailyAt('00:00')
     ->appendOutputTo(storage_path('logs/payouts.log'));
+
+// Escrow: Process eligible fund releases every hour
+// Releases funds to teachers after 24-hour dispute window expires
+Schedule::command('escrow:process-releases')
+    ->hourly()
+    ->appendOutputTo(storage_path('logs/escrow-releases.log'));

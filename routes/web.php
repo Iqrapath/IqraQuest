@@ -130,6 +130,10 @@ Route::get('/preview-email/{type}', function ($type) {
 Route::post('/webhooks/paystack', [\App\Http\Controllers\Webhooks\PaystackWebhookController::class, 'handle'])
     ->name('webhooks.paystack');
 
+// LiveKit Webhooks (for session completion and escrow processing)
+Route::post('/webhooks/livekit', [\App\Http\Controllers\LiveKitWebhookController::class, 'handle'])
+    ->name('webhooks.livekit');
+
 require __DIR__.'/settings.php';
 require __DIR__.'/admin.php';
 require __DIR__.'/teacher.php';
