@@ -58,6 +58,7 @@ class TransactionController extends Controller
         return Inertia::render('Admin/Transactions/Index', [
             'transactions' => $transactions,
             'filters' => $request->only(['type', 'status', 'gateway', 'from_date', 'to_date', 'search']),
+            'pageTitle' => 'Transaction Management',
         ]);
     }
 

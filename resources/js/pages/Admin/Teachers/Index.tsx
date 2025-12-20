@@ -401,7 +401,7 @@ export default function TeachersIndex({ teachers, stats, filters, filter_options
                                                 <div className="flex items-center gap-1">
                                                     <Icon icon="solar:star-bold" className="w-3.5 h-3.5 md:w-4 md:h-4 text-[#FFCC00]" />
                                                     <span className="text-[13px] md:text-[14px] font-bold text-[#101928] font-['Nunito']">
-                                                        {teacher.rating?.toFixed(1) || '4.8'}
+                                                        {teacher.rating ? Number(teacher.rating).toFixed(1) : '0.0'}
                                                     </span>
                                                 </div>
                                             </td>
@@ -507,22 +507,45 @@ export default function TeachersIndex({ teachers, stats, filters, filter_options
                     {teachers.last_page > 1 && (
                         <div className="px-4 md:px-8 py-4 md:py-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between bg-white gap-3">
                             <p className="text-xs md:text-sm text-gray-500 font-['Nunito']">
-                                Showing <span className="font-bold text-[#101928]">{teachers.data.length}</span> from <span className="font-bold text-[#101928]">{stats.all}</span> data
+                                Showing <span className="font-bold text-[#101928]">{teachers.data.length}</span> of <span className="font-bold text-[#101928]">{stats.all}</span> teachers
                             </p>
-                            <div className="flex gap-1.5 md:gap-2 overflow-x-auto pb-2 sm:pb-0">
-                                {teachers.links.map((link, index) => (
-                                    link.url && (
+                            <div className="flex items-center gap-1.5 md:gap-2">
+                                {teachers.links.map((link, index) => {
+                                    const isFirst = index === 0;
+                                    const isLast = index === teachers.links.length - 1;
+                                    const isPrevNext = isFirst || isLast;
+                                    
+                                    if (!link.url && isPrevNext) {
+                                        return (
+                                            <span
+                                                key={index}
+                                                className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center rounded-lg text-gray-300 cursor-not-allowed"
+                                            >
+                                                <Icon icon={isFirst ? 'mdi:chevron-left' : 'mdi:chevron-right'} className="w-5 h-5" />
+                                            </span>
+                                        );
+                                    }
+                                    
+                                    if (!link.url) return null;
+                                    
+                                    return (
                                         <Link
                                             key={index}
                                             href={link.url}
-                                            className={`w-7 h-7 md:w-8 md:h-8 flex items-center justify-center rounded-lg text-xs md:text-sm font-['Nunito'] transition-colors flex-shrink-0 ${link.active
-                                                ? 'bg-[#338078] text-white font-bold'
-                                                : 'text-gray-500 hover:bg-gray-50'
-                                                }`}
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
-                                    )
-                                ))}
+                                            className={`w-8 h-8 md:w-9 md:h-9 flex items-center justify-center rounded-lg text-sm font-['Nunito'] transition-colors ${
+                                                link.active
+                                                    ? 'bg-[#338078] text-white font-bold'
+                                                    : 'text-gray-600 hover:bg-gray-100 border border-gray-200'
+                                            }`}
+                                        >
+                                            {isPrevNext ? (
+                                                <Icon icon={isFirst ? 'mdi:chevron-left' : 'mdi:chevron-right'} className="w-5 h-5" />
+                                            ) : (
+                                                <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                                            )}
+                                        </Link>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}

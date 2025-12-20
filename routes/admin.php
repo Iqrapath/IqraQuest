@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\TeacherApprovalController;
 use App\Http\Controllers\Admin\FinancialDashboardController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\PayoutController;
+use App\Http\Controllers\Admin\BookingController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'role:admin'])
@@ -12,6 +13,19 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     ->name('admin.')
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Booking Management Routes
+    Route::prefix('bookings')->name('bookings.')->group(function () {
+        Route::get('/', [BookingController::class, 'index'])->name('index');
+        Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
+        Route::post('/{booking}/approve', [BookingController::class, 'approve'])->name('approve');
+        Route::post('/{booking}/cancel', [BookingController::class, 'cancel'])->name('cancel');
+        Route::post('/{booking}/reschedule', [BookingController::class, 'reschedule'])->name('reschedule');
+        Route::post('/{booking}/reassign-teacher', [BookingController::class, 'reassignTeacher'])->name('reassign-teacher');
+        Route::get('/{booking}/available-teachers', [BookingController::class, 'getAvailableTeachers'])->name('available-teachers');
+        Route::post('/bulk-approve', [BookingController::class, 'bulkApprove'])->name('bulk-approve');
+        Route::post('/bulk-cancel', [BookingController::class, 'bulkCancel'])->name('bulk-cancel');
+    });
     
     // Financial Management Routes
     Route::prefix('finances')->name('finances.')->group(function () {
