@@ -15,10 +15,23 @@ class FundsReleasedNotification extends Notification implements ShouldQueue
     protected Booking $booking;
     protected float $amount;
 
+    /**
+     * Number of times to retry
+     */
+    public int $tries = 3;
+
+    /**
+     * Seconds to wait before retrying
+     */
+    public int $backoff = 30;
+
     public function __construct(Booking $booking, float $amount)
     {
         $this->booking = $booking;
         $this->amount = $amount;
+        
+        // Add delay to avoid rate limiting
+        $this->delay(now()->addSeconds(5));
     }
 
     public function via(object $notifiable): array

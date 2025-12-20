@@ -32,6 +32,14 @@ Route::middleware(['auth', 'verified', 'role:student'])
         Route::post('/book/process', [\App\Http\Controllers\Student\BookingController::class, 'store'])->name('book.process');
         Route::post('/book/check-availability', [\App\Http\Controllers\Student\BookingController::class, 'checkAvailability'])->name('book.check-availability');
         
+        // My Bookings Routes
+        Route::get('/bookings', [\App\Http\Controllers\Student\BookingController::class, 'myBookings'])->name('bookings.index');
+        Route::get('/bookings/{booking}', [\App\Http\Controllers\Student\BookingController::class, 'show'])->name('bookings.show');
+        Route::get('/bookings/{booking}/details', [\App\Http\Controllers\Student\BookingController::class, 'details'])->name('bookings.details');
+        Route::post('/bookings/{booking}/review', [\App\Http\Controllers\Student\BookingController::class, 'submitReview'])->name('bookings.review');
+        Route::put('/bookings/{booking}/review', [\App\Http\Controllers\Student\BookingController::class, 'updateReview'])->name('bookings.review.update');
+        Route::get('/bookings/{booking}/summary/pdf', [\App\Http\Controllers\BookingSummaryController::class, 'show'])->name('bookings.summary.pdf');
+        
         // Wallet Routes
         Route::get('/wallet', [WalletController::class, 'index'])->name('wallet');
         Route::post('/wallet/currency', [WalletController::class, 'updateCurrency'])->name('wallet.currency');
@@ -55,4 +63,19 @@ Route::middleware(['auth', 'verified', 'role:student'])
         
         // Dispute Routes
         Route::post('/booking/{booking}/dispute', [\App\Http\Controllers\Student\DisputeController::class, 'store'])->name('booking.dispute');
+        
+        // Booking Cancellation Routes
+        Route::get('/booking/{booking}/cancellation-details', [\App\Http\Controllers\Student\BookingCancellationController::class, 'getCancellationDetails'])->name('booking.cancellation-details');
+        Route::post('/booking/{booking}/cancel', [\App\Http\Controllers\Student\BookingCancellationController::class, 'cancel'])->name('booking.cancel');
+        
+        // Reschedule Routes
+        Route::get('/booking/{booking}/reschedule', [\App\Http\Controllers\Student\RescheduleController::class, 'index'])->name('booking.reschedule');
+        Route::post('/booking/{booking}/reschedule', [\App\Http\Controllers\Student\RescheduleController::class, 'store'])->name('booking.reschedule.store');
+        Route::post('/booking/{booking}/reschedule/check-availability', [\App\Http\Controllers\Student\RescheduleController::class, 'checkAvailability'])->name('booking.reschedule.check-availability');
+        Route::post('/reschedule-request/{rescheduleRequest}/cancel', [\App\Http\Controllers\Student\RescheduleController::class, 'cancelRequest'])->name('reschedule-request.cancel');
+        
+        // Calendar Export Routes
+        Route::get('/calendar/export', [\App\Http\Controllers\CalendarExportController::class, 'exportAllBookings'])->name('calendar.export');
+        Route::get('/calendar/export/{booking}', [\App\Http\Controllers\CalendarExportController::class, 'exportBooking'])->name('calendar.export.booking');
+        Route::get('/calendar/google/{booking}', [\App\Http\Controllers\CalendarExportController::class, 'googleCalendarUrl'])->name('calendar.google');
     });

@@ -115,10 +115,10 @@ export default function Step2SessionDetails({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-4 pt-8 border-t border-gray-100">
+            <div className="flex justify-end gap-4 mt-16 border-t border-dashed border-gray-200 pt-8">
                 <button
                     onClick={onBack}
-                    className="flex-1 px-8 py-3.5 rounded-full border border-[#358D83] text-[#358D83] font-bold text-lg hover:bg-teal-50 transition-colors"
+                    className="flex px-8 py-3.5 rounded-full border border-[#358D83] text-[#358D83] font-bold text-lg hover:bg-teal-50 transition-colors"
                 >
                     Go Back
                 </button>
@@ -126,7 +126,7 @@ export default function Step2SessionDetails({
                     onClick={onContinue}
                     disabled={!selectedSubject && teacher.subjects?.length > 0} // Require subject if available
                     className={`
-                        flex-[2] px-8 py-3.5 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all
+                        flex px-8 py-3.5 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all
                          flex items-center justify-center gap-2
                         ${(selectedSubject || teacher.subjects?.length === 0)
                             ? 'bg-[#358D83] text-white hover:bg-[#2b756d]'

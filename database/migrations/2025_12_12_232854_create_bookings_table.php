@@ -64,6 +64,7 @@ return new class extends Migration
             $table->integer('actual_duration_minutes')->nullable();
             $table->timestamp('session_started_at')->nullable();
             $table->timestamp('session_ended_at')->nullable();
+            $table->timestamp('no_show_warning_sent_at')->nullable();
             
             $table->string('meeting_link')->nullable();
             $table->text('cancellation_reason')->nullable();

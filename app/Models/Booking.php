@@ -37,6 +37,7 @@ class Booking extends Model
         'actual_duration_minutes',
         'session_started_at',
         'session_ended_at',
+        'no_show_warning_sent_at',
         'meeting_link',
         'cancellation_reason',
         'parent_booking_id',
@@ -56,6 +57,7 @@ class Booking extends Model
         'dispute_resolved_at' => 'datetime',
         'session_started_at' => 'datetime',
         'session_ended_at' => 'datetime',
+        'no_show_warning_sent_at' => 'datetime',
         'teacher_attended' => 'boolean',
         'student_attended' => 'boolean',
     ];
@@ -94,6 +96,34 @@ class Booking extends Model
     public function materials()
     {
         return $this->hasMany(ClassroomMaterial::class);
+    }
+
+    public function remindersSent()
+    {
+        return $this->hasMany(BookingReminder::class);
+    }
+
+    public function review()
+    {
+        return $this->hasOne(Review::class);
+    }
+
+    /**
+     * Check if booking can be rated by the student
+     */
+    public function canBeRated(): bool
+    {
+        // Must be completed
+        if ($this->status !== 'completed') {
+            return false;
+        }
+
+        // Must not already have a review
+        if ($this->review()->exists()) {
+            return false;
+        }
+
+        return true;
     }
 
     // Scopes
@@ -312,5 +342,103 @@ class Booking extends Model
             'dispute_resolution' => $resolution,
             'dispute_resolved_by' => $resolvedBy,
         ]);
+    }
+
+    // ===== CANCELLATION HELPER METHODS =====
+
+    /**
+     * Check if booking can be cancelled by the student/guardian
+     */
+    public function canBeCancelledByStudent(): bool
+    {
+        // Already cancelled or completed
+        if (in_array($this->status, ['cancelled', 'completed'])) {
+            return false;
+        }
+
+        // Disputed bookings can't be cancelled
+        if ($this->status === 'disputed' || $this->payment_status === 'disputed') {
+            return false;
+        }
+
+        // Session already started
+        if ($this->session_started_at) {
+            return false;
+        }
+
+        // Session time has passed
+        if ($this->start_time->isPast()) {
+            return false;
+        }
+
+        // Funds already released
+        if ($this->payment_status === 'released') {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Get hours until session starts
+     */
+    public function getHoursUntilSession(): float
+    {
+        return now()->diffInHours($this->start_time, false);
+    }
+
+    /**
+     * Check if this is part of a recurring series
+     */
+    public function isRecurring(): bool
+    {
+        return $this->parent_booking_id !== null || $this->childBookings()->exists();
+    }
+
+    /**
+     * Check if booking can be rescheduled by the student/guardian
+     */
+    public function canBeRescheduled(): bool
+    {
+        // Can't reschedule cancelled or completed bookings
+        if (in_array($this->status, ['cancelled', 'completed'])) {
+            return false;
+        }
+
+        // Can't reschedule disputed bookings
+        if ($this->status === 'disputed' || $this->payment_status === 'disputed') {
+            return false;
+        }
+
+        // Can't reschedule if session already started
+        if ($this->session_started_at) {
+            return false;
+        }
+
+        // Can't reschedule if session time has passed
+        if ($this->start_time->isPast()) {
+            return false;
+        }
+
+        // Can't reschedule if already in rescheduling status
+        if ($this->status === 'rescheduling') {
+            return false;
+        }
+
+        // Must reschedule at least 6 hours before session
+        $hoursUntilSession = now()->diffInHours($this->start_time, false);
+        if ($hoursUntilSession < 6) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Get the pending reschedule request if any
+     */
+    public function getPendingRescheduleRequest()
+    {
+        return $this->rescheduleRequests()->where('status', 'pending')->first();
     }
 }

@@ -16,11 +16,16 @@ class FundsRefundedNotification extends Notification implements ShouldQueue
     protected float $amount;
     protected string $reason;
 
+    public int $tries = 3;
+    public int $backoff = 30;
+
     public function __construct(Booking $booking, float $amount, string $reason)
     {
         $this->booking = $booking;
         $this->amount = $amount;
         $this->reason = $reason;
+        
+        $this->delay(now()->addSeconds(5));
     }
 
     public function via(object $notifiable): array

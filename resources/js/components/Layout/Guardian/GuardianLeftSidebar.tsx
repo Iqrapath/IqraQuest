@@ -11,7 +11,7 @@ export default function GuardianLeftSidebar({ onLogoutClick }: GuardianLeftSideb
     const menuItems = [
         { name: 'Dashboard', icon: 'mage:dashboard', route: '/guardian/dashboard' },
         { name: 'Browse Teachers', icon: 'hugeicons:teacher', route: '/guardian/courses' },
-        { name: 'My Bookings', icon: 'tabler:message-user', route: '/guardian/schedule' },
+        { name: 'My Bookings', icon: 'tabler:message-user', route: '/guardian/bookings' },
         { name: 'Payments', icon: 'stash:wallet', route: '/guardian/wallet' },
         { name: 'Messages', icon: 'mdi:message-text-outline', route: '/guardian/messages' },
         { name: 'Profile', icon: 'iconamoon:profile', route: '/guardian/profile' },

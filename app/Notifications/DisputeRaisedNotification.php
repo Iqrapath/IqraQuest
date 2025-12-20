@@ -14,9 +14,14 @@ class DisputeRaisedNotification extends Notification implements ShouldQueue
 
     protected Booking $booking;
 
+    public int $tries = 3;
+    public int $backoff = 30;
+
     public function __construct(Booking $booking)
     {
         $this->booking = $booking;
+        
+        $this->delay(now()->addSeconds(5));
     }
 
     public function via(object $notifiable): array

@@ -43,14 +43,23 @@ interface TimeSlot {
     is_available: boolean;
 }
 
+interface RebookData {
+    subject_id: number | null;
+    duration: number;
+}
+
 interface Props {
     teacher: Teacher;
     booked_slots: Array<{ start: string; end: string }>;
+    rebook_data?: RebookData | null;
 }
 
-export default function BookingIndex({ teacher, booked_slots = [] }: Props) {
+export default function BookingIndex({ teacher, booked_slots = [], rebook_data }: Props) {
     const { auth } = usePage<any>().props;
     const userWalletBalance = auth?.wallet_balance || 0;
+
+    // Check if this is a rebook - pre-fill values
+    const isRebook = !!rebook_data;
 
     const [step, setStep] = useState(1);
     const [isBookingSummaryOpen, setIsBookingSummaryOpen] = useState(false);
@@ -59,10 +68,10 @@ export default function BookingIndex({ teacher, booked_slots = [] }: Props) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
     const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
-    const [selectedDuration, setSelectedDuration] = useState(60); // Default 60 mins
+    const [selectedDuration, setSelectedDuration] = useState(rebook_data?.duration || 60);
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [userTimeZone, setUserTimeZone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
-    const [selectedSubject, setSelectedSubject] = useState<number | null>(null);
+    const [selectedSubject, setSelectedSubject] = useState<number | null>(rebook_data?.subject_id || null);
     const [isRecurring, setIsRecurring] = useState(false);
     const [occurrences, setOccurrences] = useState(4);
     const [notes, setNotes] = useState('');
@@ -323,7 +332,19 @@ export default function BookingIndex({ teacher, booked_slots = [] }: Props) {
     // --- Render ---
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
-            <Head title={`Book Session - ${teacher.user.name}`} />
+            <Head title={`${isRebook ? 'Rebook' : 'Book'} Session - ${teacher.user.name}`} />
+
+            {/* Rebook Banner */}
+            {isRebook && (
+                <div className="bg-[#e4f7f4] border-b border-[#a4cfc3] px-4 py-3">
+                    <div className="max-w-4xl mx-auto flex items-center gap-3">
+                        <Icon icon="mdi:refresh" className="h-5 w-5 text-[#338078]" />
+                        <p className="font-['Nunito'] text-sm text-[#338078]">
+                            <span className="font-semibold">Rebooking:</span> Subject and duration have been pre-filled from your previous session. Just pick a new time!
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {step === 1 && (
                 <Step1DateSelection

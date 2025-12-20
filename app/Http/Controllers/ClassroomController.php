@@ -61,17 +61,19 @@ class ClassroomController extends Controller
             abort(403, 'This class is not confirmed.');
         }
 
-        // 3. Time Check (Allow 15 min early, 30 min late)
-        // $now = Carbon::now();
-        // $start = Carbon::parse($booking->start_time); // Assuming combined or just time
-        // Actually booking has date and time. We need to construct full timestamp.
-        // For MVP Development, I will COMMENT OUT time check to allow testing setup.
-        // TODO: Uncomment Time Check for Production.
-        /*
-        if ($now->diffInMinutes($start, false) > 15) {
-             abort(403, 'Class has not started yet.');
+        // 3. Time Check (Allow 15 min early)
+        $now = Carbon::now();
+        $start = Carbon::parse($booking->start_time);
+        $end = Carbon::parse($booking->end_time);
+        
+        // Can join 15 minutes before start until session ends
+        if ($now->lt($start->copy()->subMinutes(15))) {
+            abort(403, 'Class has not started yet. You can join 15 minutes before the scheduled time.');
         }
-        */
+        
+        if ($now->gt($end)) {
+            abort(403, 'This class has already ended.');
+        }
 
         // 4. Generate Token
         $roomName = "booking-" . $booking->id;

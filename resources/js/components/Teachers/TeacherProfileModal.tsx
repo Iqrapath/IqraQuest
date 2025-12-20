@@ -47,12 +47,14 @@ interface TeacherProfileModalProps {
     isOpen: boolean;
     onClose: () => void;
     teacherId: number;
+    hideBookNow?: boolean;
 }
 
 export const TeacherProfileModal: React.FC<TeacherProfileModalProps> = ({
     isOpen,
     onClose,
     teacherId,
+    hideBookNow = false,
 }) => {
     const [activeTab, setActiveTab] = useState('bio');
     const [teacher, setTeacher] = useState<Teacher | null>(null);
@@ -87,7 +89,8 @@ export const TeacherProfileModal: React.FC<TeacherProfileModalProps> = ({
     if (!teacher && isLoading) {
         return (
             <Dialog open={isOpen} onOpenChange={onClose}>
-                <DialogContent className="max-h-[90vh] w-full max-w-xl p-0 sm:max-w-2xl bg-white">
+                <DialogContent className="max-h-[90vh] w-full max-w-xl p-0 sm:max-w-2xl bg-white" aria-describedby={undefined}>
+                    <DialogTitle className="sr-only">Loading Teacher Profile</DialogTitle>
                     <div className="flex h-96 items-center justify-center">
                         <div className="text-center">
                             <div className="mb-4 inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
@@ -139,9 +142,8 @@ export const TeacherProfileModal: React.FC<TeacherProfileModalProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-h-[90vh] w-full max-w-xl overflow-y-auto p-0 sm:max-w-2xl bg-white border-0 shadow-xl rounded-3xl">
+            <DialogContent className="max-h-[90vh] w-full max-w-xl overflow-y-auto p-0 sm:max-w-2xl bg-white border-0 shadow-xl rounded-3xl" aria-describedby={undefined}>
                 <DialogTitle className="sr-only">Teacher Profile: {teacher.user.name}</DialogTitle>
-                <DialogDescription className="sr-only">Detailed profile information for {teacher.user.name}</DialogDescription>
                 {/* Header Section */}
                 <div className="border-b border-gray-100 p-6 pb-5">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
@@ -389,17 +391,19 @@ export const TeacherProfileModal: React.FC<TeacherProfileModalProps> = ({
                     )}
                 </div>
 
-                {/* Questionable: Footer Action might be sticky or static? Design implies static at bottom */}
+                {/* Footer Actions */}
                 <div className="flex gap-3 border-t border-gray-100 p-6 pt-4 bg-white sticky bottom-0 z-10">
-                    <Link
-                        href={`/student/book/${teacher.id}`}
-                        className="flex-1 flex items-center justify-center rounded-full bg-primary px-6 py-3.5 text-sm font-bold text-white transition-opacity hover:opacity-90 shadow-md shadow-teal-500/20 cursor-pointer"
-                    >
-                        Book Now
-                    </Link>
+                    {!hideBookNow && (
+                        <Link
+                            href={`/student/book/${teacher.id}`}
+                            className="flex-1 flex items-center justify-center rounded-full bg-primary px-6 py-3.5 text-sm font-bold text-white transition-opacity hover:opacity-90 shadow-md shadow-teal-500/20 cursor-pointer"
+                        >
+                            Book Now
+                        </Link>
+                    )}
                     <button
                         onClick={onClose}
-                        className="flex items-center gap-2 rounded-full border-b border-gray-200 px-6 py-3.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:border-b-[#00A991] cursor-pointer"
+                        className={`flex items-center gap-2 rounded-full border-b border-gray-200 px-6 py-3.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:border-b-[#00A991] cursor-pointer ${hideBookNow ? 'flex-1 justify-center' : ''}`}
                     >
                         <Icon icon="mdi:message-outline" className="h-5 w-5" />
                         Send Message

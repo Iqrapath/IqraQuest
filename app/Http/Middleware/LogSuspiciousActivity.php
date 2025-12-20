@@ -48,7 +48,7 @@ class LogSuspiciousActivity
 
         // Check URL
         if ($this->isSuspicious($url)) {
-            $this->logSuspiciousReqt($request, 'Suspicious URL pattern detected');
+            $this->logSuspiciousRequest($request, 'Suspicious URL pattern detected');
         }
 
         // Check inputs

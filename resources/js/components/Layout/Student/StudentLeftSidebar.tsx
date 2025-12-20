@@ -11,7 +11,7 @@ export default function StudentLeftSidebar({ onLogoutClick }: StudentLeftSidebar
     const menuItems = [
         { name: 'Dashboard', icon: 'mage:dashboard', route: '/student/dashboard' },
         { name: 'Browse Teachers', icon: 'hugeicons:teacher', route: '/student/teachers' },
-        { name: 'My Bookings', icon: 'tabler:message-user', route: '/student/schedule' },
+        { name: 'My Bookings', icon: 'tabler:message-user', route: '/student/bookings' },
         { name: 'Payments', icon: 'stash:wallet', route: '/student/wallet' },
         { name: 'Messages', icon: 'mdi:message-text-outline', route: '/student/messages' },
         { name: 'Profile', icon: 'iconamoon:profile', route: '/student/profile' },

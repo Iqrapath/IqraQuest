@@ -46,7 +46,7 @@ class SecurityHeaders
             // Strict CSP for production (includes Paystack and classroom materials)
             $csp = implode('; ', [
                 "default-src 'self'",
-                "script-src 'self' 'unsafe-inline' https://fonts.bunny.net https://js.paystack.co",
+               "script-src 'self' 'unsafe-inline' blob: https://js.paystack.co https://checkout.paystack.com",
                 "style-src 'self' 'unsafe-inline' https://fonts.bunny.net https://fonts.googleapis.com https://paystack.com",
                 "font-src 'self' https://fonts.bunny.net https://fonts.gstatic.com https://fonts.googleapis.com data:",
                 "img-src 'self' data: https: blob:",

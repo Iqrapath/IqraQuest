@@ -32,6 +32,10 @@ interface Step1Props {
     // Helpers (passed down or redefined? Better to redefine if simple, or keep pure)
     getAvailabilitySummary: (schedule: any[]) => { days: string, time: string };
     formatTimePill: (time: string | null) => string;
+    // Optional props for reschedule mode
+    hideRecurrence?: boolean;
+    hideDurationSelector?: boolean;
+    nextButtonText?: string;
 }
 
 export default function Step1DateSelection({
@@ -53,7 +57,10 @@ export default function Step1DateSelection({
     onOccurrencesChange,
     onNext,
     getAvailabilitySummary,
-    formatTimePill
+    formatTimePill,
+    hideRecurrence = false,
+    hideDurationSelector = false,
+    nextButtonText = 'Continue',
 }: Step1Props) {
 
     return (
@@ -232,74 +239,88 @@ export default function Step1DateSelection({
                         </div>
 
                         {/* Duration Selector */}
-                        <div className="mb-6">
-                            <label className="text-sm font-semibold text-gray-700 mb-2 block">Session Duration</label>
-                            <div className="flex gap-2">
-                                {[30, 45, 60].map(duration => (
-                                    <button
-                                        key={duration}
-                                        onClick={() => onDurationChange(duration)}
-                                        className={`
-                                        px-4 py-2 rounded-lg text-sm font-medium transition-all border
-                                        ${selectedDuration === duration
-                                                ? 'bg-gray-900 text-white border-gray-900'
-                                                : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'}
-                                    `}
-                                    >
-                                        {duration} min
-                                    </button>
-                                ))}
+                        {!hideDurationSelector && (
+                            <div className="mb-6">
+                                <label className="text-sm font-semibold text-gray-700 mb-2 block">Session Duration</label>
+                                <div className="flex gap-2">
+                                    {[30, 45, 60].map(duration => (
+                                        <button
+                                            key={duration}
+                                            onClick={() => onDurationChange(duration)}
+                                            className={`
+                                            px-4 py-2 rounded-lg text-sm font-medium transition-all border
+                                            ${selectedDuration === duration
+                                                    ? 'bg-gray-900 text-white border-gray-900'
+                                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'}
+                                        `}
+                                        >
+                                            {duration} min
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
+                        
+                        {/* Fixed Duration Display (for reschedule) */}
+                        {hideDurationSelector && (
+                            <div className="mb-6">
+                                <label className="text-sm font-semibold text-gray-700 mb-2 block">Session Duration</label>
+                                <div className="bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 inline-block">
+                                    {selectedDuration} min (fixed)
+                                </div>
+                            </div>
+                        )}
 
                         {/* Recurrence (Enterprise Feature) - Moved to Step 1 */}
-                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6 relative overflow-hidden">
-                            <div className="flex items-start gap-4">
-                                <input
-                                    type="checkbox"
-                                    id="recurring-toggle-step1"
-                                    checked={isRecurring}
-                                    onChange={(e) => onRecurrenceToggle(e.target.checked)}
-                                    className="mt-1 w-5 h-5 text-[#358D83] border-gray-300 rounded focus:ring-[#358D83]"
-                                />
-                                <div className="flex-1">
-                                    <label htmlFor="recurring-toggle-step1" className="font-bold text-gray-900 cursor-pointer flex items-center justify-between">
-                                        <span>Repeat Weekly</span>
-                                        {isRecurring && <span className="text-[10px] bg-[#358D83] text-white px-2 py-0.5 rounded-full uppercase tracking-wider">Active</span>}
-                                    </label>
-                                    <p className="text-xs text-gray-500 mt-1">Book this slot for multiple weeks.</p>
-                                </div>
-                            </div>
-
-                            {isRecurring && (
-                                <div className="mt-4 animate-in fade-in slide-in-from-top-2 border-t border-gray-200 pt-4">
-                                    <label className="text-xs font-semibold text-gray-700 mb-2 block uppercase tracking-wide">
-                                        Duration: {occurrences} Weeks
-                                    </label>
-                                    <div className="flex items-center gap-3">
-                                        <input
-                                            type="range"
-                                            min="2"
-                                            max="12"
-                                            value={occurrences}
-                                            onChange={(e) => onOccurrencesChange(parseInt(e.target.value))}
-                                            className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#358D83]"
-                                        />
-                                        <div className="text-sm font-bold text-gray-900 bg-white px-2 py-1 rounded border">
-                                            {occurrences}w
-                                        </div>
+                        {!hideRecurrence && (
+                            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6 relative overflow-hidden">
+                                <div className="flex items-start gap-4">
+                                    <input
+                                        type="checkbox"
+                                        id="recurring-toggle-step1"
+                                        checked={isRecurring}
+                                        onChange={(e) => onRecurrenceToggle(e.target.checked)}
+                                        className="mt-1 w-5 h-5 text-[#358D83] border-gray-300 rounded focus:ring-[#358D83]"
+                                    />
+                                    <div className="flex-1">
+                                        <label htmlFor="recurring-toggle-step1" className="font-bold text-gray-900 cursor-pointer flex items-center justify-between">
+                                            <span>Repeat Weekly</span>
+                                            {isRecurring && <span className="text-[10px] bg-[#358D83] text-white px-2 py-0.5 rounded-full uppercase tracking-wider">Active</span>}
+                                        </label>
+                                        <p className="text-xs text-gray-500 mt-1">Book this slot for multiple weeks.</p>
                                     </div>
-                                    <p className="text-xs text-gray-500 mt-2">
-                                        Ends on: {(() => {
-                                            if (!selectedDate) return 'Select a date';
-                                            const d = new Date(selectedDate);
-                                            d.setDate(d.getDate() + ((occurrences - 1) * 7));
-                                            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                                        })()}
-                                    </p>
                                 </div>
-                            )}
-                        </div>
+
+                                {isRecurring && (
+                                    <div className="mt-4 animate-in fade-in slide-in-from-top-2 border-t border-gray-200 pt-4">
+                                        <label className="text-xs font-semibold text-gray-700 mb-2 block uppercase tracking-wide">
+                                            Duration: {occurrences} Weeks
+                                        </label>
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                type="range"
+                                                min="2"
+                                                max="12"
+                                                value={occurrences}
+                                                onChange={(e) => onOccurrencesChange(parseInt(e.target.value))}
+                                                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#358D83]"
+                                            />
+                                            <div className="text-sm font-bold text-gray-900 bg-white px-2 py-1 rounded border">
+                                                {occurrences}w
+                                            </div>
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-2">
+                                            Ends on: {(() => {
+                                                if (!selectedDate) return 'Select a date';
+                                                const d = new Date(selectedDate);
+                                                d.setDate(d.getDate() + ((occurrences - 1) * 7));
+                                                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                            })()}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         <div className="bg-white rounded-[24px] p-6 border border-gray-200 shadow-sm min-h-[400px]">
                             {!selectedDate ? (
@@ -372,7 +393,7 @@ export default function Step1DateSelection({
                             : 'bg-gray-200 text-gray-400 cursor-not-allowed'}
                     `}
                 >
-                    Continue
+                    {nextButtonText}
                 </button>
             </div>
         </div>

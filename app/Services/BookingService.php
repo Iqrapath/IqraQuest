@@ -98,18 +98,25 @@ class BookingService
 
     /**
      * Check if a slot is available
+     * @param int|null $excludeBookingId Booking ID to exclude from conflict check (for reschedule)
      */
-    public function isSlotAvailable(Teacher $teacher, $start, $end)
+    public function isSlotAvailable(Teacher $teacher, $start, $end, ?int $excludeBookingId = null)
     {
-        return !Booking::where('teacher_id', $teacher->id)
-            ->where('status', '!=', 'cancelled')
-            ->where(function ($query) use ($start, $end) {
-                $query->whereBetween('start_time', [$start, $end])
-                      ->orWhereBetween('end_time', [$start, $end])
-                      ->orWhere(function ($q) use ($start, $end) {
-                          $q->where('start_time', '<=', $start)
-                            ->where('end_time', '>=', $end);
-                      });
+        $query = Booking::where('teacher_id', $teacher->id)
+            ->where('status', '!=', 'cancelled');
+
+        // Exclude specific booking (for reschedule scenarios)
+        if ($excludeBookingId) {
+            $query->where('id', '!=', $excludeBookingId);
+        }
+
+        return !$query->where(function ($q) use ($start, $end) {
+                $q->whereBetween('start_time', [$start, $end])
+                  ->orWhereBetween('end_time', [$start, $end])
+                  ->orWhere(function ($subQ) use ($start, $end) {
+                      $subQ->where('start_time', '<=', $start)
+                           ->where('end_time', '>=', $end);
+                  });
             })
             ->exists();
     }

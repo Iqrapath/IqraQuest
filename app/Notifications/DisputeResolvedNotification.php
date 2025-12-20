@@ -17,12 +17,17 @@ class DisputeResolvedNotification extends Notification implements ShouldQueue
     protected ?float $percentage;
     protected bool $isStudent;
 
+    public int $tries = 3;
+    public int $backoff = 30;
+
     public function __construct(Booking $booking, string $outcome, ?float $percentage, bool $isStudent)
     {
         $this->booking = $booking;
         $this->outcome = $outcome;
         $this->percentage = $percentage;
         $this->isStudent = $isStudent;
+        
+        $this->delay(now()->addSeconds(5));
     }
 
     public function via(object $notifiable): array

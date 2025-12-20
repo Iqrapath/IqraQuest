@@ -38,3 +38,21 @@ Schedule::command('payouts:process-automatic')
 Schedule::command('escrow:process-releases')
     ->hourly()
     ->appendOutputTo(storage_path('logs/escrow-releases.log'));
+
+// Session Reminders: Send reminders at 24h, 1h, and 15min before sessions
+// Runs every 5 minutes to catch all reminder windows
+Schedule::command('sessions:send-reminders')
+    ->everyFiveMinutes()
+    ->appendOutputTo(storage_path('logs/session-reminders.log'));
+
+// No-Show Detection: Check for participants who haven't joined after session start
+// Sends warnings at 10 min, processes no-shows at 15 min
+Schedule::command('sessions:detect-no-shows')
+    ->everyFiveMinutes()
+    ->appendOutputTo(storage_path('logs/no-show-detection.log'));
+
+// Booking Status: Mark confirmed bookings as completed when session ends
+// Runs every minute for accurate status updates
+Schedule::command('bookings:complete-ended')
+    ->everyMinute()
+    ->appendOutputTo(storage_path('logs/booking-completions.log'));

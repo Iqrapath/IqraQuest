@@ -15,10 +15,14 @@ return new class extends Migration
             $table->id();
             $table->foreignId('teacher_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('booking_id')->nullable()->constrained()->onDelete('set null');
             $table->integer('rating');
             $table->text('comment')->nullable();
             $table->boolean('is_approved')->default(false);
             $table->timestamps();
+
+            // Prevent duplicate reviews per booking
+            $table->unique(['user_id', 'booking_id'], 'reviews_user_booking_unique');
         });
     }
 

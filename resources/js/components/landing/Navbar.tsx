@@ -71,7 +71,7 @@ export default function Navbar() {
                     </Link>
                 </div>
 
-                {/* Desktop Sign Up Button */}
+                {/* Desktop Sign In Button */}
                 <div className="hidden shrink-0 lg:flex">
                     {auth.user ? (
                         /* Right Section - Icons & Profile */
@@ -221,14 +221,14 @@ export default function Navbar() {
                             Contact
                         </Link>
 
-                        {/* Mobile Sign Up Button */}
+                        {/* Mobile Sign In Button */}
                         <div className="pb-2 pt-6">
                             <Link
-                                href="/register"
+                                href="/login"
                                 onClick={toggleMobileMenu}
                                 className="block rounded-[2rem] bg-[#338078] px-6 py-3 text-center font-['Nunito'] text-base font-medium text-white transition-all hover:bg-[#2a6b64] hover:shadow-lg"
                             >
-                                Sign Up
+                                Sign In
                             </Link>
                         </div>
                     </nav>

@@ -49,6 +49,11 @@ Route::middleware(['auth', 'verified', 'role:teacher'])
             Route::post('/requests/{booking}/accept', [\App\Http\Controllers\Teacher\BookingController::class, 'accept'])->name('requests.accept');
             Route::post('/requests/{booking}/reject', [\App\Http\Controllers\Teacher\BookingController::class, 'reject'])->name('requests.reject');
 
+            // Schedule & Availability Management
+            Route::get('/schedule', [\App\Http\Controllers\Teacher\ScheduleController::class, 'index'])->name('schedule.index');
+            Route::post('/schedule/availability', [\App\Http\Controllers\Teacher\ScheduleController::class, 'updateAvailability'])->name('schedule.availability.update');
+            Route::post('/schedule/holiday-mode', [\App\Http\Controllers\Teacher\ScheduleController::class, 'toggleHolidayMode'])->name('schedule.holiday-mode.toggle');
+            Route::get('/schedule/sessions', [\App\Http\Controllers\Teacher\ScheduleController::class, 'getSessionsForDate'])->name('schedule.sessions.date');
             
             // Wallet Routes (teachers can view their wallet like students)
             Route::get('/wallet', [WalletController::class, 'index'])->name('wallet');
@@ -90,5 +95,10 @@ Route::middleware(['auth', 'verified', 'role:teacher'])
             // PayPal OAuth
             Route::get('/payment/methods/paypal/initiate', [PaymentController::class, 'initiatePayPalLinking'])->name('payment.methods.paypal.initiate');
             Route::get('/payment/methods/paypal/callback', [PaymentController::class, 'handlePayPalCallback'])->name('payment.methods.paypal.callback');
+            
+            // Calendar Export Routes
+            Route::get('/calendar/export', [\App\Http\Controllers\CalendarExportController::class, 'exportAllBookings'])->name('calendar.export');
+            Route::get('/calendar/export/{booking}', [\App\Http\Controllers\CalendarExportController::class, 'exportBooking'])->name('calendar.export.booking');
+            Route::get('/calendar/google/{booking}', [\App\Http\Controllers\CalendarExportController::class, 'googleCalendarUrl'])->name('calendar.google');
         });
     });
