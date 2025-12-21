@@ -38,15 +38,25 @@ Route::post('/select-role', [\App\Http\Controllers\Auth\RoleSelectionController:
     ->middleware(['auth', 'verified']);
 
 // Onboarding Completion Routes
-Route::post('/onboarding/complete', function () {
-    auth()->user()->update(['onboarding_completed_at' => now()]);
-    return back();
-})->middleware(['auth', 'verified'])->name('onboarding.complete');
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Generic simple completion (fallback or for Teachers/Guardians if they don't need data)
+    Route::post('/onboarding/complete', function () {
+        auth()->user()->update(['onboarding_completed_at' => now()]);
+        return back();
+    })->name('onboarding.complete');
 
-Route::post('/onboarding/skip', function () {
-    auth()->user()->update(['onboarding_skipped' => true]);
-    return back();
-})->middleware(['auth', 'verified'])->name('onboarding.skip');
+    Route::post('/onboarding/skip', function () {
+        auth()->user()->update(['onboarding_skipped' => true]);
+        return back();
+    })->name('onboarding.skip');
+
+    // Student-specific detailed onboarding
+    Route::prefix('student')->name('student.')->group(function () {
+        Route::get('/onboarding/subjects', [\App\Http\Controllers\Student\OnboardingController::class, 'getSubjects'])->name('onboarding.subjects');
+        Route::post('/onboarding/complete', [\App\Http\Controllers\Student\OnboardingController::class, 'complete'])->name('onboarding.complete');
+        Route::post('/onboarding/skip', [\App\Http\Controllers\Student\OnboardingController::class, 'skip'])->name('onboarding.skip');
+    });
+});
 
 // OTP Email Verification Routes
 Route::middleware(['auth'])->group(function () {

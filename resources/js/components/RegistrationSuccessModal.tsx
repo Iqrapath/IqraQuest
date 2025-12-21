@@ -29,11 +29,8 @@ export default function RegistrationSuccessModal({
         >
             <div className="relative flex w-full max-w-[500px] flex-col items-center gap-[24px] rounded-[32px] bg-white px-[48px] py-[88px] shadow-2xl">
                 {/* Logo */}
-                <div className="flex items-center gap-[7px] rounded-[29px] bg-[#fffcf4] px-[11px] py-[7px]">
+                <div className="flex items-center">
                     <AppLogoIcon className="h-[25px] w-[35px] fill-current text-[#317b74]" />
-                    <p className="font-['Nunito'] text-[22px] font-extrabold text-[#317b74]">
-                        IqraPath
-                    </p>
                 </div>
 
                 {/* Success Icon with decorative squares */}

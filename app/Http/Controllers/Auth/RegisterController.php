@@ -18,23 +18,8 @@ class RegisterController extends Controller
         // Validate and create the user using the existing Fortify action
         $user = $creator->create($request->all());
 
-        sleep(10);
-
-        // Check verification method from config
-        $verificationMethod = config('auth.verification.method', 'link');
-
-        if ($verificationMethod === 'otp') {
-            // Generate and send OTP
-            $otpService = app(\App\Services\OtpVerificationService::class);
-            $otpCode = $otpService->generateOtp($user);
-            $expiryMinutes = config('auth.verification.otp_expiry_minutes', 10);
-            
-            // Send OTP via email
-            $user->notify(new \App\Notifications\EmailVerificationOtpNotification($otpCode, $expiryMinutes));
-        } else {
-            // Use default link-based email verification
-            $user->sendEmailVerificationNotification();
-        }
+        // Send email verification notification (uses override in User model)
+        $user->sendEmailVerificationNotification();
 
         // Do NOT log the user in (unlike default Fortify behavior)
         // This allows us to keep them on the registration page to show the success modal

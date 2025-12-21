@@ -12,6 +12,7 @@ function FlashMessageListener({ initialPage }: { initialPage?: any }) {
             const flash = initialPage.props.flash;
             if (flash.success) toast.success(flash.success);
             if (flash.error) toast.error(flash.error);
+            if (flash.info) toast.info(flash.info);
             if (flash.message) toast.message(flash.message);
         }
     }, [initialPage]);
@@ -24,6 +25,7 @@ function FlashMessageListener({ initialPage }: { initialPage?: any }) {
                 const flash = page.props.flash;
                 if (flash.success) toast.success(flash.success);
                 if (flash.error) toast.error(flash.error);
+                if (flash.info) toast.info(flash.info);
                 if (flash.message) toast.message(flash.message);
             }
         });
@@ -34,11 +36,11 @@ function FlashMessageListener({ initialPage }: { initialPage?: any }) {
 
 export function AppProvider({ children, initialPage }: { children: ReactNode; initialPage?: any }) {
     return (
-            <CurrencyProvider>
-                <PageLoadingIndicator />
-                <FlashMessageListener initialPage={initialPage} />
-                {children}
-                <Toaster position="top-center" />
-            </CurrencyProvider>
+        <CurrencyProvider>
+            <PageLoadingIndicator />
+            <FlashMessageListener initialPage={initialPage} />
+            {children}
+            <Toaster position="top-center" />
+        </CurrencyProvider>
     );
 }

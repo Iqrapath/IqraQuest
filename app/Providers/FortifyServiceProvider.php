@@ -95,9 +95,17 @@ class FortifyServiceProvider extends ServiceProvider
             'status' => $request->session()->get('status'),
         ]));
 
-        Fortify::verifyEmailView(fn (Request $request) => Inertia::render('auth/verify-email', [
-            'status' => $request->session()->get('status'),
-        ]));
+        Fortify::verifyEmailView(function (Request $request) {
+            $verificationMethod = config('auth.verification.method', 'link');
+
+            if ($verificationMethod === 'otp') {
+                return redirect()->route('verification.otp');
+            }
+
+            return Inertia::render('auth/verify-email', [
+                'status' => $request->session()->get('status'),
+            ]);
+        });
 
         Fortify::registerView(fn () => Inertia::render('auth/register', [
             'verificationMethod' => config('auth.verification.method', 'link'),

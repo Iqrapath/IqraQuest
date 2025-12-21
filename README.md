@@ -370,7 +370,20 @@ php artisan queue:retry all
 
 ### Recent Updates
 
-#### 2025-12-20 - Advanced Profile, Settings & Ratings Systems 🆕
+#### 2025-12-21 - Enhanced Onboarding & Verification Flow 🆕
+- ✅ **Multi-Step Guardian Onboarding**
+  - Redesigned 2-step onboarding flow for superior UX.
+  - **Step 1: Guardian Profile**: Unified collection of location (City, Country), contact info (Phone), and family bio.
+  - **Step 2: Child Account Control**: Guardians can now register multiple children and set explicit **Email and Password** for each, allowing children to log in independently.
+- ✅ **OTP Verification System Fixes**
+  - Centralized redirection logic in the `EnsureEmailIsVerified` middleware to be method-aware.
+  - Fixed "login later" redirection issues; unverified users are now consistently sent to the OTP entry page if `EMAIL_VERIFICATION_METHOD=otp` is enabled.
+  - Overrode `sendEmailVerificationNotification` in the `User` model to handle OTP generation and delivery centrally across registration and manual resend requests.
+- ✅ **Family-Oriented Notifications**
+  - Implemented `WelcomeGuardianNotification` (Mail, Database, Broadcast) triggered upon completion of the guardian onboarding journey.
+  - Automated `WelcomeStudentNotification` for all children registered via the guardian dashboard.
+
+#### 2025-12-20 - Advanced Profile, Settings & Ratings Systems
 - ✅ **Comprehensive Rating & Feedback System**
   - High-fidelity dashboard for Students, Guardians, and Teachers.
   - Guardian integration: Aggregated performance stats and review management for all associated children.

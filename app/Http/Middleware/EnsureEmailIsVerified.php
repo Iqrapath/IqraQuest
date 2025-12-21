@@ -14,6 +14,12 @@ class EnsureEmailIsVerified
     public function handle(Request $request, Closure $next): Response
     {
         if (!$request->user() || !$request->user()->hasVerifiedEmail()) {
+            $verificationMethod = config('auth.verification.method', 'link');
+            
+            if ($verificationMethod === 'otp') {
+                return redirect()->route('verification.otp');
+            }
+
             return redirect()->route('verification.notice');
         }
 

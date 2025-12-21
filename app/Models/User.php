@@ -236,4 +236,23 @@ class User extends Authenticatable implements MustVerifyEmail
             $this->attributes['avatar'] = $value;
         }
     }
+
+    /**
+     * Send the email verification notification.
+     * Overridden to support OTP verification method.
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $verificationMethod = config('auth.verification.method', 'link');
+
+        if ($verificationMethod === 'otp') {
+            $otpService = app(\App\Services\OtpVerificationService::class);
+            $otpCode = $otpService->generateOtp($this);
+            $expiryMinutes = config('auth.verification.otp_expiry_minutes', 10);
+            
+            $this->notify(new \App\Notifications\EmailVerificationOtpNotification($otpCode, $expiryMinutes));
+        } else {
+            $this->notify(new \Illuminate\Auth\Notifications\VerifyEmail);
+        }
+    }
 }

@@ -12,6 +12,11 @@ Route::middleware(['auth', 'verified', 'role:guardian'])
     ->prefix('guardian')
     ->name('guardian.')
     ->group(function () {
+        // Onboarding Routes
+        Route::get('/onboarding/subjects', [\App\Http\Controllers\Guardian\OnboardingController::class, 'getSubjects'])->name('onboarding.subjects');
+        Route::post('/onboarding/complete', [\App\Http\Controllers\Guardian\OnboardingController::class, 'complete'])->name('onboarding.complete');
+        Route::post('/onboarding/skip', [\App\Http\Controllers\Guardian\OnboardingController::class, 'skip'])->name('onboarding.skip');
+
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         
         // Profile Routes (Implementation matches Figma design)
