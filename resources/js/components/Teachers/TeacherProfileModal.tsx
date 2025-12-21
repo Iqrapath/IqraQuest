@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Icon } from '@iconify/react';
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
-import { Link } from '@inertiajs/react';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Link, usePage } from '@inertiajs/react';
 
 interface Teacher {
     id: number;
@@ -59,6 +59,22 @@ export const TeacherProfileModal: React.FC<TeacherProfileModalProps> = ({
     const [activeTab, setActiveTab] = useState('bio');
     const [teacher, setTeacher] = useState<Teacher | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [showMessageTooltip, setShowMessageTooltip] = useState(false);
+    const { auth } = usePage<any>().props;
+    
+    // Determine booking URL based on user role
+    const getBookingUrl = (teacherId: number) => {
+        const role = auth?.user?.role;
+        if (role === 'guardian') {
+            return `/guardian/book/${teacherId}`;
+        }
+        return `/student/book/${teacherId}`;
+    };
+
+    const handleMessageClick = () => {
+        setShowMessageTooltip(true);
+        setTimeout(() => setShowMessageTooltip(false), 3000);
+    };
 
     // Fetch teacher details when modal opens
     useEffect(() => {
@@ -395,19 +411,28 @@ export const TeacherProfileModal: React.FC<TeacherProfileModalProps> = ({
                 <div className="flex gap-3 border-t border-gray-100 p-6 pt-4 bg-white sticky bottom-0 z-10">
                     {!hideBookNow && (
                         <Link
-                            href={`/student/book/${teacher.id}`}
+                            href={getBookingUrl(teacher.id)}
                             className="flex-1 flex items-center justify-center rounded-full bg-primary px-6 py-3.5 text-sm font-bold text-white transition-opacity hover:opacity-90 shadow-md shadow-teal-500/20 cursor-pointer"
                         >
                             Book Now
                         </Link>
                     )}
-                    <button
-                        onClick={onClose}
-                        className={`flex items-center gap-2 rounded-full border-b border-gray-200 px-6 py-3.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:border-b-[#00A991] cursor-pointer ${hideBookNow ? 'flex-1 justify-center' : ''}`}
-                    >
-                        <Icon icon="mdi:message-outline" className="h-5 w-5" />
-                        Send Message
-                    </button>
+                    <div className="relative">
+                        <button
+                            onClick={handleMessageClick}
+                            className={`flex items-center gap-2 rounded-full border-b border-gray-200 px-6 py-3.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:border-b-[#00A991] cursor-pointer ${hideBookNow ? 'flex-1 justify-center' : ''}`}
+                        >
+                            <Icon icon="mdi:message-outline" className="h-5 w-5" />
+                            Send Message
+                        </button>
+                        {/* Tooltip */}
+                        {showMessageTooltip && (
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 rounded-lg bg-gray-900 px-3 py-2 text-center text-xs text-white shadow-lg z-20">
+                                Book a session to message this teacher
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                            </div>
+                        )}
+                    </div>
                 </div>
             </DialogContent>
         </Dialog>

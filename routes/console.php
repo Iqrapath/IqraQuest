@@ -56,3 +56,9 @@ Schedule::command('sessions:detect-no-shows')
 Schedule::command('bookings:complete-ended')
     ->everyMinute()
     ->appendOutputTo(storage_path('logs/booking-completions.log'));
+
+// Admin Notifications: Send scheduled broadcast notifications
+// Runs every minute to send notifications at their scheduled time
+Schedule::command('notifications:send-scheduled')
+    ->everyMinute()
+    ->appendOutputTo(storage_path('logs/scheduled-notifications.log'));

@@ -370,7 +370,27 @@ php artisan queue:retry all
 
 ### Recent Updates
 
-#### 2025-12-09 - Payment & Financial System 🆕
+#### 2025-12-20 - Advanced Profile, Settings & Ratings Systems 🆕
+- ✅ **Comprehensive Rating & Feedback System**
+  - High-fidelity dashboard for Students, Guardians, and Teachers.
+  - Guardian integration: Aggregated performance stats and review management for all associated children.
+  - Teacher dashboard: Automated attendance calculation, positive feedback rates, and student-rating functionality.
+  - Redesigned UI matching Figma specs exactly, including Chronological feeds and Edit/Reply logic.
+- ✅ **Enhanced User Settings (Multi-Role)**
+  - Advanced security: Two-Factor Authentication (2FA) with QR code setup and recovery codes.
+  - Communication preferences: Granular notification settings (Email/Push) for 10+ activity types.
+  - Account Management: Identity verification resend, account deactivation, and permanent deletion flows.
+  - Syncing across roles: Unified experience for Students, Guardians, and Teachers.
+- ✅ **Rich User Profiles**
+  - Role-specific profile pages with specialized data (e.g., Teacher intro videos, Student learning goals).
+  - Modern, responsive edit modals with real-time state management (Inertia.js + useForm).
+  - Integrated certificate management for teachers and subject specialization for students.
+- ✅ **Core Infrastructure & Security**
+  - Optimized Eloquent relationship loading (avoiding N+1 and deep nesting issues).
+  - Role-based data isolation for reviews and settings.
+  - Database schema expansions for availability, certifications, and advanced preferences.
+
+#### 2025-12-09 - Payment & Financial System
 - ✅ **Complete Teacher Earnings & Payout System**
   - Teacher earnings dashboard with statistics
   - Manual payout requests with daily limit (24-hour cooldown)

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import TextLink from '@/components/text-link';
+import { Icon } from '@iconify/react';
 import { logout } from '@/routes';
 
 interface VerifyOtpProps {
@@ -79,66 +79,94 @@ export default function VerifyOtp({ hasValidOtp, status }: VerifyOtpProps) {
 
     return (
         <AuthLayout
-            title="Verify your email"
-            description="We've sent a 6-digit verification code to your email address. Please enter it below to verify your account."
+            title="Verify Your Account"
+            description="We've sent a 6-digit verification code to your email. Please check your inbox (and spam folder) to proceed."
         >
             <Head title="Verify Email - OTP" />
 
-            <div className="space-y-6">
-                {/* OTP Input */}
-                <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col gap-[clamp(1.5rem,5vw,2.5rem)] mt-4">
+                {/* Security Icon & Header Details */}
+                <div className="flex flex-col items-center text-center gap-3">
+                    <div className="w-16 h-16 bg-[#338078]/10 rounded-full flex items-center justify-center mb-2">
+                        <Icon icon="solar:shield-keyhole-bold-duotone" className="w-9 h-9 text-[#338078]" />
+                    </div>
+                    <h2 className="font-['Nunito'] font-bold text-[clamp(1.5rem,3vw,1.875rem)] text-[#1a1d56]">
+                        Enter Verification Code
+                    </h2>
+                    <p className="font-['Inter'] text-[#64748b] text-[15px] leading-relaxed max-w-[320px]">
+                        The code was sent to your registered email address and expires in 10 minutes.
+                    </p>
+                </div>
+
+                {/* OTP Input Section */}
+                <div className="flex flex-col items-center gap-6">
                     <InputOTP
                         maxLength={6}
                         value={value}
-                        onChange={(value) => setValue(value)}
+                        onChange={(v) => setValue(v)}
                         disabled={isSubmitting}
+                        className="gap-2"
                     >
-                        <InputOTPGroup>
-                            <InputOTPSlot index={0} />
-                            <InputOTPSlot index={1} />
-                            <InputOTPSlot index={2} />
-                            <InputOTPSlot index={3} />
-                            <InputOTPSlot index={4} />
-                            <InputOTPSlot index={5} />
+                        <InputOTPGroup className="gap-2 md:gap-3">
+                            {[...Array(6)].map((_, i) => (
+                                <InputOTPSlot
+                                    key={i}
+                                    index={i}
+                                    className="w-12 h-14 md:w-14 md:h-16 text-[24px] font-bold font-['Nunito'] border-2 rounded-xl transition-all duration-200 focus:ring-0 data-[state=selected]:border-[#338078] data-[state=selected]:bg-[#338078]/5 data-[state=selected]:scale-105 text-[#1a1d56]"
+                                />
+                            ))}
                         </InputOTPGroup>
                     </InputOTP>
 
                     {isSubmitting && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Spinner />
-                            <span>Verifying...</span>
+                        <div className="flex items-center gap-3 py-2 px-4 bg-gray-50 rounded-full border border-gray-100 animate-pulse">
+                            <Spinner className="text-[#338078] w-4 h-4" />
+                            <span className="text-[14px] font-medium text-[#475569]">Verifying your security code...</span>
                         </div>
                     )}
                 </div>
 
-                {/* Resend Button */}
-                <form onSubmit={handleResend} className="text-center">
-                    <Button
-                        type="submit"
-                        variant="secondary"
-                        disabled={resending || resendCooldown > 0}
-                        className="w-full"
-                    >
-                        {resending && <Spinner />}
-                        {resendCooldown > 0
-                            ? `Resend code in ${resendCooldown}s`
-                            : 'Resend verification code'}
-                    </Button>
-                </form>
+                {/* Actions Section */}
+                <div className="flex flex-col gap-4">
+                    <form onSubmit={handleResend} className="w-full">
+                        <Button
+                            type="submit"
+                            disabled={resending || resendCooldown > 0}
+                            className={`w-full py-7 rounded-[18px] font-['Nunito'] font-bold text-[16px] transition-all shadow-lg ${resendCooldown > 0
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                                    : 'bg-[#338078] text-white hover:bg-[#2a6b64] hover:shadow-[#338078]/20'
+                                }`}
+                        >
+                            {resending ? (
+                                <div className="flex items-center gap-2">
+                                    <Spinner className="w-4 h-4" />
+                                    <span>Sending Code...</span>
+                                </div>
+                            ) : resendCooldown > 0 ? (
+                                <div className="flex items-center gap-2">
+                                    <Icon icon="solar:clock-circle-bold" className="w-5 h-5" />
+                                    <span>Resend code in {resendCooldown}s</span>
+                                </div>
+                            ) : (
+                                'Resend Verification Code'
+                            )}
+                        </Button>
+                    </form>
 
-                {/* Help text */}
-                <div className="text-center text-sm text-muted-foreground">
-                    <p>Didn't receive the code? Check your spam folder.</p>
-                    <p className="mt-1">The code expires in 10 minutes.</p>
+                    <div className="flex items-center justify-between px-2 text-[14px]">
+                        <button
+                            onClick={() => router.get(logout())}
+                            className="text-[#64748b] hover:text-[#1a1d56] font-medium flex items-center gap-1.5 transition-colors"
+                        >
+                            <Icon icon="solar:logout-2-linear" className="w-4 h-4" />
+                            Log out
+                        </button>
+
+                        <p className="text-[#94a3b8] italic">
+                            Didn't get it? Check spam.
+                        </p>
+                    </div>
                 </div>
-
-                {/* Logout link */}
-                <TextLink
-                    href={logout()}
-                    className="mx-auto block text-center text-sm"
-                >
-                    Log out
-                </TextLink>
             </div>
         </AuthLayout>
     );

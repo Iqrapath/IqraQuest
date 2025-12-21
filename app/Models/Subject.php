@@ -35,6 +35,21 @@ class Subject extends Model
     }
 
     /**
+     * Get the students interested in this subject
+     */
+    public function students(): BelongsToMany
+    {
+        return $this->belongsToMany(Student::class, 'student_subjects')
+            ->withTimestamps();
+    }
+
+    public function guardians(): BelongsToMany
+    {
+        return $this->belongsToMany(Guardian::class, 'guardian_subjects')
+            ->withTimestamps();
+    }
+
+    /**
      * Scope to get only active subjects
      */
     public function scopeActive($query)

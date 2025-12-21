@@ -10,6 +10,7 @@ class Review extends Model
         'teacher_id',
         'user_id',
         'booking_id',
+        'reviewer_type',
         'rating',
         'comment',
         'is_approved',

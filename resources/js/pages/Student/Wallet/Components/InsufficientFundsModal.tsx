@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Icon } from '@iconify/react';
 import { TopUpModal } from './TopUpModal';
-import { usePage } from '@inertiajs/react';
+import { usePage, router } from '@inertiajs/react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useCurrency } from '@/contexts/CurrencyContext';

@@ -97,8 +97,8 @@ export default function BookingShow({ booking }: Props) {
     };
 
     const handleMessage = () => {
-        // TODO: Implement messaging
-        console.log('Message teacher:', booking.teacher.id);
+        // Start a conversation from this booking
+        router.post(`/guardian/messages/booking/${booking.id}`);
     };
 
     return (

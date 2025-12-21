@@ -13,6 +13,7 @@ import {
 import ApprovePayoutModal from './ApprovePayoutModal';
 import RejectPayoutModal from './RejectPayoutModal';
 import EditPaymentMethodModal from './EditPaymentMethodModal';
+import SendPayoutNotificationModal from './SendPayoutNotificationModal';
 import { toast } from 'sonner';
 
 interface Props {
@@ -82,6 +83,7 @@ export default function TeacherPayoutsTab({ payouts, filters }: Props) {
     const [showApproveModal, setShowApproveModal] = useState(false);
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [showEditMethodModal, setShowEditMethodModal] = useState(false);
+    const [showNotificationModal, setShowNotificationModal] = useState(false);
     const [selectedPayout, setSelectedPayout] = useState<Payout | null>(null);
 
     const handleApprove = (id: number) => {
@@ -94,7 +96,6 @@ export default function TeacherPayoutsTab({ payouts, filters }: Props) {
 
     const confirmApprove = () => {
         if (!selectedPayout) return;
-        const payoutId = selectedPayout.id; // Capture ID for error message if needed
 
         router.post(`/admin/payouts/${selectedPayout.id}/approve`, {}, {
             preserveScroll: true,
@@ -123,6 +124,14 @@ export default function TeacherPayoutsTab({ payouts, filters }: Props) {
         if (payout) {
             setSelectedPayout(payout);
             setShowEditMethodModal(true);
+        }
+    };
+
+    const handleSendNotification = (id: number) => {
+        const payout = payouts.data.find((p: Payout) => p.id === id);
+        if (payout) {
+            setSelectedPayout(payout);
+            setShowNotificationModal(true);
         }
     };
 
@@ -329,7 +338,7 @@ export default function TeacherPayoutsTab({ payouts, filters }: Props) {
                                                 <DropdownMenuItem onClick={() => handleApprove(payout.id)} className="text-[#192020] cursor-pointer flex justify-between items-center w-full">
                                                     <span>Approve</span>
                                                     <div className="bg-[#00B050] text-white rounded p-0.5">
-                                                        <Icon icon="mdi:check" className="w-4 h-4" />
+                                                        <Icon icon="mdi:check" className="w-4 h-4 text-base" />
                                                     </div>
                                                 </DropdownMenuItem>
                                             )}
@@ -337,14 +346,14 @@ export default function TeacherPayoutsTab({ payouts, filters }: Props) {
                                             <DropdownMenuItem asChild>
                                                 <Link href={`/admin/payouts/${payout.id}`} className="cursor-pointer flex justify-between items-center w-full text-[#192020]">
                                                     <span>View Details</span>
-                                                    <Icon icon="mdi:clipboard-account-outline" className="w-5 h-5" />
+                                                    <Icon icon="mdi:clipboard-account-outline" className="w-5 h-5 text-base" />
                                                 </Link>
                                             </DropdownMenuItem>
 
                                             {payout.status === 'pending' && (
                                                 <DropdownMenuItem onClick={() => handleEditMethod(payout.id)} className="cursor-pointer flex justify-between items-center w-full text-[#192020] bg-gray-50 py-3 my-1">
                                                     <span>Edit Payout Method</span>
-                                                    <Icon icon="mdi:pencil-outline" className="w-5 h-5 border border-black rounded p-0.5" />
+                                                    <Icon icon="mdi:pencil-outline" className="w-5 h-5 border border-black rounded p-0.5 text-base" />
                                                 </DropdownMenuItem>
                                             )}
 
@@ -353,16 +362,16 @@ export default function TeacherPayoutsTab({ payouts, filters }: Props) {
                                                 <Icon icon="mdi:file-document-edit-outline" className="w-5 h-5" />
                                             </DropdownMenuItem> */}
 
-                                            <DropdownMenuItem className="cursor-pointer flex justify-between items-center w-full text-[#192020]">
-                                                <span>Send Payout</span>
-                                                <Icon icon="mdi:message-text-outline" className="w-5 h-5" />
+                                            <DropdownMenuItem onClick={() => handleSendNotification(payout.id)} className="cursor-pointer flex justify-between items-center w-full text-[#192020]">
+                                                <span>Send Notification</span>
+                                                <Icon icon="mdi:message-text-outline" className="w-5 h-5 text-base" />
                                             </DropdownMenuItem>
 
                                             {payout.status === 'pending' && (
                                                 <DropdownMenuItem onClick={() => handleReject(payout.id)} className="text-[#192020] cursor-pointer flex justify-between items-center w-full">
                                                     <span>Reject</span>
                                                     <div className="border border-[#FF0000] text-[#FF0000] rounded-full p-0.5">
-                                                        <Icon icon="mdi:close" className="w-3 h-3" />
+                                                        <Icon icon="mdi:close" className="w-3 h-3 text-base" />
                                                     </div>
                                                 </DropdownMenuItem>
                                             )}
@@ -399,6 +408,12 @@ export default function TeacherPayoutsTab({ payouts, filters }: Props) {
             <EditPaymentMethodModal
                 isOpen={showEditMethodModal}
                 onClose={() => setShowEditMethodModal(false)}
+                payout={selectedPayout}
+            />
+
+            <SendPayoutNotificationModal
+                isOpen={showNotificationModal}
+                onClose={() => setShowNotificationModal(false)}
                 payout={selectedPayout}
             />
         </div>

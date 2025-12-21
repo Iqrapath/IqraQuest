@@ -103,9 +103,9 @@ class Booking extends Model
         return $this->hasMany(BookingReminder::class);
     }
 
-    public function review()
+    public function reviews()
     {
-        return $this->hasOne(Review::class);
+        return $this->hasMany(Review::class);
     }
 
     /**
@@ -118,8 +118,9 @@ class Booking extends Model
             return false;
         }
 
-        // Must not already have a review
-        if ($this->review()->exists()) {
+        // Must not already have a review from this party (student)
+        // Note: For finer control, reviewer_type should be checked against Auth user role
+        if ($this->reviews()->where('reviewer_type', 'student')->exists()) {
             return false;
         }
 

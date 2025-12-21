@@ -28,6 +28,7 @@ export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProp
     const settingsItems = [
         { name: 'Settings & Security', icon: 'solar:settings-outline', route: '/admin/settings' },
         { name: 'Notification System', icon: 'solar:bell-outline', route: '/admin/notifications' },
+        { name: 'Messages', icon: 'mdi:message-text-outline', route: '/admin/messages' },
         { name: 'Feedback & Support', icon: 'fluent:person-support-20-regular', route: '/admin/feedback' },
     ];
 

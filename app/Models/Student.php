@@ -16,6 +16,14 @@ class Student extends Model
         'date_of_birth',
         'gender',
         'level',
+        'bio',
+        'city',
+        'country',
+        'timezone',
+        'preferred_days',
+        'preferred_hours',
+        'availability_type',
+        'learning_goal_description',
         'learning_goals',
         'notes',
     ];
@@ -23,6 +31,7 @@ class Student extends Model
     protected $casts = [
         'date_of_birth' => 'date',
         'learning_goals' => 'array',
+        'preferred_days' => 'array',
     ];
 
     /**
@@ -40,6 +49,15 @@ class Student extends Model
     {
         return $this->belongsToMany(Guardian::class, 'guardian_student')
             ->withPivot('relationship', 'is_primary')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the subjects linked to this student (Learning Preferences)
+     */
+    public function subjects(): BelongsToMany
+    {
+        return $this->belongsToMany(Subject::class, 'student_subjects')
             ->withTimestamps();
     }
 }

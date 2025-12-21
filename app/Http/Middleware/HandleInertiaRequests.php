@@ -68,7 +68,7 @@ class HandleInertiaRequests extends Middleware
                         'read_at' => $notification->read_at,
                         'created_at' => $notification->created_at->toISOString(),
                     ];
-                })
+                })->values()->toArray()
                 : [],
             'unreadNotificationsCount' => $request->user() 
                 ? $request->user()->unreadNotifications()->count()

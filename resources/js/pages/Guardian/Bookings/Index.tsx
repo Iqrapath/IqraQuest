@@ -114,7 +114,8 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
     };
 
     const handleMessageTeacher = (booking: BookingData) => {
-        console.log('Message teacher:', booking.id);
+        // Start a conversation from this booking
+        router.post(`/guardian/messages/booking/${booking.id}`);
     };
 
     const handleJoinClass = (booking: BookingData) => {

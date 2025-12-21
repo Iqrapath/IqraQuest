@@ -28,6 +28,7 @@ class Teacher extends Model
         'preferred_language',
         // Teaching details
         'bio',
+        'intro_video_url',
         'qualifications',
         'qualification_level',
         'specializations',

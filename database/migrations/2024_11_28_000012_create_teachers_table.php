@@ -31,6 +31,7 @@ return new class extends Migration
             
             // Step 2: Teaching Details
             $table->text('bio')->nullable();
+            $table->string('intro_video_url')->nullable();
             $table->text('qualifications')->nullable();
             $table->string('qualification_level', 100)->nullable();
             $table->json('specializations')->nullable();

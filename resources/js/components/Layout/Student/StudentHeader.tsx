@@ -1,6 +1,7 @@
-import { Link, usePage, router } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Icon } from '@iconify/react';
 import NotificationBell from '@/components/NotificationBell';
+import MessageBell from '@/components/MessageBell';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,7 +14,6 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import AppLogo from '@/components/app-logo';
 import { useCurrency, CURRENCY_CONFIG, CurrencyCode } from '@/contexts/CurrencyContext';
-import axios from 'axios';
 
 interface StudentHeaderProps {
     onMenuToggle?: () => void;
@@ -158,13 +158,8 @@ export default function StudentHeader({ onMenuToggle, showMenuButton = true }: S
                         {/* Notification Bell */}
                         <NotificationBell />
 
-                        {/* Message Icon */}
-                        <button className="text-[#525252] hover:text-[#338078] transition-colors">
-                            <Icon
-                                icon="mdi:message-text-outline"
-                                style={{ width: 'clamp(20px, 1.5vw, 24px)', height: 'clamp(20px, 1.5vw, 24px)' }}
-                            />
-                        </button>
+                        {/* Message Bell */}
+                        <MessageBell />
                     </div>
 
                     {/* User Profile Dropdown */}

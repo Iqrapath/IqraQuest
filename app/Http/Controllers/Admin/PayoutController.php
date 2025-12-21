@@ -82,34 +82,11 @@ class PayoutController extends Controller
     }
 
     /**
-     * Payout approval queue
+     * Payout approval queue - redirects to payments page with teacher-payouts tab
      */
     public function index(Request $request)
     {
-        $status = $request->input('status', 'pending');
-
-        $query = Payout::with(['teacher.user', 'paymentMethod']);
-
-        if ($status !== 'all') {
-            $query->where('status', $status);
-        }
-
-        $payouts = $query->latest('requested_at')->paginate(20);
-
-        // Get statistics
-        $stats = [
-            'pending_count' => Payout::where('status', 'pending')->count(),
-            'pending_amount' => Payout::where('status', 'pending')->sum('amount'),
-            'approved_count' => Payout::where('status', 'approved')->count(),
-            'approved_amount' => Payout::where('status', 'approved')->sum('amount'),
-            'processing_count' => Payout::where('status', 'processing')->count(),
-        ];
-
-        return Inertia::render('Admin/Payouts/Index', [
-            'payouts' => $payouts,
-            'stats' => $stats,
-            'currentStatus' => $status,
-        ]);
+        return redirect()->route('admin.payments.index', ['tab' => 'teacher-payouts']);
     }
 
     /**

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { useCurrency, CURRENCY_CONFIG } from '@/contexts/CurrencyContext';
 
@@ -30,11 +30,17 @@ export const TeacherCard: React.FC<TeacherCardProps> = ({
     className = '',
 }) => {
     const { convert } = useCurrency();
+    const [showMessageTooltip, setShowMessageTooltip] = useState(false);
 
     const handleViewProfile = () => {
         if (onViewProfile) {
             onViewProfile(teacher.id);
         }
+    };
+
+    const handleMessageClick = () => {
+        setShowMessageTooltip(true);
+        setTimeout(() => setShowMessageTooltip(false), 3000);
     };
 
     // Get avatar with fallback
@@ -143,12 +149,22 @@ export const TeacherCard: React.FC<TeacherCardProps> = ({
                     </button>
 
                     {/* Message Icon Button */}
-                    <button
-                        onClick={handleViewProfile}
-                        className="flex h-9 w-9 flex-shrink-0 cursor-pointer items-center justify-center rounded-[14px] border-b-2 border-[#00A991] text-[#00A991] transition-all hover:bg-[#E6F7F5]"
-                    >
-                        <Icon icon="fluent:chat-24-regular" className="h-4 w-4" />
-                    </button>
+                    <div className="relative">
+                        <button
+                            onClick={handleMessageClick}
+                            className="flex h-9 w-9 flex-shrink-0 cursor-pointer items-center justify-center rounded-[14px] border-b-2 border-[#00A991] text-[#00A991] transition-all hover:bg-[#E6F7F5]"
+                            title="Book a session to message"
+                        >
+                            <Icon icon="fluent:chat-24-regular" className="h-4 w-4" />
+                        </button>
+                        {/* Tooltip */}
+                        {showMessageTooltip && (
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 rounded-lg bg-gray-900 px-3 py-2 text-center text-xs text-white shadow-lg z-10">
+                                Book a session to message this teacher
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

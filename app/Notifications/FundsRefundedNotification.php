@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Booking;
+use App\Notifications\Traits\RespectsNotificationPreferences;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -10,7 +11,7 @@ use Illuminate\Notifications\Notification;
 
 class FundsRefundedNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, RespectsNotificationPreferences;
 
     protected Booking $booking;
     protected float $amount;
@@ -30,7 +31,7 @@ class FundsRefundedNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        return $this->getChannels($notifiable, 'payment');
     }
 
     public function toMail(object $notifiable): MailMessage

@@ -131,6 +131,24 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get the user's settings
+     */
+    public function settings(): HasOne
+    {
+        return $this->hasOne(UserSettings::class);
+    }
+
+    /**
+     * Get or create user settings
+     */
+    public function getOrCreateSettings(): UserSettings
+    {
+        return $this->settings ?? $this->settings()->create([
+            'username' => $this->name,
+        ]);
+    }
+
+    /**
      * Get all transactions for the user
      */
     public function transactions(): HasMany

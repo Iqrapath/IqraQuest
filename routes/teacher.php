@@ -44,6 +44,12 @@ Route::middleware(['auth', 'verified', 'role:teacher'])
         Route::middleware('teacher.approved')->group(function () {
             Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+            // Profile Routes
+            Route::get('/profile', [\App\Http\Controllers\Teacher\ProfileController::class, 'index'])->name('profile.index');
+            Route::post('/profile', [\App\Http\Controllers\Teacher\ProfileController::class, 'update'])->name('profile.update');
+            Route::post('/profile/avatar', [\App\Http\Controllers\Teacher\ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
+            Route::post('/profile/video', [\App\Http\Controllers\Teacher\ProfileController::class, 'uploadVideo'])->name('profile.video.upload');
+
             // Booking Requests Management
             Route::get('/requests', [\App\Http\Controllers\Teacher\BookingController::class, 'index'])->name('requests.index');
             Route::post('/requests/{booking}/accept', [\App\Http\Controllers\Teacher\BookingController::class, 'accept'])->name('requests.accept');
@@ -100,5 +106,40 @@ Route::middleware(['auth', 'verified', 'role:teacher'])
             Route::get('/calendar/export', [\App\Http\Controllers\CalendarExportController::class, 'exportAllBookings'])->name('calendar.export');
             Route::get('/calendar/export/{booking}', [\App\Http\Controllers\CalendarExportController::class, 'exportBooking'])->name('calendar.export.booking');
             Route::get('/calendar/google/{booking}', [\App\Http\Controllers\CalendarExportController::class, 'googleCalendarUrl'])->name('calendar.google');
+            
+            // Notification Routes
+            Route::get('/notifications', [\App\Http\Controllers\Teacher\NotificationController::class, 'index'])->name('notifications.index');
+            Route::post('/notifications/{id}/read', [\App\Http\Controllers\Teacher\NotificationController::class, 'markAsRead'])->name('notifications.read');
+            Route::post('/notifications/mark-all-read', [\App\Http\Controllers\Teacher\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+            Route::delete('/notifications/{id}', [\App\Http\Controllers\Teacher\NotificationController::class, 'destroy'])->name('notifications.destroy');
+            Route::delete('/notifications', [\App\Http\Controllers\Teacher\NotificationController::class, 'destroyAll'])->name('notifications.destroy-all');
+            
+            // Messages Routes
+            Route::post('/messages/support', [\App\Http\Controllers\MessageController::class, 'startWithAdmin'])->name('messages.support');
+            Route::get('/messages/unread-count', [\App\Http\Controllers\MessageController::class, 'unreadCount'])->name('messages.unread-count');
+            Route::get('/messages/recent', [\App\Http\Controllers\MessageController::class, 'recent'])->name('messages.recent');
+            Route::get('/messages', [\App\Http\Controllers\MessageController::class, 'index'])->name('messages.index');
+            Route::get('/messages/{conversation}', [\App\Http\Controllers\MessageController::class, 'show'])->name('messages.show');
+            Route::post('/messages/{conversation}', [\App\Http\Controllers\MessageController::class, 'store'])->name('messages.store');
+            Route::post('/messages/{conversation}/typing', [\App\Http\Controllers\MessageController::class, 'typing'])->name('messages.typing');
+            Route::post('/messages/{conversation}/read', [\App\Http\Controllers\MessageController::class, 'markAsRead'])->name('messages.read');
+            Route::post('/messages/booking/{booking}', [\App\Http\Controllers\MessageController::class, 'startFromBooking'])->name('messages.from-booking');
+
+            // Settings Routes
+            Route::get('/settings', [\App\Http\Controllers\Teacher\SettingsController::class, 'index'])->name('settings.index');
+            Route::put('/settings/account', [\App\Http\Controllers\Teacher\SettingsController::class, 'updateAccountInfo'])->name('settings.account');
+            Route::put('/settings/password', [\App\Http\Controllers\Teacher\SettingsController::class, 'updatePassword'])->name('settings.password');
+            Route::post('/settings/two-factor', [\App\Http\Controllers\Teacher\SettingsController::class, 'toggleTwoFactor'])->name('settings.two-factor');
+            Route::post('/settings/deactivation', [\App\Http\Controllers\Teacher\SettingsController::class, 'toggleDeactivation'])->name('settings.deactivation');
+            Route::put('/settings/notifications', [\App\Http\Controllers\Teacher\SettingsController::class, 'updateNotifications'])->name('settings.notifications');
+            Route::post('/settings/resend-verification', [\App\Http\Controllers\Teacher\SettingsController::class, 'resendEmailVerification'])->name('settings.resend-verification');
+            Route::delete('/settings/delete-account', [\App\Http\Controllers\Teacher\SettingsController::class, 'deleteAccount'])->name('settings.delete-account');
+
+            // Ratings & Feedback
+            Route::get('/ratings', [\App\Http\Controllers\Teacher\RatingController::class, 'index'])->name('ratings.index');
+            Route::get('/ratings/feedback', [\App\Http\Controllers\Teacher\RatingController::class, 'feedback'])->name('ratings.feedback');
+            Route::get('/ratings/all', [\App\Http\Controllers\Teacher\RatingController::class, 'allReviews'])->name('ratings.all');
+            Route::post('/ratings', [\App\Http\Controllers\Teacher\RatingController::class, 'store'])->name('ratings.store');
+            Route::put('/ratings/{review}', [\App\Http\Controllers\Teacher\RatingController::class, 'update'])->name('ratings.update');
         });
     });

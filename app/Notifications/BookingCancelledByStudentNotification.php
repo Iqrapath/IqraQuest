@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Booking;
+use App\Notifications\Traits\RespectsNotificationPreferences;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -10,7 +11,7 @@ use Illuminate\Notifications\Notification;
 
 class BookingCancelledByStudentNotification extends Notification implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, RespectsNotificationPreferences;
 
     protected Booking $booking;
     protected array $refundInfo;
@@ -28,7 +29,7 @@ class BookingCancelledByStudentNotification extends Notification implements Shou
 
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        return $this->getChannels($notifiable, 'session');
     }
 
     public function toMail(object $notifiable): MailMessage

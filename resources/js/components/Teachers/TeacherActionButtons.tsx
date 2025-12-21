@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { toast } from 'sonner';
+import { router } from '@inertiajs/react';
 import TeacherApprovalModal from './TeacherApprovalModal';
 import TeacherRejectionModal from './TeacherRejectionModal';
 import TeacherSuspensionModal from './TeacherSuspensionModal';
@@ -7,6 +7,7 @@ import TeacherSuspensionModal from './TeacherSuspensionModal';
 interface TeacherActionButtonsProps {
     teacher: {
         id: number;
+        user_id: number;
         status: string;
         user: {
             name: string;
@@ -23,7 +24,8 @@ export default function TeacherActionButtons({ teacher }: TeacherActionButtonsPr
     const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);
 
     const handleSendMessage = () => {
-        toast.info('Messaging feature coming soon!');
+        // Start a conversation with this teacher's user
+        router.post(`/admin/messages/user/${teacher.user_id}`);
     };
 
     return (

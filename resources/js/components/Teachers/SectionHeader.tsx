@@ -17,10 +17,10 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
 }) => {
     return (
         <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+            <h2 className="text-base font-semibold text-gray-900">
                 {title}
                 {showCount && count !== undefined && (
-                    <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">
+                    <span className="ml-2 text-sm font-normal text-gray-500">
                         ({count})
                     </span>
                 )}

@@ -17,6 +17,21 @@ class Guardian extends Model
         'address',
         'city',
         'country',
+        'bio',
+        'timezone',
+        'preferred_days',
+        'preferred_hours',
+        'availability_type',
+        'learning_goal_description',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'preferred_days' => 'array',
     ];
 
     /**
@@ -33,7 +48,11 @@ class Guardian extends Model
     public function students(): BelongsToMany
     {
         return $this->belongsToMany(Student::class, 'guardian_student')
-            ->withPivot('relationship', 'is_primary')
             ->withTimestamps();
+    }
+
+    public function subjects(): BelongsToMany
+    {
+        return $this->belongsToMany(Subject::class, 'guardian_subjects')->withTimestamps();
     }
 }

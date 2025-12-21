@@ -100,4 +100,29 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::post('/{booking}/resolve-partial', [\App\Http\Controllers\Admin\DisputeController::class, 'resolvePartial'])->name('resolve-partial');
     });
 
+    // Notification Management Routes
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\NotificationController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\NotificationController::class, 'store'])->name('store');
+        Route::get('/search-users', [\App\Http\Controllers\Admin\NotificationController::class, 'searchUsers'])->name('search-users');
+        Route::get('/{broadcast}', [\App\Http\Controllers\Admin\NotificationController::class, 'show'])->name('show');
+        Route::post('/{broadcast}/send', [\App\Http\Controllers\Admin\NotificationController::class, 'send'])->name('send');
+        Route::post('/{broadcast}/resend', [\App\Http\Controllers\Admin\NotificationController::class, 'resend'])->name('resend');
+        Route::post('/{broadcast}/cancel', [\App\Http\Controllers\Admin\NotificationController::class, 'cancel'])->name('cancel');
+        Route::delete('/{broadcast}', [\App\Http\Controllers\Admin\NotificationController::class, 'destroy'])->name('destroy');
+    });
+
+    // Messages Routes
+    Route::prefix('messages')->name('messages.')->group(function () {
+        Route::get('/unread-count', [\App\Http\Controllers\MessageController::class, 'unreadCount'])->name('unread-count');
+        Route::get('/recent', [\App\Http\Controllers\MessageController::class, 'recent'])->name('recent');
+        Route::get('/', [\App\Http\Controllers\MessageController::class, 'index'])->name('index');
+        Route::post('/user/{user}', [\App\Http\Controllers\MessageController::class, 'startWithUser'])->name('start-with-user');
+        Route::get('/{conversation}', [\App\Http\Controllers\MessageController::class, 'show'])->name('show');
+        Route::post('/{conversation}', [\App\Http\Controllers\MessageController::class, 'store'])->name('store');
+        Route::post('/{conversation}/typing', [\App\Http\Controllers\MessageController::class, 'typing'])->name('typing');
+        Route::post('/{conversation}/read', [\App\Http\Controllers\MessageController::class, 'markAsRead'])->name('read');
+    });
+
     });

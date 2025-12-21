@@ -18,6 +18,12 @@ return new class extends Migration
             $table->text('address')->nullable();
             $table->string('city')->nullable();
             $table->string('country')->nullable();
+            $table->text('bio')->nullable();
+            $table->string('timezone')->nullable();
+            $table->json('preferred_days')->nullable();
+            $table->string('preferred_hours')->nullable();
+            $table->string('availability_type')->nullable();
+            $table->text('learning_goal_description')->nullable();
             $table->timestamps();
         });
     }

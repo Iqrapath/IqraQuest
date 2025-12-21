@@ -1,20 +1,49 @@
-import { Bell, Check, CheckCheck, X } from 'lucide-react';
+import { Bell, Check, CheckCheck, X, BellRing } from 'lucide-react';
 import { useState } from 'react';
 import { useNotifications } from '@/hooks/use-notifications';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 
 type FilterType = 'all' | 'unread';
 
 export default function NotificationBell() {
-    const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+    const { notifications, unreadCount, markAsRead, markAllAsRead, pushPermission, requestPermission, isPushEnabled } = useNotifications();
     const [isOpen, setIsOpen] = useState(false);
     const [filter, setFilter] = useState<FilterType>('all');
+    const [isRequestingPermission, setIsRequestingPermission] = useState(false);
+    const { auth } = usePage<any>().props;
 
+    // Get the correct notifications URL based on user role
+    const getNotificationsUrl = () => {
+        const role = auth?.user?.role;
+        switch (role) {
+            case 'admin': return '/admin/notifications';
+            case 'teacher': return '/teacher/notifications';
+            case 'guardian': return '/guardian/notifications';
+            case 'student': return '/student/notifications';
+            default: return '/notifications';
+        }
+    };
+
+    // Ensure notifications is always an array
+    const notificationsArray = Array.isArray(notifications) ? notifications : [];
+    
     const filteredNotifications = filter === 'unread' 
-        ? notifications.filter(n => !n.read_at)
-        : notifications;
+        ? notificationsArray.filter(n => !n.read_at)
+        : notificationsArray;
+
+    const handleEnablePush = async () => {
+        setIsRequestingPermission(true);
+        try {
+            await requestPermission();
+        } finally {
+            setIsRequestingPermission(false);
+        }
+    };
+
+    // Check if we should show the enable push banner
+    const showPushBanner = 'Notification' in window && pushPermission === 'default';
 
     return (
         <div className="relative">
@@ -41,12 +70,41 @@ export default function NotificationBell() {
                     <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
 
                     <div className="absolute right-0 z-50 mt-2 w-80 rounded-lg border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800">
+                        {/* Push Notification Banner */}
+                        {showPushBanner && (
+                            <div className="border-b border-gray-200 bg-gradient-to-r from-primary/10 to-teal-50 px-3 py-2.5 dark:border-gray-700 dark:from-primary/20 dark:to-teal-900/20">
+                                <div className="flex items-start gap-2">
+                                    <BellRing className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-medium text-gray-900 dark:text-white">
+                                            Enable Push Notifications
+                                        </p>
+                                        <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">
+                                            Get notified even when you're not on this page
+                                        </p>
+                                        <button
+                                            onClick={handleEnablePush}
+                                            disabled={isRequestingPermission}
+                                            className="mt-1.5 rounded-full bg-primary px-3 py-1 text-[10px] font-medium text-white hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                                        >
+                                            {isRequestingPermission ? 'Requesting...' : 'Enable Now'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Header */}
                         <div className="border-b border-gray-200 px-3 py-2.5 dark:border-gray-700">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                                    Notifications
-                                </h3>
+                                <div className="flex items-center gap-1.5">
+                                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                                        Notifications
+                                    </h3>
+                                    {isPushEnabled && (
+                                        <span className="flex h-2 w-2 rounded-full bg-green-500" title="Push notifications enabled" />
+                                    )}
+                                </div>
                                 <div className="flex items-center gap-1">
                                     {unreadCount > 0 && (
                                         <button
@@ -67,7 +125,7 @@ export default function NotificationBell() {
                             </div>
 
                             {/* Compact Tabs */}
-                            {notifications.length > 0 && (
+                            {notificationsArray.length > 0 && (
                                 <div className="mt-2 flex gap-1">
                                     <button
                                         onClick={() => setFilter('all')}
@@ -78,7 +136,7 @@ export default function NotificationBell() {
                                                 : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
                                         )}
                                     >
-                                        All ({notifications.length})
+                                        All ({notificationsArray.length})
                                     </button>
                                     <button
                                         onClick={() => setFilter('unread')}
@@ -117,10 +175,10 @@ export default function NotificationBell() {
                         </div>
 
                         {/* Footer */}
-                        {notifications.length > 0 && (
+                        {notificationsArray.length > 0 && (
                             <div className="border-t border-gray-200 dark:border-gray-700">
                                 <Link
-                                    href="/notifications"
+                                    href={getNotificationsUrl()}
                                     className="block py-2 text-center text-xs font-medium text-primary hover:bg-gray-50 dark:hover:bg-gray-700/50"
                                     onClick={() => setIsOpen(false)}
                                 >
