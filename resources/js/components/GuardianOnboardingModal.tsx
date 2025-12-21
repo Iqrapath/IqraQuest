@@ -20,6 +20,7 @@ interface GuardianOnboardingModalProps {
     isOpen: boolean;
     onComplete: () => void;
     onSkip: () => void;
+    initialStep?: number;
 }
 
 const LEARNING_TIMES = [
@@ -29,8 +30,14 @@ const LEARNING_TIMES = [
     { id: 'weekend', label: 'Weekend' },
 ];
 
-export default function GuardianOnboardingModal({ isOpen, onComplete, onSkip }: GuardianOnboardingModalProps) {
-    const [step, setStep] = useState(1);
+export default function GuardianOnboardingModal({ isOpen, onComplete, onSkip, initialStep = 1 }: GuardianOnboardingModalProps) {
+    const [step, setStep] = useState(initialStep);
+
+    useEffect(() => {
+        if (isOpen) {
+            setStep(initialStep);
+        }
+    }, [isOpen, initialStep]);
     const [subjects, setSubjects] = useState<Subject[]>([]);
     const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
 
@@ -128,7 +135,7 @@ export default function GuardianOnboardingModal({ isOpen, onComplete, onSkip }: 
             onSuccess: () => {
                 toast.success('Registration successful!');
                 onComplete();
-                router.visit(route('guardian.dashboard'));
+                router.visit('/guardian/dashboard');
             },
             onError: (err) => {
                 toast.error('Please check all fields.');

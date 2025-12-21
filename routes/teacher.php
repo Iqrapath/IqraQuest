@@ -43,6 +43,7 @@ Route::middleware(['auth', 'verified', 'role:teacher'])
         // Dashboard (Approved teachers only)
         Route::middleware('teacher.approved')->group(function () {
             Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+            Route::get('/quick-start', [DashboardController::class, 'quickStart'])->name('quick-start');
 
             // Profile Routes
             Route::get('/profile', [\App\Http\Controllers\Teacher\ProfileController::class, 'index'])->name('profile.index');

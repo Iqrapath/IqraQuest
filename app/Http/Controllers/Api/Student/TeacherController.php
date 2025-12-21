@@ -16,6 +16,7 @@ class TeacherController extends Controller
     {
         $query = Teacher::query()
             ->where('status', 'approved') // Only show approved teachers
+            ->where('holiday_mode', false) // Only show teachers NOT on holiday
             ->with(['user', 'subjects'])
             ->select('teachers.*')
             // Calculate average rating
@@ -92,6 +93,8 @@ class TeacherController extends Controller
                 'bio' => $teacher->bio,
                 'experience_years' => $teacher->experience_years,
                 'hourly_rate' => $teacher->hourly_rate,
+                'holiday_mode' => (bool) $teacher->holiday_mode,
+                'timezone' => $teacher->timezone,
                 'subjects' => $teacher->subjects->map(function ($subject) {
                     return [
                         'id' => $subject->id,
@@ -132,6 +135,8 @@ class TeacherController extends Controller
                 'experience_years' => $teacher->experience_years,
                 'hourly_rate' => $teacher->hourly_rate,
                 'status' => $teacher->status,
+                'holiday_mode' => (bool) $teacher->holiday_mode,
+                'timezone' => $teacher->timezone,
                 'city' => $teacher->city,
                 'country' => $teacher->country,
                 'teaching_mode' => $teacher->teaching_mode,

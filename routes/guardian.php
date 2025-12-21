@@ -18,6 +18,11 @@ Route::middleware(['auth', 'verified', 'role:guardian'])
         Route::post('/onboarding/skip', [\App\Http\Controllers\Guardian\OnboardingController::class, 'skip'])->name('onboarding.skip');
 
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/quick-start', [DashboardController::class, 'quickStart'])->name('quick-start');
+        Route::get('/children', [DashboardController::class, 'children'])->name('children.index');
+        Route::get('/children/{student}/edit', [DashboardController::class, 'editChild'])->name('children.edit');
+        Route::get('/children/{student}/progress', [DashboardController::class, 'progress'])->name('children.progress');
+        Route::patch('/children/{student}', [DashboardController::class, 'updateChild'])->name('children.update');
         
         // Profile Routes (Implementation matches Figma design)
         Route::get('/profile', [\App\Http\Controllers\Guardian\ProfileController::class, 'index'])->name('profile.index');
