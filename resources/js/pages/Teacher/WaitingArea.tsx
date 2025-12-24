@@ -1,5 +1,7 @@
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
 import TeacherLayout from '@/layouts/TeacherLayout';
+import { toast } from 'sonner';
 
 interface Teacher {
     status: string;
@@ -38,6 +40,21 @@ function IllustrationGroup({ className }: { className?: string }) {
 }
 
 export default function WaitingArea({ isPending, isRejected, rejectionReason }: Props) {
+    const { flash } = usePage<{ flash: { info?: string; warning?: string; error?: string } }>().props;
+
+    // Show toast for flash messages (e.g., when redirected from dashboard)
+    useEffect(() => {
+        if (flash?.info) {
+            toast.info(flash.info, { icon: '⏳' });
+        }
+        if (flash?.warning) {
+            toast.warning(flash.warning);
+        }
+        if (flash?.error) {
+            toast.error(flash.error);
+        }
+    }, [flash]);
+
     return (
         <TeacherLayout hideLeftSidebar={true} hideRightSidebar={true}>
             <Head title={isPending ? "Application Under Review" : "Application Status"} />

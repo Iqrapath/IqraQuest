@@ -34,6 +34,12 @@ Route::get('/auth/{provider}/redirect', [\App\Http\Controllers\Auth\SocialLoginC
 Route::get('/auth/{provider}/callback', [\App\Http\Controllers\Auth\SocialLoginController::class, 'callback'])
     ->name('social.callback');
 
+// Social Login Role Selection (for new users without pre-selected role)
+Route::get('/social/select-role', [\App\Http\Controllers\Auth\SocialLoginController::class, 'showRoleSelection'])
+    ->name('social.select-role');
+Route::post('/social/select-role', [\App\Http\Controllers\Auth\SocialLoginController::class, 'handleRoleSelection'])
+    ->name('social.select-role.store');
+
 Route::post('/select-role', [\App\Http\Controllers\Auth\RoleSelectionController::class, 'store'])
     ->middleware(['auth', 'verified']);
 

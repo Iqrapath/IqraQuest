@@ -11,6 +11,7 @@ use App\Models\Subject;
 use App\Services\TeacherRegistrationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -25,7 +26,15 @@ class OnboardingController extends Controller
      */
     public function step1(): Response
     {
-        $teacher = auth()->user()->teacher;
+        $user = auth()->user();
+        $teacher = $user->teacher;
+
+        Log::info('Teacher Onboarding Step 1: Rendering page', [
+            'user_id' => $user->id,
+            'teacher_id' => $teacher?->id,
+            'teacher_status' => $teacher?->status,
+            'onboarding_step' => $teacher?->onboarding_step,
+        ]);
 
         return Inertia::render('Teacher/Onboarding/Step1', [
             'teacher' => $teacher,

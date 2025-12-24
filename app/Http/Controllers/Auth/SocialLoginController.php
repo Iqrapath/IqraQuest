@@ -11,8 +11,10 @@ use App\Enums\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use Inertia\Inertia;
 
 class SocialLoginController extends Controller
 {
@@ -56,7 +58,7 @@ class SocialLoginController extends Controller
         }
 
         // Extract role from state if present
-        $role = UserRole::STUDENT->value; // Default
+        $role = null;
         if ($request->has('state')) {
             $stateData = json_decode(base64_decode($request->state), true);
             if (isset($stateData['role'])) {
@@ -81,7 +83,83 @@ class SocialLoginController extends Controller
             return redirect()->intended($user->dashboardRoute());
         }
 
-        // Create new user
+        // NEW USER - No role specified (came from login page)
+        // Store social data in session and redirect to role selection
+        if (!$role) {
+            Session::put('social_registration', [
+                'provider' => $provider,
+                'provider_id' => $socialUser->getId(),
+                'name' => $socialUser->getName(),
+                'email' => $socialUser->getEmail(),
+                'avatar' => $socialUser->getAvatar(),
+            ]);
+
+            \Illuminate\Support\Facades\Log::info("New user without role. Redirecting to social role selection.");
+            
+            return redirect()->route('social.select-role');
+        }
+
+        // Role was specified (came from registration page) - create user directly
+        return $this->createUserWithRole($socialUser, $provider, $role);
+    }
+
+    /**
+     * Show the role selection page for social login users.
+     */
+    public function showRoleSelection()
+    {
+        $socialData = Session::get('social_registration');
+        
+        if (!$socialData) {
+            return redirect()->route('login')->with('error', 'Session expired. Please try again.');
+        }
+
+        return Inertia::render('auth/SocialRoleSelection', [
+            'name' => $socialData['name'],
+            'email' => $socialData['email'],
+            'avatar' => $socialData['avatar'],
+        ]);
+    }
+
+    /**
+     * Handle role selection for social login users.
+     */
+    public function handleRoleSelection(Request $request)
+    {
+        $request->validate([
+            'role' => 'required|in:student,guardian,teacher',
+        ]);
+
+        $socialData = Session::get('social_registration');
+        
+        if (!$socialData) {
+            return redirect()->route('login')->with('error', 'Session expired. Please try again.');
+        }
+
+        // Create a mock social user object
+        $socialUser = new \stdClass();
+        $socialUser->name = $socialData['name'];
+        $socialUser->email = $socialData['email'];
+        $socialUser->id = $socialData['provider_id'];
+        $socialUser->avatar = $socialData['avatar'];
+        
+        // Add methods to match Socialite user interface
+        $socialUser->getName = fn() => $socialData['name'];
+        $socialUser->getEmail = fn() => $socialData['email'];
+        $socialUser->getId = fn() => $socialData['provider_id'];
+        $socialUser->getAvatar = fn() => $socialData['avatar'];
+
+        // Clear session data
+        Session::forget('social_registration');
+
+        return $this->createUserWithRole($socialUser, $socialData['provider'], $request->role);
+    }
+
+    /**
+     * Create user with specified role.
+     */
+    protected function createUserWithRole($socialUser, string $provider, string $role)
+    {
         \Illuminate\Support\Facades\Log::info("Creating new user with role: {$role}");
 
         // Validate role
@@ -89,15 +167,21 @@ class SocialLoginController extends Controller
             $role = UserRole::STUDENT->value;
         }
 
+        // Get values - handle both object and stdClass with closures
+        $name = is_callable([$socialUser, 'getName']) ? $socialUser->getName() : ($socialUser->name ?? 'User');
+        $email = is_callable([$socialUser, 'getEmail']) ? $socialUser->getEmail() : $socialUser->email;
+        $providerId = is_callable([$socialUser, 'getId']) ? $socialUser->getId() : $socialUser->id;
+        $avatar = is_callable([$socialUser, 'getAvatar']) ? $socialUser->getAvatar() : ($socialUser->avatar ?? null);
+
         // Create user
         $user = User::create([
-            'name' => $socialUser->getName(),
-            'email' => $socialUser->getEmail(),
-            'password' => Hash::make(Str::random(16)), // Random password
+            'name' => $name,
+            'email' => $email,
+            'password' => Hash::make(Str::random(16)),
             'role' => $role,
-            "{$provider}_id" => $socialUser->getId(),
-            'email_verified_at' => now(), // Trust social provider email verification
-            'avatar' => $socialUser->getAvatar(),
+            "{$provider}_id" => $providerId,
+            'email_verified_at' => now(),
+            'avatar' => $avatar,
         ]);
 
         // Create profile based on role
@@ -109,8 +193,10 @@ class SocialLoginController extends Controller
             ]);
             $redirectRoute = 'teacher.onboarding.step1';
         } elseif ($user->role === UserRole::STUDENT) {
-            // Don't create Student profile yet - let them choose in role selection
-            $redirectRoute = 'select-role';
+            Student::create([
+                'user_id' => $user->id,
+            ]);
+            $redirectRoute = 'student.dashboard';
         } elseif ($user->role === UserRole::GUARDIAN) {
             Guardian::create(['user_id' => $user->id]);
             $redirectRoute = 'guardian.dashboard';
@@ -122,6 +208,6 @@ class SocialLoginController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route($redirectRoute);
+        return redirect()->route($redirectRoute)->with('success', 'Welcome! Your account has been created.');
     }
 }
