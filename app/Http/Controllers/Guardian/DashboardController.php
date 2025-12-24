@@ -76,7 +76,6 @@ class DashboardController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'children_count' => $guardian ? $guardian->students()->count() : 0,
-                'active_plan' => $guardian->learning_goal_description ?? 'Free Plan',
             ],
             'stats' => [
                 'total_classes' => array_sum($stats),
@@ -85,16 +84,6 @@ class DashboardController extends Controller
             ],
             'upcomingClasses' => $upcomingClasses,
             'topTeachers' => $topTeachers,
-            'progress' => [
-                'label' => 'Juz\' Amma',
-                'percentage' => 77,
-                'subjects' => [
-                    ['name' => 'Tajweed', 'status' => 'Intermediate', 'color' => 'yellow'],
-                    ['name' => 'Quran Recitation', 'status' => 'Good', 'color' => 'green'],
-                    ['name' => 'Memorization', 'status' => 'In Progress (8 Surahs completed)', 'color' => 'blue'],
-                ]
-            ],
-            'subscription_status' => 'Coming Soon',
         ]);
     }
 
@@ -218,7 +207,6 @@ class DashboardController extends Controller
             'subjects.*' => 'exists:subjects,id',
             'learning_goal_description' => 'sometimes|nullable|string|max:1000',
             'preferred_days' => 'sometimes|nullable|array',
-            // Age/DOB update logic can be added if needed
         ]);
 
         if (isset($validated['name'])) {
@@ -231,94 +219,5 @@ class DashboardController extends Controller
         if (isset($validated['subjects'])) {
             $student->subjects()->sync($validated['subjects']);
         }
-
-    }
-
-    /**
-     * Show the progress overview for a specific child.
-     */
-    public function progress(Student $student): Response
-    {
-        /** @var User $user */
-        $user = Auth::user();
-        $guardian = $user->guardian()->first();
-
-        if (!$guardian || !$guardian->students()->where('students.id', $student->id)->exists()) {
-            abort(403);
-        }
-
-        $student->load(['user', 'subjects']);
-
-        // Fetch real feedback from reviews table (reviews written BY teachers TO this student)
-        $feedback = \App\Models\Review::where('user_id', $student->user->id)
-            ->where('reviewer_type', 'teacher')
-            ->where('is_approved', true)
-            ->with(['teacher.user'])
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get()
-            ->map(function ($review) {
-                return [
-                    'teacher_name' => $review->teacher?->user?->name ?? 'Unknown Teacher',
-                    'teacher_avatar' => $review->teacher?->user?->avatar,
-                    'rating' => $review->rating,
-                    'comment' => $review->comment,
-                    'date' => $review->created_at->format('M d, Y'),
-                ];
-            })
-            ->toArray();
-
-        // If no real feedback, provide placeholder
-        if (empty($feedback)) {
-            $feedback = [[
-                'teacher_name' => 'No feedback yet',
-                'teacher_avatar' => null,
-                'rating' => 0,
-                'comment' => 'Teachers will leave feedback here after sessions.',
-                'date' => now()->format('M d, Y'),
-            ]];
-        }
-
-        // Mock data for attendance/progress (until subscription system is ready)
-        $mockData = [
-            'attendance' => [
-                'Monday' => 'checked',
-                'Tuesday' => 'checked',
-                'Wednesday' => 'missed',
-                'Thursday' => 'checked',
-                'Friday' => 'checked',
-                'Saturday' => 'none',
-                'Sunday' => 'none',
-            ],
-            'weekly_stats' => [
-                ['day' => 'Mon', 'percentage' => 80],
-                ['day' => 'Tue', 'percentage' => 80],
-                ['day' => 'Wed', 'percentage' => 45],
-                ['day' => 'Thu', 'percentage' => 80],
-                ['day' => 'Fri', 'percentage' => 80],
-                ['day' => 'Sat', 'percentage' => 5],
-                ['day' => 'Sun', 'percentage' => 5],
-            ],
-            'memorization' => [
-                'goal' => 'Juz\' Amma',
-                'completed_percentage' => 77,
-                'subjects_status' => [
-                    ['name' => 'Tajweed', 'level' => 'Intermediate', 'color' => 'yellow'],
-                    ['name' => 'Quran Recitation', 'level' => 'Good', 'color' => 'green'],
-                    ['name' => 'Memorization', 'level' => '8 Surahs completed', 'color' => 'blue'],
-                ],
-                'upcoming_goal' => 'Complete Surah At-Tariq by next Friday.'
-            ],
-            'feedback' => $feedback, // Real data now!
-        ];
-
-        return Inertia::render('Guardian/Children/Progress/Index', [
-            'child' => [
-                'id' => $student->id,
-                'name' => $student->user->name,
-                'avatar' => $student->user->avatar,
-            ],
-            'stats' => $mockData,
-        ]);
     }
 }

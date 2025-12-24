@@ -29,7 +29,7 @@ interface DashboardProps {
     progress: {
         label: string;
         percentage: number;
-        subjects: Array<{ name: string; status: string; color: string }>;
+        upcoming_goal?: string;
     };
 }
 
@@ -141,7 +141,7 @@ export default function Dashboard({ student, stats, upcomingClasses, topTeachers
                     <ProgressCard
                         goalTitle={progress.label}
                         percentage={progress.percentage}
-                        subjects={progress.subjects}
+                        upcomingGoal={progress.upcoming_goal}
                     />
 
                     {/* Upcoming Classes Section */}

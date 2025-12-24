@@ -4,12 +4,13 @@ import AdminLayout from '@/layouts/AdminLayout';
 import TeacherLayout from '@/layouts/TeacherLayout';
 import GuardianLayout from '@/layouts/GuardianLayout';
 import StudentLayout from '@/layouts/StudentLayout';
-import { type SharedData } from '@/types';
+import { type SharedData, type BreadcrumbItem } from '@/types';
 
-interface AppLayoutProps {
+export interface AppLayoutProps {
     children: ReactNode;
     hideLeftSidebar?: boolean;
     hideRightSidebar?: boolean;
+    breadcrumbs?: BreadcrumbItem[];
 }
 
 export default function AppLayout({ children, hideLeftSidebar, hideRightSidebar }: AppLayoutProps) {

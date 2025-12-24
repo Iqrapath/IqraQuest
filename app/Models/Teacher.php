@@ -44,6 +44,10 @@ class Teacher extends Model
         'last_payout_requested_at',
         'last_auto_payout_at',
         'hourly_rate',
+        // Teacher type & subscription teaching
+        'teacher_type',
+        'per_student_rate',
+        'per_session_rate',
     ];
 
     protected $casts = [
@@ -51,6 +55,8 @@ class Teacher extends Model
         'holiday_mode' => 'boolean',
         'automatic_payouts' => 'boolean',
         'hourly_rate' => 'decimal:2',
+        'per_student_rate' => 'decimal:2',
+        'per_session_rate' => 'decimal:2',
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
         'application_submitted_at' => 'datetime',
@@ -210,5 +216,39 @@ class Teacher extends Model
     public function payouts(): HasMany
     {
         return $this->hasMany(Payout::class);
+    }
+
+    // ===== TEACHER TYPE METHODS =====
+
+    /**
+     * Check if teacher is freelance type
+     */
+    public function isFreelance(): bool
+    {
+        return $this->teacher_type === 'freelance';
+    }
+
+    /**
+     * Check if teacher is hybrid type
+     */
+    public function isHybrid(): bool
+    {
+        return $this->teacher_type === 'hybrid';
+    }
+
+    /**
+     * Check if teacher can do freelance bookings
+     */
+    public function canDoFreelance(): bool
+    {
+        return in_array($this->teacher_type, ['freelance', 'hybrid']);
+    }
+
+    /**
+     * Scope to get freelance/hybrid teachers (can do bookings)
+     */
+    public function scopeCanDoFreelance($query)
+    {
+        return $query->whereIn('teacher_type', ['freelance', 'hybrid']);
     }
 }

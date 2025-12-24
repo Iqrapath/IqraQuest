@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Icon } from '@iconify/react';
+import { toast } from 'sonner';
 
 interface AdminLeftSidebarProps {
     onLogoutClick?: () => void;
@@ -14,7 +15,7 @@ export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProp
         { name: 'Parent Management', icon: 'ri:parent-line', route: '/admin/parents' },
         { name: 'Booking Management', icon: 'solar:calendar-outline', route: '/admin/bookings' },
         { name: 'Verification Requests', icon: 'uil:comment-verify', route: '/admin/verifications' },
-        { name: 'Subscription Plan', icon: 'eos-icons:subscriptions-created-outlined', route: '/admin/subscriptions' },
+        { name: 'Subscription Plans', icon: 'eos-icons:subscriptions-created-outlined', route: '#', comingSoon: true },
         { name: 'Guardian Management', icon: 'fluent:guardian-28-regular', route: '/admin/guardians' },
         { name: 'Payment Management', icon: 'streamline-plump:wallet', route: '/admin/payments' },
     ];
@@ -32,29 +33,63 @@ export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProp
         { name: 'Feedback & Support', icon: 'fluent:person-support-20-regular', route: '/admin/feedback' },
     ];
 
-    const isActive = (route: string) => url.startsWith(route);
+    const isActive = (route: string) => route !== '#' && url.startsWith(route);
 
-    const renderMenuItem = (item: { name: string; icon: string; route: string }) => (
-        <Link
-            key={item.name}
-            href={item.route}
-            className={`flex items-center px-[16px] py-[10px] rounded-[8px] transition-all duration-200 group relative ${isActive(item.route)
-                    ? 'bg-[#F3E5C3]/50'
-                    : 'hover:bg-[#F3E5C3]/10'
-                }`}
-        >
-            <div className="flex items-center gap-[12px] flex-1">
-                <Icon
-                    icon={item.icon}
-                    className="shrink-0 text-white"
-                    style={{ width: '18px', height: '18px' }}
-                />
-                <span className="font-['Poppins'] font-normal text-[13px] text-white leading-tight">
-                    {item.name}
-                </span>
-            </div>
-        </Link>
-    );
+    const handleComingSoonClick = (e: React.MouseEvent, itemName: string) => {
+        e.preventDefault();
+        toast.info(`${itemName} is coming soon!`, {
+            description: 'We\'re working hard to bring you this feature. Stay tuned!',
+            icon: '🚧',
+        });
+    };
+
+    const renderMenuItem = (item: { name: string; icon: string; route: string; comingSoon?: boolean }) => {
+        if (item.comingSoon) {
+            return (
+                <button
+                    key={item.name}
+                    onClick={(e) => handleComingSoonClick(e, item.name)}
+                    className="flex items-center px-[16px] py-[10px] rounded-[8px] transition-all duration-200 group relative hover:bg-[#F3E5C3]/10 w-full text-left"
+                >
+                    <div className="flex items-center gap-[12px] flex-1">
+                        <Icon
+                            icon={item.icon}
+                            className="shrink-0 text-white/60"
+                            style={{ width: '18px', height: '18px' }}
+                        />
+                        <span className="font-['Poppins'] font-normal text-[13px] text-white/60 leading-tight">
+                            {item.name}
+                        </span>
+                        <span className="ml-auto text-[9px] bg-[#F3E5C3]/20 text-[#F3E5C3] px-1.5 py-0.5 rounded-full font-medium">
+                            Soon
+                        </span>
+                    </div>
+                </button>
+            );
+        }
+
+        return (
+            <Link
+                key={item.name}
+                href={item.route}
+                className={`flex items-center px-[16px] py-[10px] rounded-[8px] transition-all duration-200 group relative ${isActive(item.route)
+                        ? 'bg-[#F3E5C3]/50'
+                        : 'hover:bg-[#F3E5C3]/10'
+                    }`}
+            >
+                <div className="flex items-center gap-[12px] flex-1">
+                    <Icon
+                        icon={item.icon}
+                        className="shrink-0 text-white"
+                        style={{ width: '18px', height: '18px' }}
+                    />
+                    <span className="font-['Poppins'] font-normal text-[13px] text-white leading-tight">
+                        {item.name}
+                    </span>
+                </div>
+            </Link>
+        );
+    };
 
     return (
         <div
@@ -110,9 +145,6 @@ export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProp
                             {settingsItems.map(renderMenuItem)}
                         </div>
                     </div>
-
-                    {/* Spacer to push logout to bottom */}
-                    {/* <div className="flex-1 min-h-[20px]" /> */}
 
                     {/* Logout Section */}
                     <div className="pt-[16px] border-t border-white/50">

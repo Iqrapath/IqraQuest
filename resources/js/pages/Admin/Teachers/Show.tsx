@@ -11,6 +11,7 @@ import TeacherActionButtons from '@/components/Teachers/TeacherActionButtons';
 
 interface Teacher {
     id: number;
+    user_id: number;
     status: 'pending' | 'approved' | 'active' | 'suspended' | 'rejected';
     country: string;
     city: string;

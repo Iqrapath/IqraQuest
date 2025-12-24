@@ -50,12 +50,18 @@ return new class extends Migration
             $table->timestamp('last_auto_payout_at')->nullable(); // Last automatic payout specifically
             $table->decimal('hourly_rate', 10, 2)->nullable();
             
+            // Teacher Type & Subscription Teaching
+            $table->enum('teacher_type', ['freelance', 'subscription', 'hybrid'])->default('freelance');
+            $table->decimal('per_student_rate', 12, 2)->nullable(); // Monthly rate per assigned subscription student
+            $table->decimal('per_session_rate', 12, 2)->nullable(); // Bonus per session conducted
+            
             $table->timestamps();
             
             // Indexes
             $table->index('status');
             $table->index('approved_at');
             $table->index('holiday_mode');
+            $table->index('teacher_type');
         });
     }
 

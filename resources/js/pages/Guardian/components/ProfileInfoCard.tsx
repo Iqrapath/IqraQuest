@@ -8,7 +8,6 @@ interface ProfileInfoCardProps {
         name: string;
         email: string;
         children_count: number;
-        active_plan: string;
     };
     onAddChild: () => void;
 }
@@ -37,18 +36,12 @@ export default function ProfileInfoCard({ guardian, onAddChild }: ProfileInfoCar
                 {/* Horizontal Separator */}
                 <div className="w-full h-[1px] bg-gray-100/80" />
 
-                {/* Row 2: Registered Children & Active Plan */}
+                {/* Row 2: Registered Children */}
                 <div className="flex flex-col md:flex-row md:items-center gap-8 md:gap-16">
                     <div className="flex items-center gap-3 min-w-[240px]">
                         <Icon icon="hugeicons:student" className="w-7 h-7 text-[#338078]" />
                         <p className="text-[15px] font-medium text-[#181818]">
                             Registered Children: <span className="font-light text-[#181818]/75 ml-1">{guardian.children_count}</span>
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <Icon icon="icon-park-outline:plan" className="w-7 h-7 text-[#338078]" />
-                        <p className="text-[15px] font-medium text-[#181818]">
-                            Active Plan: <span className="font-light text-[#181818]/75 ml-1">{guardian.active_plan}</span>
                         </p>
                     </div>
                 </div>

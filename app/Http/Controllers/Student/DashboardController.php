@@ -69,12 +69,15 @@ class DashboardController extends Controller
                 ];
             });
 
+        // Get progress data based on completed bookings
+        $progress = $this->getStudentProgress($user);
+
         return Inertia::render('Student/Dashboard', [
             'student' => [
                 'name' => $user->name,
                 'email' => $user->email,
                 'subjects_count' => $student ? $student->subjects()->count() : 0,
-                'active_plan' => 'Free Plan', // Placeholder until subscription system
+                'active_plan' => 'Free Plan',
             ],
             'stats' => [
                 'total_classes' => array_sum($stats),
@@ -83,97 +86,7 @@ class DashboardController extends Controller
             ],
             'upcomingClasses' => $upcomingClasses,
             'topTeachers' => $topTeachers,
-            'progress' => [
-                'label' => 'Juz\' Amma',
-                'percentage' => 77,
-                'subjects' => [
-                    ['name' => 'Tajweed', 'status' => 'Intermediate', 'color' => 'yellow'],
-                    ['name' => 'Quran Recitation', 'status' => 'Good', 'color' => 'green'],
-                    ['name' => 'Memorization', 'status' => 'In Progress (8 Surahs completed)', 'color' => 'blue'],
-                ]
-            ],
-        ]);
-    }
-
-    /**
-     * Display the student progress page.
-     */
-    public function progress(): Response
-    {
-        /** @var User $user */
-        $user = Auth::user();
-        $student = $user->student()->first();
-
-        // Fetch real feedback from reviews table (reviews written BY teachers TO this student)
-        $feedback = \App\Models\Review::where('user_id', $user->id)
-            ->where('reviewer_type', 'teacher')
-            ->where('is_approved', true)
-            ->with(['teacher.user'])
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get()
-            ->map(function ($review) {
-                return [
-                    'teacher_name' => $review->teacher?->user?->name ?? 'Unknown Teacher',
-                    'teacher_avatar' => $review->teacher?->user?->avatar,
-                    'rating' => $review->rating,
-                    'comment' => $review->comment,
-                    'date' => $review->created_at->format('M d, Y'),
-                ];
-            })
-            ->toArray();
-
-        // If no real feedback, provide placeholder
-        if (empty($feedback)) {
-            $feedback = [[
-                'teacher_name' => 'No feedback yet',
-                'teacher_avatar' => null,
-                'rating' => 0,
-                'comment' => 'Teachers will leave feedback here after sessions.',
-                'date' => now()->format('M d, Y'),
-            ]];
-        }
-
-        // Mock data for attendance/progress (until subscription system is ready)
-        $mockData = [
-            'attendance' => [
-                'Monday' => 'checked',
-                'Tuesday' => 'checked',
-                'Wednesday' => 'missed',
-                'Thursday' => 'checked',
-                'Friday' => 'checked',
-                'Saturday' => 'none',
-                'Sunday' => 'none',
-            ],
-            'weekly_stats' => [
-                ['day' => 'Mon', 'percentage' => 80],
-                ['day' => 'Tue', 'percentage' => 80],
-                ['day' => 'Wed', 'percentage' => 45],
-                ['day' => 'Thu', 'percentage' => 80],
-                ['day' => 'Fri', 'percentage' => 80],
-                ['day' => 'Sat', 'percentage' => 5],
-                ['day' => 'Sun', 'percentage' => 5],
-            ],
-            'memorization' => [
-                'goal' => 'Juz\' Amma',
-                'completed_percentage' => 77,
-                'subjects_status' => [
-                    ['name' => 'Tajweed', 'level' => 'Intermediate', 'color' => 'yellow'],
-                    ['name' => 'Quran Recitation', 'level' => 'Good', 'color' => 'green'],
-                    ['name' => 'Memorization', 'level' => '8 Surahs completed', 'color' => 'blue'],
-                ],
-                'upcoming_goal' => 'Complete Surah At-Tariq by next Friday.'
-            ],
-            'feedback' => $feedback,
-        ];
-
-        return Inertia::render('Student/Progress/Index', [
-            'student' => [
-                'id' => $student?->id ?? 0,
-                'name' => $user->name,
-                'avatar' => $user->avatar,
-            ],
-            'stats' => $mockData,
+            'progress' => $progress,
         ]);
     }
 
@@ -212,5 +125,32 @@ class DashboardController extends Controller
             'allBookings' => $allBookings,
             'upcomingBookings' => $upcomingBookings,
         ]);
+    }
+
+    /**
+     * Get student progress based on completed bookings.
+     */
+    protected function getStudentProgress(User $user): array
+    {
+        $totalBookings = $user->bookings()->count();
+        $completedBookings = $user->bookings()->where('status', 'completed')->count();
+        
+        $percentage = $totalBookings > 0 
+            ? min(100, round(($completedBookings / max($totalBookings, 1)) * 100))
+            : 0;
+
+        $upcomingGoal = match (true) {
+            $completedBookings === 0 => 'Book your first session to start learning!',
+            $completedBookings < 5 => 'Great start! Keep booking sessions.',
+            $completedBookings < 10 => 'Making progress! Stay consistent.',
+            $completedBookings < 20 => 'Excellent dedication! Keep it up.',
+            default => 'Amazing progress! You\'re doing great!',
+        };
+
+        return [
+            'label' => 'Learning Progress',
+            'percentage' => $percentage,
+            'upcoming_goal' => $upcomingGoal,
+        ];
     }
 }

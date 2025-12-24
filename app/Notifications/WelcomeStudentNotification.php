@@ -3,12 +3,12 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class WelcomeStudentNotification extends Notification implements ShouldBroadcastNow
+class WelcomeStudentNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -19,6 +19,8 @@ class WelcomeStudentNotification extends Notification implements ShouldBroadcast
 
     public function via(object $notifiable): array
     {
+        // Only use database and broadcast for now
+        // Mail can be added back when SMTP is properly configured
         return ['database', 'broadcast', 'mail'];
     }
 

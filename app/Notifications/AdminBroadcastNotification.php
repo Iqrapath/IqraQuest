@@ -87,14 +87,9 @@ class AdminBroadcastNotification extends Notification implements ShouldBroadcast
             '[User_Name]' => $notifiable->name ?? 'User',
             '[Email]' => $notifiable->email ?? '',
             '[Role]' => $role,
+            '[Plan_Name]' => 'N/A',
+            '[Plan_Price]' => 'N/A',
         ];
-
-        // Add plan-related variables if user has active subscription
-        if (method_exists($notifiable, 'activeSubscription')) {
-            $subscription = $notifiable->activeSubscription;
-            $replacements['[Plan_Name]'] = $subscription?->plan?->name ?? 'N/A';
-            $replacements['[Plan_Price]'] = $subscription?->plan?->price ?? 'N/A';
-        }
 
         // Add wallet balance if available
         if (method_exists($notifiable, 'wallet')) {

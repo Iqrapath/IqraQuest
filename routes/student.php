@@ -22,7 +22,6 @@ Route::middleware(['auth', 'verified', 'role:student'])
     ->name('student.')
     ->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/progress', [DashboardController::class, 'progress'])->name('progress');
         Route::get('/quick-start', [DashboardController::class, 'quickStart'])->name('quick-start');
         
         // Profile Routes (Implementation matches Figma design)

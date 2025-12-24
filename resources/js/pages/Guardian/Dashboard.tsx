@@ -7,7 +7,6 @@ import GuardianOnboardingModal from '@/components/GuardianOnboardingModal';
 import HeroBanner from './components/HeroBanner';
 import GuardianStatsCard from './components/GuardianStatsCard';
 import ProfileInfoCard from './components/ProfileInfoCard';
-import ProgressCard from './components/ProgressCard';
 import { BookingCard, JoinClassModal, CancelBookingModal, type BookingData } from '@/components/bookings';
 import { TopRatedTeachers } from '@/components/Teachers/TopRatedTeachers';
 import { TeacherProfileModal } from '@/components/Teachers/TeacherProfileModal';
@@ -18,7 +17,6 @@ interface DashboardProps {
         name: string;
         email: string;
         children_count: number;
-        active_plan: string;
     };
     stats: {
         total_classes: number;
@@ -27,14 +25,9 @@ interface DashboardProps {
     };
     upcomingClasses: BookingData[];
     topTeachers: any[];
-    progress: {
-        label: string;
-        percentage: number;
-        subjects: Array<{ name: string; status: string; color: string }>;
-    };
 }
 
-export default function Dashboard({ guardian, stats, upcomingClasses, topTeachers, progress }: DashboardProps) {
+export default function Dashboard({ guardian, stats, upcomingClasses, topTeachers }: DashboardProps) {
     const [isAddChildOpen, setIsAddChildOpen] = useState(false);
     const [joinModalOpen, setJoinModalOpen] = useState(false);
     const [cancelModalOpen, setCancelModalOpen] = useState(false);
@@ -140,13 +133,6 @@ export default function Dashboard({ guardian, stats, upcomingClasses, topTeacher
                     <ProfileInfoCard
                         guardian={guardian}
                         onAddChild={() => setIsAddChildOpen(true)}
-                    />
-
-                    {/* Progress Card Section - High Fidelity with Mock Data */}
-                    <ProgressCard
-                        goalTitle={progress.label}
-                        percentage={progress.percentage}
-                        subjects={progress.subjects}
                     />
 
                     {/* Upcoming Classes Section */}

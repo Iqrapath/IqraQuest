@@ -206,7 +206,7 @@ class MessageController extends Controller
         $admin = $request->user();
         
         // Only admins can use this
-        if ($admin->role !== 'admin') {
+        if (!$admin->isAdmin()) {
             abort(403);
         }
         

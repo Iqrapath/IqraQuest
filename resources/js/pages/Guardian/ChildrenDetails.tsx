@@ -144,8 +144,8 @@ export default function ChildrenDetails({ guardian_name, children, total_childre
 
             {/* Bottom Link */}
             <div className="mt-4">
-                <Link href="#" className="text-[#338078] font-semibold text-lg hover:underline transition-all">
-                    View All Subscriptions
+                <Link href="/guardian/bookings" className="text-[#338078] font-semibold text-lg hover:underline transition-all">
+                    View All Bookings
                 </Link>
             </div>
 

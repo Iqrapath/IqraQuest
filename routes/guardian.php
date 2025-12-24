@@ -19,6 +19,7 @@ Route::middleware(['auth', 'verified', 'role:guardian'])
 
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/quick-start', [DashboardController::class, 'quickStart'])->name('quick-start');
+        Route::get('/progress', [DashboardController::class, 'myProgress'])->name('progress');
         Route::get('/children', [DashboardController::class, 'children'])->name('children.index');
         Route::get('/children/{student}/edit', [DashboardController::class, 'editChild'])->name('children.edit');
         Route::get('/children/{student}/progress', [DashboardController::class, 'progress'])->name('children.progress');
