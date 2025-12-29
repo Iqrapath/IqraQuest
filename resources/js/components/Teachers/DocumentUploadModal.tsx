@@ -12,9 +12,10 @@ interface DocumentUploadModalProps {
     teacherId: number;
     type: 'id_card_front' | 'id_card_back' | 'cv' | 'certificate';
     title?: string; // Optional override for modal title
+    uploadUrl?: string; // Optional custom upload URL
 }
 
-export default function DocumentUploadModal({ isOpen, onClose, teacherId, type, title }: DocumentUploadModalProps) {
+export default function DocumentUploadModal({ isOpen, onClose, teacherId, type, title, uploadUrl }: DocumentUploadModalProps) {
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         file: null as File | null,
         type: type,
@@ -63,7 +64,8 @@ export default function DocumentUploadModal({ isOpen, onClose, teacherId, type, 
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(`/admin/teachers/${teacherId}/documents/upload`, {
+        const finalUploadUrl = uploadUrl || `/admin/teachers/${teacherId}/documents/upload`;
+        post(finalUploadUrl, {
             onSuccess: () => {
                 handleClose();
                 // Success toast is handled globally by AppProvider

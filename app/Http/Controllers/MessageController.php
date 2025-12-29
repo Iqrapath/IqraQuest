@@ -309,7 +309,7 @@ class MessageController extends Controller
             'other_user' => [
                 'id' => $otherUser->id,
                 'name' => $otherUser->name,
-                'avatar' => $otherUser->avatar,
+                'avatar' => $otherUser->avatar_url,
                 'is_online' => false, // TODO: Implement online status
             ],
             'booking' => $conversation->booking ? [
@@ -341,7 +341,7 @@ class MessageController extends Controller
             'sender' => [
                 'id' => $message->sender->id,
                 'name' => $message->sender->name,
-                'avatar' => $message->sender->avatar,
+                'avatar' => $message->sender->avatar_url,
             ],
             'is_mine' => $message->sender_id === $currentUser->id,
             'file_url' => $message->file_url,

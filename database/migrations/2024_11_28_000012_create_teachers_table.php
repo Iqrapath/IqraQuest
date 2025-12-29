@@ -16,13 +16,20 @@ return new class extends Migration
             $table->foreignId('user_id')->unique()->constrained()->onDelete('cascade');
             
             // Approval Workflow
-            $table->enum('status', ['pending', 'under_review', 'approved', 'rejected'])->default('pending');
+            $table->enum('status', ['pending', 'under_review', 'approved', 'rejected', 'suspended'])->default('pending');
             $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('rejected_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamp('approved_at')->nullable();
             $table->timestamp('rejected_at')->nullable();
             $table->text('rejection_reason')->nullable();
             $table->timestamp('application_submitted_at')->nullable();
+
+            // Video Verification
+            $table->enum('video_verification_status', ['not_scheduled', 'scheduled', 'completed', 'failed'])->default('not_scheduled');
+            $table->string('video_verification_room_id')->nullable();
+            $table->timestamp('video_verification_scheduled_at')->nullable();
+            $table->string('video_verification_platform', 100)->default('IqraQuest Live');
+            $table->text('video_verification_notes')->nullable();
             
             // Step 1: Personal Information
             $table->string('country', 100)->nullable();

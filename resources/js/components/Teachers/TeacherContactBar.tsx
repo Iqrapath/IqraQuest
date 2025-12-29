@@ -20,7 +20,7 @@ interface TeacherContactBarProps {
     sessions_count?: number;
 }
 
-export default function TeacherContactBar({ teacher, subjects = "Tajweed, Quran Recitation", sessions_count = 345 }: TeacherContactBarProps) {
+export default function TeacherContactBar({ teacher, subjects, sessions_count }: TeacherContactBarProps) {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     return (
@@ -79,7 +79,7 @@ export default function TeacherContactBar({ teacher, subjects = "Tajweed, Quran 
                             <Icon icon="material-symbols-light:star-outline-rounded" className="w-full h-full text-[#111928]" />
                         </div>
                         <span className="font-['Nunito'] text-[20px] text-[#111928] leading-[1.2]">
-                            {teacher.rating || '4.9'} ({teacher.review_count || '210'} Reviews)
+                            {teacher.rating && teacher.rating > 0 ? teacher.rating.toFixed(1) : 'No rating'} ({teacher.review_count || '0'} Reviews)
                         </span>
                     </div>
                 </div>

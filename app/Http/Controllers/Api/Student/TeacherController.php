@@ -17,7 +17,7 @@ class TeacherController extends Controller
         $query = Teacher::query()
             ->where('status', 'approved') // Only show approved teachers
             ->where('holiday_mode', false) // Only show teachers NOT on holiday
-            ->with(['user', 'subjects'])
+            ->with(['user', 'subjects', 'availability'])
             ->select('teachers.*')
             // Calculate average rating
             ->selectSub(function ($query) {
@@ -83,6 +83,30 @@ class TeacherController extends Controller
 
         // Transform data
         $teachers->getCollection()->transform(function ($teacher) {
+            // Generate availability summary with time start and end
+            $availableSlots = $teacher->availability->where('is_available', true);
+            $availabilitySummary = 'Contact for schedule';
+            
+            if ($availableSlots->isNotEmpty()) {
+                $days = $availableSlots->pluck('day_of_week')
+                    ->unique()
+                    ->map(fn($d) => ucfirst(substr($d, 0, 3)))
+                    ->values();
+                
+                $dayGroup = $days->count() > 3 
+                    ? $days->first() . '-' . $days->last()
+                    : $days->implode(', ');
+
+                $firstSlot = $availableSlots->first();
+                try {
+                    $startTime = \Carbon\Carbon::parse($firstSlot->start_time)->format('g:i A');
+                    $endTime = \Carbon\Carbon::parse($firstSlot->end_time)->format('g:i A');
+                    $availabilitySummary = "{$dayGroup}, {$startTime} - {$endTime}";
+                } catch (\Exception $e) {
+                    $availabilitySummary = "{$dayGroup}";
+                }
+            }
+
             return [
                 'id' => $teacher->id,
                 'user' => [
@@ -93,6 +117,8 @@ class TeacherController extends Controller
                 'bio' => $teacher->bio,
                 'experience_years' => $teacher->experience_years,
                 'hourly_rate' => $teacher->hourly_rate,
+                'city' => $teacher->city ?? 'Remote',
+                'availability_summary' => $availabilitySummary,
                 'holiday_mode' => (bool) $teacher->holiday_mode,
                 'timezone' => $teacher->timezone,
                 'subjects' => $teacher->subjects->map(function ($subject) {

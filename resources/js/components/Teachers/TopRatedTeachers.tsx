@@ -17,6 +17,8 @@ interface Teacher {
     }>;
     average_rating: number;
     total_reviews: number;
+    city?: string;
+    availability_summary?: string;
 }
 
 interface TopRatedTeachersProps {

@@ -21,9 +21,10 @@ interface TeacherProfileHeaderProps {
         pending_payouts: number;
         currency: string;
     };
+    isEarningsPage?: boolean;
 }
 
-export default function TeacherProfileHeader({ teacher, earnings }: TeacherProfileHeaderProps) {
+export default function TeacherProfileHeader({ teacher, earnings, isEarningsPage = false }: TeacherProfileHeaderProps) {
     return (
         <div className="relative w-full mb-8">
             {/* Background Image Header */}
@@ -36,8 +37,8 @@ export default function TeacherProfileHeader({ teacher, earnings }: TeacherProfi
             </div>
 
             {/* Content Container - Overlapping */}
-            <div className="relative -mt-[60px] md:-mt-[100px] px-4 md:px-[48px] z-10">
-                <div className="flex flex-col xl:flex-row items-center xl:items-end justify-between gap-4 md:gap-8">
+            <div className={`relative px-4 md:px-[48px] z-10 ${isEarningsPage ? '-mt-[48px]' : '-mt-[60px] md:-mt-[100px]'}`}>
+                <div className={`flex flex-col ${isEarningsPage ? '' : 'xl:flex-row'} items-center xl:items-start justify-between gap-4 md:gap-8`}>
                     {/* LEFT SIDE - Profile Info */}
                     <div className="flex flex-col gap-3 md:gap-[16px] mb-2 md:mb-4 items-center">
                         {/* Profile Photo */}
@@ -84,62 +85,68 @@ export default function TeacherProfileHeader({ teacher, earnings }: TeacherProfi
                     </div>
 
                     {/* RIGHT SIDE - Earnings Card */}
-                    <div className="bg-white rounded-[20px] shadow-[0px_4px_16px_rgba(0,0,0,0.08)] p-4 md:p-[24px] w-full md:min-w-[440px] mb-8 md:mb-20">
+                    <div className="bg-white rounded-[24px] shadow-[0px_4px_24px_rgba(0,0,0,0.06)] p-6 w-full md:min-w-[480px] mb-8 md:mb-35 border border-gray-100 freelancers-card">
                         {/* Card Title */}
-                        <h2 className="font-['Nunito'] font-semibold text-base md:text-[18px] text-[#141522] mb-4 md:mb-[20px]">
+                        <h2 className="font-['Nunito'] font-bold text-[10px] md:text-[12px] text-gray-400 uppercase tracking-[0.2em] mb-6">
                             Earnings
                         </h2>
 
                         {/* Stats Row */}
-                        <div className="flex flex-col sm:flex-row gap-3 md:gap-[12px] mb-4 md:mb-[16px]">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                             {/* Wallet Balance */}
-                            <div className="flex-1 bg-[#E8F5FF] rounded-[12px] p-3 md:p-[16px]">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <Icon icon="mdi:wallet-outline" className="w-5 h-5 text-[#338078]" />
-                                    <p className="font-['Nunito'] font-bold text-lg md:text-[20px] text-[#141522]">
+                            <div className="bg-[#F0F7FF] rounded-[16px] p-4 flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                                    <Icon icon="solar:wallet-2-bold" className="w-5 h-5 text-[#338078]" />
+                                </div>
+                                <div>
+                                    <p className="font-['Nunito'] font-bold text-[10px] text-[#338078] uppercase tracking-wider">
+                                        Wallet
+                                    </p>
+                                    <p className="font-['Nunito'] font-extrabold text-lg text-[#141522]">
                                         {earnings.currency}{earnings.wallet_balance.toLocaleString()}
                                     </p>
                                 </div>
-                                <p className="font-['Poppins'] text-[10px] md:text-[11px] text-gray-500">
-                                    Wallet Balance
-                                </p>
                             </div>
 
                             {/* Total Earned */}
-                            <div className="flex-1 bg-[#E8F5FF] rounded-[12px] p-3 md:p-[16px]">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <Icon icon="mdi:cash-multiple" className="w-5 h-5 text-[#338078]" />
-                                    <p className="font-['Nunito'] font-bold text-lg md:text-[20px] text-[#141522]">
+                            <div className="bg-[#EFFEFD] rounded-[16px] p-4 flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                                    <Icon icon="solar:graph-up-bold" className="w-5 h-5 text-[#338078]" />
+                                </div>
+                                <div>
+                                    <p className="font-['Nunito'] font-bold text-[10px] text-[#338078] uppercase tracking-wider">
+                                        Total
+                                    </p>
+                                    <p className="font-['Nunito'] font-extrabold text-lg text-[#141522]">
                                         {earnings.currency}{earnings.total_earned.toLocaleString()}
                                     </p>
                                 </div>
-                                <p className="font-['Poppins'] text-[10px] md:text-[11px] text-gray-500">
-                                    Total Earned
-                                </p>
                             </div>
 
                             {/* Pending Payouts */}
-                            <div className="flex-1 bg-[#FFF8E8] rounded-[12px] p-3 md:p-[16px]">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <Icon icon="mdi:clock-outline" className="w-5 h-5 text-[#FFCC00]" />
-                                    <p className="font-['Nunito'] font-bold text-lg md:text-[20px] text-[#141522]">
+                            <div className="bg-[#FFF9ED] rounded-[16px] p-4 flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                                    <Icon icon="solar:clock-circle-bold" className="w-5 h-5 text-[#FFCC00]" />
+                                </div>
+                                <div>
+                                    <p className="font-['Nunito'] font-bold text-[10px] text-[#FFCC00] uppercase tracking-wider">
+                                        Pending
+                                    </p>
+                                    <p className="font-['Nunito'] font-extrabold text-lg text-[#141522]">
                                         {earnings.currency}{earnings.pending_payouts.toLocaleString()}
                                     </p>
                                 </div>
-                                <p className="font-['Poppins'] text-[10px] md:text-[11px] text-gray-500">
-                                    Pending Payouts
-                                </p>
                             </div>
                         </div>
 
                         {/* View Earnings Link */}
                         <div className="text-right">
                             <Link
-                                href={`/admin/teachers/${teacher.id}/earnings`}
-                                className="font-['Nunito'] font-medium text-xs md:text-[14px] text-[#338078] hover:underline transition-all inline-flex items-center gap-1"
+                                href={isEarningsPage ? `/admin/teachers/${teacher.id}` : `/admin/teachers/${teacher.id}/earnings`}
+                                className="font-['Nunito'] font-bold text-xs text-[#338078] hover:underline transition-all inline-flex items-center gap-1.5"
                             >
-                                View Teacher Earnings
-                                <Icon icon="mdi:arrow-right" className="w-4 h-4" />
+                                {isEarningsPage ? 'Go to profile' : 'View Teacher Earnings'}
+                                <Icon icon={isEarningsPage ? 'solar:alt-arrow-left-linear' : 'solar:alt-arrow-right-linear'} className="w-4 h-4" />
                             </Link>
                         </div>
                     </div>

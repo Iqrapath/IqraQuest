@@ -255,4 +255,28 @@ class User extends Authenticatable implements MustVerifyEmail
             $this->notify(new \Illuminate\Auth\Notifications\VerifyEmail);
         }
     }
+
+    /**
+     * Get the avatar URL.
+     */
+    public function getAvatarUrlAttribute(): string
+    {
+        if ($this->avatar && $this->avatar !== 'default.png') {
+            if (str_starts_with($this->avatar, 'http')) {
+                return $this->avatar;
+            }
+            return \Illuminate\Support\Facades\Storage::url($this->avatar);
+        }
+
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
+    }
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'avatar_url',
+    ];
 }

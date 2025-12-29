@@ -22,6 +22,11 @@ class Teacher extends Model
         'rejected_at',
         'rejection_reason',
         'application_submitted_at',
+        'video_verification_status',
+        'video_verification_room_id',
+        'video_verification_scheduled_at',
+        'video_verification_platform',
+        'video_verification_notes',
         // Personal information
         'country',
         'city',
@@ -60,8 +65,13 @@ class Teacher extends Model
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
         'application_submitted_at' => 'datetime',
+        'video_verification_scheduled_at' => 'datetime',
         'last_payout_requested_at' => 'datetime',
         'last_auto_payout_at' => 'datetime',
+    ];
+
+    protected $appends = [
+        'has_required_docs_verified',
     ];
 
     /**
@@ -144,6 +154,28 @@ class Teacher extends Model
     public function isUnderReview(): bool
     {
         return $this->status === 'under_review';
+    }
+
+    /**
+     * Check if teacher is suspended
+     */
+    public function isSuspended(): bool
+    {
+        return $this->status === 'suspended';
+    }
+
+    /**
+     * Check if teacher has required documents verified (ID and CV)
+     */
+    public function getHasRequiredDocsVerifiedAttribute(): bool
+    {
+        $requiredTypes = ['id_card_front', 'id_card_back', 'cv'];
+        $verifiedCount = $this->certificates()
+            ->whereIn('certificate_type', $requiredTypes)
+            ->where('verification_status', 'verified')
+            ->count();
+
+        return $verifiedCount >= 3; // Assuming front, back and cv are required
     }
 
     /**

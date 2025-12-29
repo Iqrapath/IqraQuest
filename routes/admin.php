@@ -6,6 +6,8 @@ use App\Http\Controllers\Admin\FinancialDashboardController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\BookingController;
+use App\Http\Controllers\Admin\VerificationRequestController;
+use App\Http\Controllers\VerificationRoomController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'role:admin'])
@@ -78,6 +80,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         // Edit route (must be before show route)
         Route::get('/{teacher}/edit', [\App\Http\Controllers\Admin\TeacherController::class, 'edit'])->name('edit');
         
+        // Earnings route
+        Route::get('/{teacher}/earnings', [\App\Http\Controllers\Admin\TeacherController::class, 'earnings'])->name('earnings');
+        
         // Show route LAST (catches anything not matched above)
         Route::get('/{teacher}', [\App\Http\Controllers\Admin\TeacherController::class, 'show'])->name('show');
         // Teacher Document Routes
@@ -123,6 +128,29 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::post('/{conversation}', [\App\Http\Controllers\MessageController::class, 'store'])->name('store');
         Route::post('/{conversation}/typing', [\App\Http\Controllers\MessageController::class, 'typing'])->name('typing');
         Route::post('/{conversation}/read', [\App\Http\Controllers\MessageController::class, 'markAsRead'])->name('read');
+    });
+
+    // Verification Requests Routes
+    Route::prefix('verifications')->name('verifications.')->group(function () {
+        Route::get('/', [VerificationRequestController::class, 'index'])->name('index');
+        Route::get('/{teacher}', [VerificationRequestController::class, 'show'])->name('show');
+        Route::post('/{teacher}/schedule-call', [VerificationRequestController::class, 'scheduleCall'])->name('schedule-call');
+        Route::post('/{teacher}/documents/{certificate}/verify', [VerificationRequestController::class, 'verifyDocument'])->name('documents.verify');
+        Route::post('/{teacher}/approve', [VerificationRequestController::class, 'approve'])->name('approve');
+        Route::post('/{teacher}/reject', [VerificationRequestController::class, 'reject'])->name('reject');
+        
+        // Verification Room
+        Route::get('/{teacher}/room', [VerificationRoomController::class, 'join'])->name('room.join');
+        Route::post('/{teacher}/room/complete', [VerificationRoomController::class, 'complete'])->name('room.complete');
+
+        // Document Upload
+        Route::post('/{teacher}/documents/upload', [VerificationRequestController::class, 'uploadDocument'])->name('documents.upload');
+
+        // Messaging
+        Route::post('/{teacher}/message', [VerificationRequestController::class, 'sendMessage'])->name('message');
+        
+        // Delete
+        Route::delete('/{teacher}', [VerificationRequestController::class, 'destroy'])->name('destroy');
     });
 
     });

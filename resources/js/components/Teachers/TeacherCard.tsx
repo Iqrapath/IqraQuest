@@ -19,6 +19,8 @@ interface TeacherCardProps {
         }>;
         average_rating: number;
         total_reviews: number;
+        city?: string;
+        availability_summary?: string;
     };
     onViewProfile?: (teacherId: number) => void;
     className?: string;
@@ -95,7 +97,9 @@ export const TeacherCard: React.FC<TeacherCardProps> = ({
                 {/* Location */}
                 <div className="mb-1.5 flex items-center justify-center gap-1 sm:justify-start">
                     <Icon icon="mdi:map-marker-outline" className="h-3.5 w-3.5 flex-shrink-0 text-gray-500" />
-                    <span className="truncate text-xs text-gray-600">Quwait</span>
+                    <span className="truncate text-xs text-gray-600">
+                        {teacher.city || "Remote"}
+                    </span>
                 </div>
 
                 {/* Rating */}
@@ -120,7 +124,9 @@ export const TeacherCard: React.FC<TeacherCardProps> = ({
                 {/* Availability */}
                 <div className="mb-3 flex items-center justify-center gap-1 text-xs sm:items-baseline sm:justify-start">
                     <span className="flex-shrink-0 text-gray-500">Availability:</span>
-                    <span className="truncate font-semibold text-gray-900">Mon-Fri, 5-8 PM</span>
+                    <span className="truncate font-semibold text-gray-900">
+                        {teacher.availability_summary || "Flexible schedule"}
+                    </span>
                 </div>
 
                 {/* Price & View Profile - Bottom Row - 3 Items */}

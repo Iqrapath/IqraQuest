@@ -173,6 +173,15 @@ class SocialLoginController extends Controller
         $providerId = is_callable([$socialUser, 'getId']) ? $socialUser->getId() : $socialUser->id;
         $avatar = is_callable([$socialUser, 'getAvatar']) ? $socialUser->getAvatar() : ($socialUser->avatar ?? null);
 
+        // Download and store avatar locally if it's a URL
+        if ($avatar && filter_var($avatar, FILTER_VALIDATE_URL)) {
+            $uploadService = app(\App\Services\FileUploadService::class);
+            $localAvatar = $uploadService->uploadFromUrl($avatar, 'avatars', $name, 'avatar');
+            if ($localAvatar) {
+                $avatar = $localAvatar;
+            }
+        }
+
         // Create user
         $user = User::create([
             'name' => $name,

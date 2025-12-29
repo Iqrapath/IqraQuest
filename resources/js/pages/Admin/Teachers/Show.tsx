@@ -66,6 +66,7 @@ interface Props {
         availability_days: number;
         total_sessions_taught: number;
         average_rating: number;
+        review_count: number;
         upcoming_sessions: {
             id: number;
             date: string;
@@ -74,21 +75,19 @@ interface Props {
             subject: string;
         }[];
     };
+    earnings: {
+        wallet_balance: number;
+        total_earned: number;
+        pending_payouts: number;
+        currency: string;
+    };
     availableSubjects: {
         id: number;
         name: string;
     }[];
 }
 
-export default function TeacherShow({ teacher, stats, availableSubjects }: Props) {
-    // Prepare earnings data for the header component
-    const earnings = {
-        wallet_balance: 18500, // TODO: Get from backend
-        total_earned: 210000, // TODO: Get from backend
-        pending_payouts: 15000, // TODO: Get from backend
-        currency: '₦', // TODO: Get from teacher's currency
-    };
-
+export default function TeacherShow({ teacher, stats, availableSubjects, earnings }: Props) {
     const subjectsList = teacher.subjects.map(s => s.name).join(', ');
 
     return (
@@ -117,7 +116,11 @@ export default function TeacherShow({ teacher, stats, availableSubjects }: Props
 
                 {/* Contact & Info Bar */}
                 <TeacherContactBar
-                    teacher={teacher}
+                    teacher={{
+                        ...teacher,
+                        review_count: stats.review_count,
+                        rating: stats.average_rating
+                    }}
                     subjects={subjectsList}
                     sessions_count={stats.total_sessions_taught}
                 />

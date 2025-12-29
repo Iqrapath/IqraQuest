@@ -5,6 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Teacher;
 use App\Models\Subject;
+use App\Models\Payout;
+use App\Models\Transaction;
+use App\Models\Booking;
+use App\Services\WalletService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -293,7 +297,7 @@ class TeacherController extends Controller
         ]);
     }
 
-    public function show(Teacher $teacher): Response
+    public function show(Teacher $teacher, WalletService $walletService): Response
     {
         $teacher->load([
             'user',
@@ -311,19 +315,84 @@ class TeacherController extends Controller
             'total_certificates' => $teacher->certificates()->count(),
             'verified_certificates' => $teacher->verifiedCertificates()->count(),
             'availability_days' => $teacher->availableDays()->count(),
-            'total_sessions_taught' => 350, // Placeholder (Booking model not implemented)
-            'average_rating' => round($teacher->average_rating, 1), // Real data from Review model
-            'upcoming_sessions' => [ // Placeholder data (Booking model not implemented)
-                ['id' => 1, 'date' => 'Apr 15', 'time' => '10:00AM', 'student_name' => 'Amina Musa', 'subject' => "Juz' Amma"],
-                ['id' => 2, 'date' => 'Apr 15', 'time' => '11:30AM', 'student_name' => 'Sulaiman Bello', 'subject' => 'Hifz'],
-            ],
+            'total_sessions_taught' => Booking::where('teacher_id', $teacher->id)->where('status', 'completed')->count(),
+            'average_rating' => round($teacher->average_rating, 1),
+            'review_count' => $teacher->reviews()->where('is_approved', true)->count(),
+            'upcoming_sessions' => Booking::where('teacher_id', $teacher->id)
+                ->where('start_time', '>', now())
+                ->where('status', 'confirmed')
+                ->with(['student', 'subject'])
+                ->orderBy('start_time', 'asc')
+                ->limit(5)
+                ->get()
+                ->map(fn($booking) => [
+                    'id' => $booking->id,
+                    'date' => $booking->start_time->format('M d'),
+                    'time' => $booking->start_time->format('g:iA'),
+                    'student_name' => $booking->student->name,
+                    'subject' => $booking->subject->name,
+                ]),
+        ];
+
+        // Real earnings data
+        $earnings = [
+            'wallet_balance' => (float) $walletService->getBalance($teacher->user_id),
+            'total_earned' => (float) Transaction::where('user_id', $teacher->user_id)
+                ->where('type', 'credit')
+                ->where('status', 'completed')
+                ->sum('amount'),
+            'pending_payouts' => (float) Payout::where('teacher_id', $teacher->id)
+                ->where('status', 'pending')
+                ->sum('amount'),
+            'currency' => $teacher->preferred_currency === 'NGN' ? '₦' : ($teacher->preferred_currency === 'USD' ? '$' : ($teacher->preferred_currency ?? '₦')),
         ];
 
         return Inertia::render('Admin/Teachers/Show', [
             'teacher' => $teacher,
             'stats' => $stats,
+            'earnings' => $earnings,
             'availableSubjects' => Subject::active()->ordered()->get(['id', 'name']),
             'pageTitle' => 'Teacher Management',
+        ]);
+    }
+
+    /**
+     * Display the teacher's earnings and financial management page
+     */
+    public function earnings(Teacher $teacher, WalletService $walletService): Response
+    {
+        $teacher->load(['user']);
+
+        // Stats for cards
+        $earnings = [
+            'wallet_balance' => (float) $walletService->getBalance($teacher->user_id),
+            'total_earned' => (float) Transaction::where('user_id', $teacher->user_id)
+                ->where('type', 'credit')
+                ->where('status', 'completed')
+                ->sum('amount'),
+            'pending_payouts' => (float) Payout::where('teacher_id', $teacher->id)
+                ->where('status', 'pending')
+                ->sum('amount'),
+            'currency' => $teacher->preferred_currency === 'NGN' ? '₦' : ($teacher->preferred_currency === 'USD' ? '$' : ($teacher->preferred_currency ?? '₦')),
+        ];
+
+        // Transactions Log
+        $transactions = Transaction::where('user_id', $teacher->user_id)
+            ->latest()
+            ->paginate(10);
+
+        // Payout Requests
+        $payouts = Payout::with(['paymentMethod'])
+            ->where('teacher_id', $teacher->id)
+            ->latest()
+            ->paginate(10);
+
+        return Inertia::render('Admin/Teachers/Earnings', [
+            'teacher' => $teacher,
+            'earnings' => $earnings,
+            'transactions' => $transactions,
+            'payouts' => $payouts,
+            'pageTitle' => 'Teacher Earnings',
         ]);
     }
 

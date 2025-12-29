@@ -31,6 +31,7 @@ interface Teacher {
     classes_held?: number;
     suspension_reason?: string;
     rejection_reason?: string;
+    has_required_docs_verified?: boolean;
     user: {
         name: string;
         email: string;
@@ -431,13 +432,32 @@ export default function TeachersIndex({ teachers, stats, filters, filter_options
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end" className="w-[200px] bg-white p-2 rounded-xl shadow-lg border border-gray-100">
                                                         {teacher.status === 'pending' && (
-                                                            <DropdownMenuItem
-                                                                onSelect={() => openApprovalModal(teacher)}
-                                                                className="flex items-center justify-between cursor-pointer font-['Nunito'] text-[#101928] px-3 py-2.5 rounded-lg hover:bg-gray-50 mb-1"
-                                                            >
-                                                                <span>Approve Teacher</span>
-                                                                <Icon icon="mdi:approve" className="w-5 h-5 text-green-600" />
-                                                            </DropdownMenuItem>
+                                                            <>
+                                                                <DropdownMenuItem
+                                                                    onSelect={() => router.visit(`/admin/verifications/${teacher.id}`)}
+                                                                    className="flex items-center justify-between cursor-pointer font-['Nunito'] text-[#338078] px-3 py-2.5 rounded-lg hover:bg-gray-50 mb-1 border border-[#338078]/20"
+                                                                >
+                                                                    <span className="font-bold">Process Verification</span>
+                                                                    <Icon icon="solar:verified-check-bold" className="w-5 h-5" />
+                                                                </DropdownMenuItem>
+
+                                                                <DropdownMenuItem
+                                                                    onSelect={() => {
+                                                                        // Guardrail: if docs not verified, redirect or show warning
+                                                                        if (!teacher.has_required_docs_verified) {
+                                                                            if (confirm('Teacher has not completed document verification. Would you like to process verification first?')) {
+                                                                                router.visit(`/admin/verifications/${teacher.id}`);
+                                                                                return;
+                                                                            }
+                                                                        }
+                                                                        openApprovalModal(teacher);
+                                                                    }}
+                                                                    className="flex items-center justify-between cursor-pointer font-['Nunito'] text-[#101928] px-3 py-2.5 rounded-lg hover:bg-gray-50 mb-1"
+                                                                >
+                                                                    <span>Approve Teacher</span>
+                                                                    <Icon icon="mdi:approve" className="w-5 h-5 text-green-600" />
+                                                                </DropdownMenuItem>
+                                                            </>
                                                         )}
 
                                                         <DropdownMenuItem
@@ -514,7 +534,7 @@ export default function TeachersIndex({ teachers, stats, filters, filter_options
                                     const isFirst = index === 0;
                                     const isLast = index === teachers.links.length - 1;
                                     const isPrevNext = isFirst || isLast;
-                                    
+
                                     if (!link.url && isPrevNext) {
                                         return (
                                             <span
@@ -525,18 +545,17 @@ export default function TeachersIndex({ teachers, stats, filters, filter_options
                                             </span>
                                         );
                                     }
-                                    
+
                                     if (!link.url) return null;
-                                    
+
                                     return (
                                         <Link
                                             key={index}
                                             href={link.url}
-                                            className={`w-8 h-8 md:w-9 md:h-9 flex items-center justify-center rounded-lg text-sm font-['Nunito'] transition-colors ${
-                                                link.active
-                                                    ? 'bg-[#338078] text-white font-bold'
-                                                    : 'text-gray-600 hover:bg-gray-100 border border-gray-200'
-                                            }`}
+                                            className={`w-8 h-8 md:w-9 md:h-9 flex items-center justify-center rounded-lg text-sm font-['Nunito'] transition-colors ${link.active
+                                                ? 'bg-[#338078] text-white font-bold'
+                                                : 'text-gray-600 hover:bg-gray-100 border border-gray-200'
+                                                }`}
                                         >
                                             {isPrevNext ? (
                                                 <Icon icon={isFirst ? 'mdi:chevron-left' : 'mdi:chevron-right'} className="w-5 h-5" />

@@ -68,7 +68,7 @@ export default function TeacherLayout({ children, hideLeftSidebar = false, hideR
                     style={{
                         padding: 'clamp(1rem, 2vw, 2rem)',
                         scrollbarWidth: 'thin',
-                        scrollbarColor: '#ccc #4d9b91',
+                        // scrollbarColor: '#ccc #4d9b91',
                     }}>
                     {children}
                 </main>

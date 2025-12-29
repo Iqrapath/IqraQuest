@@ -8,6 +8,7 @@ use App\Http\Controllers\Teacher\EarningsController;
 use App\Http\Controllers\Teacher\PayoutController;
 use App\Http\Controllers\Teacher\PaymentController;
 use App\Http\Controllers\Student\WalletController; // Shared wallet controller
+use App\Http\Controllers\VerificationRoomController;
 use Illuminate\Support\Facades\Route;
 
 // Onboarding Routes (Auth only - no email verification required)
@@ -39,6 +40,10 @@ Route::middleware(['auth', 'verified', 'role:teacher'])
     ->group(function () {
         // Waiting Area (Pending/Rejected teachers)
         Route::get('/waiting-area', [WaitingAreaController::class, 'index'])->name('waiting-area');
+        Route::post('/waiting-area/message', [WaitingAreaController::class, 'sendMessage'])->name('waiting-area.message');
+        
+        // Verification Room
+        Route::get('/verification/room/{teacher}', [VerificationRoomController::class, 'join'])->name('verification.room');
         
         // Dashboard (Approved teachers only)
         Route::middleware('teacher.approved')->group(function () {
