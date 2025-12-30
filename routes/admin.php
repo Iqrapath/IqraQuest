@@ -94,6 +94,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     // Student Management Routes
     Route::prefix('students')->name('students.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\StudentController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Admin\StudentController::class, 'store'])->name('store');
         Route::get('/{id}', [\App\Http\Controllers\Admin\StudentController::class, 'show'])->name('show');
         Route::post('/{user}/update-contact', [\App\Http\Controllers\Admin\StudentController::class, 'updateContact'])->name('update-contact');
         Route::post('/{user}/update-learning-preferences', [\App\Http\Controllers\Admin\StudentController::class, 'updateLearningPreferences'])->name('update-learning-preferences');

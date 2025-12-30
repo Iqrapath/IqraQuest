@@ -230,6 +230,79 @@ class StudentController extends Controller
         ]);
     }
 
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'phone' => 'nullable|string|max:20',
+            'status' => 'required|string|in:active,pending,suspended,rejected',
+            'role' => 'required|string|in:student,guardian',
+            'city' => 'nullable|string|max:255',
+            'country' => 'nullable|string|max:255',
+        ]);
+
+        return DB::transaction(function () use ($validated) {
+            $password = \Illuminate\Support\Str::random(10); // Generate random password
+
+            // Create User
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'status' => $validated['status'],
+                'role' => $validated['role'],
+                'password' => bcrypt($password),
+                'email_verified_at' => now(), // Auto-verify email
+            ]);
+
+            // Create Profile
+            if ($validated['role'] === 'student') {
+                $user->student()->create([
+                    'city' => $validated['city'] ?? null,
+                    'country' => $validated['country'] ?? null,
+                ]);
+            } else {
+                $user->guardian()->create([
+                    'city' => $validated['city'] ?? null,
+                    'country' => $validated['country'] ?? null,
+                ]);
+            }
+
+            // Send Welcome Email with credentials
+            try {
+                $user->notify(new \App\Notifications\StudentAccountCreatedNotification($password));
+            } catch (\Exception $e) {
+                // Log error but proceed
+                \Illuminate\Support\Facades\Log::error('Failed to send welcome email: ' . $e->getMessage());
+            }
+
+            // Return the created user structure needed for the frontend
+            $profile = $user->student ?? $user->guardian;
+            
+            // Return JSON for the modal to handle next step
+            return response()->json([
+                'success' => true,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'role' => $user->role->value,
+                    'status' => $user->status,
+                    'joined_at' => $user->created_at->format('M d, Y'),
+                    'student_id' => $user->student?->id ?? $user->guardian?->id,
+                    'profile' => [
+                        'id' => $profile->id,
+                        'city' => $profile->city,
+                        'country' => $profile->country,
+                         'subjects' => [],
+                    ]
+                ]
+            ]);
+        });
+    }
+
     public function updateContact(Request $request, User $user)
     {
         $validated = $request->validate([

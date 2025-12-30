@@ -1,18 +1,51 @@
 import { Head } from '@inertiajs/react';
 import AdminLayout from '@/layouts/AdminLayout';
+import AdminStatsCard from './components/AdminStatsCard';
+import RevenueChart from './components/RevenueChart';
+import RecentStudentsList from './components/RecentStudentsList';
+import RecentBookingsList from './components/RecentBookingsList';
 
-export default function Dashboard() {
+interface DashboardProps {
+    stats: {
+        total_teachers: number;
+        active_students: number;
+        active_subscriptions: number;
+        pending_verifications: number;
+    };
+    revenue_data: { label: string; total: number }[];
+    current_filter: string;
+    recent_students: any[];
+    recent_bookings: any[];
+}
+
+export default function Dashboard({ stats, revenue_data, current_filter, recent_students, recent_bookings }: DashboardProps) {
     return (
         <>
             <Head title="Admin Dashboard" />
-            
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900">
-                            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-                            <p className="mt-4">Welcome to the admin dashboard!</p>
-                        </div>
+
+            <div className="">
+                {/* Header */}
+                <div>
+                    <h1 className="text-2xl font-bold font-['Nunito'] text-[#101928]">Overview</h1>
+                </div>
+
+                {/* Stats Section */}
+                <AdminStatsCard stats={stats} />
+
+                {/* Main Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    {/* Left Column: Revenue Chart */}
+                    <div className="lg:col-span-8 self-stretch">
+                        <RevenueChart data={revenue_data} currentFilter={current_filter} />
+                    </div>
+
+                    {/* Right Column: Recent Activity */}
+                    <div className="lg:col-span-4 flex flex-col gap-8">
+                        <RecentStudentsList
+                            students={recent_students}
+                            totalStudents={stats.active_students}
+                        />
+                        <RecentBookingsList bookings={recent_bookings} />
                     </div>
                 </div>
             </div>
@@ -20,4 +53,4 @@ export default function Dashboard() {
     );
 }
 
-Dashboard.layout = (page: React.ReactNode) => <AdminLayout children={page} />;
+Dashboard.layout = (page: React.ReactNode) => <AdminLayout children={page} hideRightSidebar={true} />;

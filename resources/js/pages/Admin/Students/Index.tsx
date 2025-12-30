@@ -72,6 +72,7 @@ function StudentsIndex() {
     const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
     const [suspensionModalOpen, setSuspensionModalOpen] = useState(false);
     const [contactModalOpen, setContactModalOpen] = useState(false);
+    const [createModalOpen, setCreateModalOpen] = useState(false);
     const [prefsModalOpen, setPrefsModalOpen] = useState(false);
 
     // Debounce timer ref
@@ -157,12 +158,27 @@ function StudentsIndex() {
                             <span className="text-[#101928] font-bold">Student Management</span>
                         </div>
                     </div>
-                    <Link
-                        href="/admin/students/create"
+                    <button
+                        onClick={() => {
+                            setSelectedUser({
+                                id: 0,
+                                name: '',
+                                email: '',
+                                phone: '',
+                                avatar: null,
+                                avatar_url: null,
+                                role: 'student',
+                                status: 'active',
+                                student_id: 0,
+                                profile: {},
+                                joined_at: ''
+                            });
+                            setCreateModalOpen(true);
+                        }}
                         className="bg-[#338078] hover:bg-[#2a6a63] text-white font-bold px-6 py-2.5 rounded-xl transition-colors font-['Nunito'] text-sm"
                     >
                         Add New Student
-                    </Link>
+                    </button>
                 </div>
 
                 {/* Filter Bar */}
@@ -240,7 +256,7 @@ function StudentsIndex() {
                                     <th className="text-left px-4 py-4 text-xs font-bold text-[#101928] uppercase tracking-wider font-['Nunito']">Email</th>
                                     <th className="text-left px-4 py-4 text-xs font-bold text-[#101928] uppercase tracking-wider font-['Nunito']">Role</th>
                                     <th className="text-left px-4 py-4 text-xs font-bold text-[#101928] uppercase tracking-wider font-['Nunito']">Status</th>
-                                    <th className="text-right px-6 py-4 text-xs font-bold text-[#101928] uppercase tracking-wider font-['Nunito']">Actions</th>
+                                    <th className="text-left px-4 py-4 text-xs font-bold text-[#101928] uppercase tracking-wider font-['Nunito']">Actions</th>
                                     {/* Action Header empty in Figma usually */}
                                 </tr>
                             </thead>
@@ -295,7 +311,7 @@ function StudentsIndex() {
                                                     {user.status}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-right">
+                                            <td className="px-4 py-4 text-right">
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <button className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50 transition-colors outline-none cursor-pointer">
@@ -449,12 +465,48 @@ function StudentsIndex() {
                             joined_at: selectedUser.joined_at,
                         }}
                     />
+                    {/* Create Modal */}
+                    <StudentContactEditModal
+                        isOpen={createModalOpen}
+                        onClose={() => setCreateModalOpen(false)}
+                        mode="create"
+                        student={{
+                            id: 0,
+                            user: {
+                                id: 0,
+                                name: '',
+                                email: '',
+                                phone: '',
+                                role: 'student',
+                            },
+                            status: 'active',
+                            city: '',
+                            country: '',
+                            joined_at: '',
+                        }}
+                        onNext={(newUser) => {
+                            setCreateModalOpen(false);
+                            // Set selected user to the newly created user for the prefs modal
+                            setSelectedUser({
+                                ...newUser,
+                                profile: newUser.profile // Ensure profile is structured correctly
+                            });
+                            // Open prefs modal
+                            // Small timeout to allow state update and smooth transition
+                            setTimeout(() => {
+                                setPrefsModalOpen(true);
+                            }, 100);
+                        }}
+                    />
                     <StudentLearningPreferencesEditModal
                         open={prefsModalOpen}
                         onOpenChange={setPrefsModalOpen}
                         student={{
                             id: selectedUser.profile?.id,
-                            user: { name: selectedUser.name },
+                            user: {
+                                id: selectedUser.id,
+                                name: selectedUser.name
+                            },
                             subjects: selectedUser.profile?.subjects || [],
                             availability_type: selectedUser.profile?.teaching_mode,
                             level: selectedUser.profile?.age_group,

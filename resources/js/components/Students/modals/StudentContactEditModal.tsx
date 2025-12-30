@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { Icon } from '@iconify/react';
+import axios from 'axios';
 import {
     Dialog,
     DialogContent,
@@ -39,51 +40,93 @@ interface StudentContactEditModalProps {
         city: string;
         country: string;
     };
+    mode?: 'edit' | 'create';
+    onNext?: (user: any) => void;
 }
 
 export default function StudentContactEditModal({
     isOpen,
     onClose,
     student,
+    mode = 'edit',
+    onNext,
 }: StudentContactEditModalProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [data, setData] = useState({
-        name: student.user.name,
-        email: student.user.email,
-        phone: student.user.phone || '',
-        status: student.status,
-        city: student.city || '',
-        role: student.user.role,
+        name: student?.user?.name || '',
+        email: student?.user?.email || '',
+        phone: student?.user?.phone || '',
+        status: student?.status || 'active',
+        city: student?.city || '',
+        country: student?.country || '',
+        role: student?.user?.role || 'student',
     });
 
     useEffect(() => {
-        setData({
-            name: student.user.name,
-            email: student.user.email,
-            phone: student.user.phone || '',
-            status: student.status,
-            city: student.city || '',
-            role: student.user.role,
-        });
-    }, [student]);
+        if (mode === 'edit' && student) {
+            setData({
+                name: student.user.name,
+                email: student.user.email,
+                phone: student.user.phone || '',
+                status: student.status,
+                city: student.city || '',
+                country: student.country || '',
+                role: student.user.role,
+            });
+        } else if (mode === 'create') {
+            setData({
+                name: '',
+                email: '',
+                phone: '',
+                status: 'active',
+                city: '',
+                country: '',
+                role: 'student',
+            });
+        }
+    }, [student, mode, isOpen]);
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         setIsSubmitting(true);
-        router.post(`/admin/students/${student.user.id}/update-contact`, data, {
-            onSuccess: () => {
-                toast.success('Profile Updated', {
-                    description: 'Student contact information has been updated.',
+
+        if (mode === 'create') {
+            try {
+                const response = await axios.post('/admin/students', data);
+                if (response.data.success) {
+                    toast.success('User Created', {
+                        description: 'The user has been created successfully.',
+                    });
+                    if (onNext) {
+                        onNext(response.data.user);
+                    } else {
+                        onClose();
+                        window.location.reload(); // Fallback if no onNext
+                    }
+                }
+            } catch (error: any) {
+                toast.error('Creation Failed', {
+                    description: error.response?.data?.message || 'Please check the input and try again.',
                 });
-                onClose();
-                setIsSubmitting(false);
-            },
-            onError: () => {
-                toast.error('Update Failed', {
-                    description: 'Please check the input and try again.',
-                });
+            } finally {
                 setIsSubmitting(false);
             }
-        });
+        } else {
+            router.post(`/admin/students/${student.user.id}/update-contact`, data, {
+                onSuccess: () => {
+                    toast.success('Profile Updated', {
+                        description: 'Student contact information has been updated.',
+                    });
+                    onClose();
+                    setIsSubmitting(false);
+                },
+                onError: () => {
+                    toast.error('Update Failed', {
+                        description: 'Please check the input and try again.',
+                    });
+                    setIsSubmitting(false);
+                }
+            });
+        }
     };
 
     return (
@@ -96,10 +139,10 @@ export default function StudentContactEditModal({
 
                     <DialogHeader className="mb-6 md:mb-8 text-left">
                         <DialogTitle className="font-['Nunito'] font-bold text-2xl text-[#170F49]">
-                            User Basic Information
+                            {mode === 'create' ? 'Add New Student' : 'User Basic Information'}
                         </DialogTitle>
                         <DialogDescription className="sr-only">
-                            Make changes to the user's profile information here. click save when you're done.
+                            {mode === 'create' ? 'Create a new student profile.' : "Make changes to the user's profile information here."}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -193,20 +236,22 @@ export default function StudentContactEditModal({
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="active">Active</SelectItem>
-                                    <SelectItem value="pending">Pending</SelectItem>
+                                    {/* <SelectItem value="pending">Pending</SelectItem> */}
                                     <SelectItem value="suspended">Suspended</SelectItem>
-                                    <SelectItem value="rejected">Rejected</SelectItem>
+                                    {/* <SelectItem value="rejected">Rejected</SelectItem> */}
                                 </SelectContent>
                             </Select>
                         </div>
 
-                        {/* Row 5: Registration Date */}
-                        <div className="space-y-2 col-span-1">
-                            <Label className="font-['Nunito'] text-base text-[#2D2C2D] font-normal">Registration Date</Label>
-                            <div className="bg-[#F4F4FA] border border-[#CACED7] h-12 rounded-[14px] px-4 flex items-center font-['Nunito'] text-[#111827] opacity-60">
-                                {student.joined_at}
+                        {/* Row 5: Registration Date - Only show in Edit mode */}
+                        {mode === 'edit' && (
+                            <div className="space-y-2 col-span-1">
+                                <Label className="font-['Nunito'] text-base text-[#2D2C2D] font-normal">Registration Date</Label>
+                                <div className="bg-[#F4F4FA] border border-[#CACED7] h-12 rounded-[14px] px-4 flex items-center font-['Nunito'] text-[#111827] opacity-60">
+                                    {student?.joined_at}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     <DialogFooter className="mt-8 flex justify-end">
@@ -215,7 +260,7 @@ export default function StudentContactEditModal({
                             disabled={isSubmitting}
                             className="bg-[#338078] hover:bg-[#2a6b64] text-white rounded-[40px] px-8 py-6 text-base font-medium font-['Nunito'] w-full md:w-auto"
                         >
-                            {isSubmitting ? 'Saving...' : 'Save and Continue'}
+                            {isSubmitting ? 'Saving...' : (mode === 'create' ? 'Save and Continue' : 'Save Changes')}
                         </Button>
                     </DialogFooter>
                 </div>
