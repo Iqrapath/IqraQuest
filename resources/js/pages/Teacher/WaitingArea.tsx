@@ -1,4 +1,4 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, Link } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import TeacherLayout from '@/layouts/TeacherLayout';
 import { toast } from 'sonner';
@@ -41,6 +41,8 @@ interface Props {
     status?: string;
     isPending: boolean;
     isRejected: boolean;
+    isSuspended?: boolean;
+    suspensionReason?: string;
     rejectionReason?: string;
     rejectedAt?: string;
     conversation?: Conversation | null;
@@ -67,7 +69,7 @@ function IllustrationGroup({ className }: { className?: string }) {
     );
 }
 
-export default function WaitingArea({ isPending, isRejected, rejectionReason, conversation }: Props) {
+export default function WaitingArea({ isPending, isRejected, isSuspended, suspensionReason, rejectionReason, conversation, status }: Props) {
     const { auth, flash } = usePage<any>().props;
     const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>(conversation?.messages || []);
@@ -177,6 +179,53 @@ export default function WaitingArea({ isPending, isRejected, rejectionReason, co
                                             {` ⚠️ Keep your ID and teaching qualifications ready.`}
                                         </p>
                                     </div>
+                                </>
+                            ) : status === 'approved' ? (
+                                <>
+                                    <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-full">
+                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                        <span className="font-medium text-[15.146px] text-green-600">
+                                            Application Approved
+                                        </span>
+                                    </div>
+
+                                    <p className="font-medium text-[15.146px] leading-[1.5] text-gray-500 text-center max-w-[505px]">
+                                        Congratulations! Your application has been approved. You now have full access to the platform.
+                                    </p>
+
+                                    <Link href="/teacher/dashboard">
+                                        <Button className="rounded-xl bg-[#338078] hover:bg-[#2a6a63] text-white font-bold h-12 px-8 shadow-lg shadow-[#338078]/20 transition-all active:scale-[0.98]">
+                                            Go to Dashboard
+                                        </Button>
+                                    </Link>
+                                </>
+                            ) : isSuspended ? (
+                                <>
+                                    <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 rounded-full">
+                                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                        <span className="font-medium text-[15.146px] text-orange-600">
+                                            Account Suspended
+                                        </span>
+                                    </div>
+
+                                    <p className="font-semibold leading-[1.5] relative shrink-0 text-[#111928] text-[24px] text-center max-w-[479px]">
+                                        Notice of Account Suspension
+                                    </p>
+
+                                    {suspensionReason && (
+                                        <div className="bg-gray-50 rounded-lg p-4 w-full max-w-[505px]">
+                                            <p className="font-semibold text-sm text-gray-700 mb-2">Reason for Suspension:</p>
+                                            <p className="text-sm text-gray-600">{suspensionReason}</p>
+                                        </div>
+                                    )}
+
+                                    <p className="font-medium text-[15.146px] leading-[1.5] text-gray-500 text-center max-w-[505px]">
+                                        Your account has been suspended by the administration. You will not be able to access your dashboard until the suspension is lifted.
+                                    </p>
+
+                                    <p className="font-medium text-[15.146px] leading-[1.5] text-[#338078] text-center max-w-[505px]">
+                                        If you have any questions or would like to appeal this decision, please use the support chat below.
+                                    </p>
                                 </>
                             ) : isRejected ? (
                                 <>

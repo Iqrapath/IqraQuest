@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useForm } from '@inertiajs/react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@iconify/react';
 
@@ -59,9 +59,9 @@ export default function SendMessageModal({ isOpen, onClose, teacher }: SendMessa
                         </div>
                         Send Message
                     </DialogTitle>
-                    <p className="text-sm text-gray-500 mt-2">
+                    <DialogDescription className="text-sm text-gray-500 mt-2">
                         Send a message to <strong>{teacher.user.name}</strong> regarding their verification.
-                    </p>
+                    </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">

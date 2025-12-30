@@ -1,5 +1,5 @@
 import { useForm } from '@inertiajs/react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@iconify/react';
 import { toast } from 'sonner';
@@ -12,7 +12,7 @@ interface RejectVerificationModalProps {
 
 export default function RejectVerificationModal({ isOpen, onClose, teacherId }: RejectVerificationModalProps) {
     const { data, setData, post, processing, reset, errors } = useForm({
-        rejection_reason: '',
+        reason: '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -45,9 +45,9 @@ export default function RejectVerificationModal({ isOpen, onClose, teacherId }: 
                         </div>
                         Reject Verification
                     </DialogTitle>
-                    <p className="text-sm text-gray-500 mt-2">
+                    <DialogDescription className="text-sm text-gray-500 mt-2">
                         Please provide a reason for rejecting this verification request. This reason will be shared with the teacher.
-                    </p>
+                    </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -56,15 +56,15 @@ export default function RejectVerificationModal({ isOpen, onClose, teacherId }: 
                             Rejection Reason
                         </label>
                         <textarea
-                            value={data.rejection_reason}
-                            onChange={(e) => setData('rejection_reason', e.target.value)}
+                            value={data.reason}
+                            onChange={(e) => setData('reason', e.target.value)}
                             rows={4}
                             placeholder="e.g., ID document is unclear, Missing qualifications..."
                             className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-100 focus:border-red-500 resize-none text-sm outline-none transition-all placeholder:text-gray-400 font-['Nunito']"
                             required
                         />
-                        {errors.rejection_reason && (
-                            <p className="text-red-500 text-xs mt-1 font-bold">{errors.rejection_reason}</p>
+                        {errors.reason && (
+                            <p className="text-red-500 text-xs mt-1 font-bold">{errors.reason}</p>
                         )}
                     </div>
 
@@ -79,7 +79,7 @@ export default function RejectVerificationModal({ isOpen, onClose, teacherId }: 
                         </Button>
                         <Button
                             type="submit"
-                            disabled={processing || !data.rejection_reason.trim()}
+                            disabled={processing || !data.reason.trim()}
                             className="flex-1 h-11 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold transition-all active:scale-[0.98]"
                         >
                             {processing ? (

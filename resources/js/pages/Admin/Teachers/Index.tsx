@@ -3,7 +3,6 @@ import AdminLayout from '@/layouts/AdminLayout';
 import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import TeacherStatusBadge from '@/components/Teachers/TeacherStatusBadge';
-import TeacherApprovalModal from '@/components/Teachers/TeacherApprovalModal';
 import TeacherRejectionModal from '@/components/Teachers/TeacherRejectionModal';
 import TeacherSuspensionModal from '@/components/Teachers/TeacherSuspensionModal';
 import { Button } from '@/components/ui/button';
@@ -86,7 +85,6 @@ interface Props {
 export default function TeachersIndex({ teachers, stats, filters, filter_options }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
-    const [approvalModalOpen, setApprovalModalOpen] = useState(false);
     const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
     const [suspensionModalOpen, setSuspensionModalOpen] = useState(false);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -142,11 +140,6 @@ export default function TeachersIndex({ teachers, stats, filters, filter_options
         }
     };
 
-    const openApprovalModal = (teacher: Teacher) => {
-        setSelectedTeacher(teacher);
-        setApprovalModalOpen(true);
-    };
-
     const openRejectionModal = (teacher: Teacher) => {
         setSelectedTeacher(teacher);
         setRejectionModalOpen(true);
@@ -159,7 +152,7 @@ export default function TeachersIndex({ teachers, stats, filters, filter_options
 
     const handleActivate = (teacher: Teacher) => {
         if (confirm(`Are you sure you want to activate ${teacher.user.name}?`)) {
-            router.post(`/admin/teachers/${teacher.id}/status`, {
+            router.patch(`/admin/teachers/${teacher.id}/status`, {
                 status: 'approved',
             });
         }
@@ -432,32 +425,13 @@ export default function TeachersIndex({ teachers, stats, filters, filter_options
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end" className="w-[200px] bg-white p-2 rounded-xl shadow-lg border border-gray-100">
                                                         {teacher.status === 'pending' && (
-                                                            <>
-                                                                <DropdownMenuItem
-                                                                    onSelect={() => router.visit(`/admin/verifications/${teacher.id}`)}
-                                                                    className="flex items-center justify-between cursor-pointer font-['Nunito'] text-[#338078] px-3 py-2.5 rounded-lg hover:bg-gray-50 mb-1 border border-[#338078]/20"
-                                                                >
-                                                                    <span className="font-bold">Process Verification</span>
-                                                                    <Icon icon="solar:verified-check-bold" className="w-5 h-5" />
-                                                                </DropdownMenuItem>
-
-                                                                <DropdownMenuItem
-                                                                    onSelect={() => {
-                                                                        // Guardrail: if docs not verified, redirect or show warning
-                                                                        if (!teacher.has_required_docs_verified) {
-                                                                            if (confirm('Teacher has not completed document verification. Would you like to process verification first?')) {
-                                                                                router.visit(`/admin/verifications/${teacher.id}`);
-                                                                                return;
-                                                                            }
-                                                                        }
-                                                                        openApprovalModal(teacher);
-                                                                    }}
-                                                                    className="flex items-center justify-between cursor-pointer font-['Nunito'] text-[#101928] px-3 py-2.5 rounded-lg hover:bg-gray-50 mb-1"
-                                                                >
-                                                                    <span>Approve Teacher</span>
-                                                                    <Icon icon="mdi:approve" className="w-5 h-5 text-green-600" />
-                                                                </DropdownMenuItem>
-                                                            </>
+                                                            <DropdownMenuItem
+                                                                onSelect={() => router.visit(`/admin/verifications/${teacher.id}`)}
+                                                                className="flex items-center justify-between cursor-pointer font-['Nunito'] text-[#338078] px-3 py-2.5 rounded-lg hover:bg-gray-50 mb-1 border border-[#338078]/20"
+                                                            >
+                                                                <span className="font-bold">Process Verification</span>
+                                                                <Icon icon="solar:verified-check-bold" className="w-5 h-5" />
+                                                            </DropdownMenuItem>
                                                         )}
 
                                                         <DropdownMenuItem
@@ -465,7 +439,7 @@ export default function TeachersIndex({ teachers, stats, filters, filter_options
                                                             className="flex items-center justify-between cursor-pointer font-['Nunito'] text-[#101928] px-3 py-2.5 rounded-lg hover:bg-gray-50 mb-1"
                                                         >
                                                             <span>Edit Profile</span>
-                                                            <Icon icon="solar:pen-new-square-linear" className="w-5 h-5 hover:text-gray-50" />
+                                                            <Icon icon="solar:pen-new-square-linear" className="w-5 h-5" />
                                                         </DropdownMenuItem>
 
                                                         <DropdownMenuItem
@@ -473,7 +447,7 @@ export default function TeachersIndex({ teachers, stats, filters, filter_options
                                                             className="flex items-center justify-between cursor-pointer font-['Nunito'] text-[#101928] px-3 py-2.5 rounded-lg hover:bg-gray-50 mb-1"
                                                         >
                                                             <span>View Profile</span>
-                                                            <Icon icon="solar:eye-linear" className="w-5 h-5 hover:text-gray-50" />
+                                                            <Icon icon="solar:eye-linear" className="w-5 h-5" />
                                                         </DropdownMenuItem>
 
                                                         <DropdownMenuItem
@@ -481,7 +455,7 @@ export default function TeachersIndex({ teachers, stats, filters, filter_options
                                                             className="flex items-center justify-between cursor-pointer font-['Nunito'] text-[#101928] px-3 py-2.5 rounded-lg hover:bg-gray-50 mb-1"
                                                         >
                                                             <span>View Performance</span>
-                                                            <Icon icon="solar:chart-square-linear" className="w-5 h-5 hover:text-gray-50" />
+                                                            <Icon icon="solar:chart-square-linear" className="w-5 h-5" />
                                                         </DropdownMenuItem>
 
                                                         {teacher.status === 'pending' && (
@@ -494,7 +468,7 @@ export default function TeachersIndex({ teachers, stats, filters, filter_options
                                                             </DropdownMenuItem>
                                                         )}
 
-                                                        {(teacher.status === 'approved' || teacher.status === 'active') && (
+                                                        {['approved', 'active'].includes(teacher.status) && (
                                                             <DropdownMenuItem
                                                                 onSelect={() => openSuspensionModal(teacher)}
                                                                 className="flex items-center justify-between cursor-pointer font-['Nunito'] text-[#101928] px-3 py-2.5 rounded-lg hover:bg-gray-50"
@@ -575,21 +549,19 @@ export default function TeachersIndex({ teachers, stats, filters, filter_options
             {
                 selectedTeacher && (
                     <>
-                        <TeacherApprovalModal
-                            isOpen={approvalModalOpen}
-                            onClose={() => {
-                                setApprovalModalOpen(false);
-                                setSelectedTeacher(null);
-                            }}
-                            teacher={selectedTeacher}
-                        />
                         <TeacherRejectionModal
                             isOpen={rejectionModalOpen}
                             onClose={() => {
                                 setRejectionModalOpen(false);
                                 setSelectedTeacher(null);
                             }}
-                            teacher={selectedTeacher}
+                            teacher={{
+                                id: selectedTeacher.id,
+                                user: {
+                                    name: selectedTeacher.user.name,
+                                    email: selectedTeacher.user.email
+                                }
+                            }}
                         />
                         <TeacherSuspensionModal
                             isOpen={suspensionModalOpen}

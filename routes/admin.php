@@ -85,6 +85,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         
         // Show route LAST (catches anything not matched above)
         Route::get('/{teacher}', [\App\Http\Controllers\Admin\TeacherController::class, 'show'])->name('show');
+        Route::delete('/{teacher}', [\App\Http\Controllers\Admin\TeacherController::class, 'destroy'])->name('destroy');
         // Teacher Document Routes
         Route::post('/{teacher}/documents/upload', [\App\Http\Controllers\Admin\TeacherController::class, 'uploadDocument'])->name('documents.upload');
         Route::post('/{teacher}/documents/{certificate}/verify', [\App\Http\Controllers\Admin\TeacherController::class, 'verifyDocument'])->name('documents.verify');

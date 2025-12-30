@@ -6,10 +6,15 @@ import ScheduleCallModal from './components/ScheduleCallModal';
 import DocumentUploadModal from '@/components/Teachers/DocumentUploadModal';
 import SendMessageModal from './components/SendMessageModal';
 import RejectVerificationModal from './components/RejectVerificationModal';
-import DeleteAccountModal from './components/DeleteAccountModal';
-
+import TeacherPerformanceStats from '@/components/Teachers/TeacherPerformanceStats';
+import TeacherActionButtons from '@/components/Teachers/TeacherActionButtons';
+import TeacherSuspensionModal from '@/components/Teachers/TeacherSuspensionModal';
+import DeleteAccountModal from '@/components/Teachers/DeleteAccountModal';
+import ApproveVerificationModal from './components/ApproveVerificationModal';
 import { Button } from '@/components/ui/button';
+import TeacherStatusBadge from '@/components/Teachers/TeacherStatusBadge';
 import { format } from 'date-fns';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -21,7 +26,8 @@ import { toast } from 'sonner';
 interface Teacher {
     id: number;
     user_id: number;
-    status: string;
+    status: 'pending' | 'approved' | 'active' | 'suspended' | 'rejected' | 'under_review';
+    rejection_reason?: string;
     video_verification_status: string;
     video_verification_scheduled_at: string | null;
     video_verification_room_id: string | null;
@@ -71,14 +77,30 @@ interface Props {
         total_earned: number;
         pending_payouts: number;
     };
+    verificationChecklist: {
+        id_front: { label: string; uploaded: boolean; verified: boolean; status: string };
+        id_back: { label: string; uploaded: boolean; verified: boolean; status: string };
+        cv: { label: string; uploaded: boolean; verified: boolean; status: string };
+        video_verification: { label: string; completed: boolean; status: string };
+        certificates: { label: string; total: number; verified: number };
+    };
+    hasIncompleteVerifications: boolean;
 }
 
-export default function VerificationShow({ teacher, stats, earnings = { wallet_balance: 18500, total_earned: 210000, pending_payouts: 15000 } }: Props) {
+export default function VerificationShow({
+    teacher,
+    stats,
+    earnings = { wallet_balance: 18500, total_earned: 210000, pending_payouts: 15000 },
+    verificationChecklist,
+    hasIncompleteVerifications
+}: Props) {
     const [isScheduleCallOpen, setIsScheduleCallOpen] = useState(false);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [isSendMessageOpen, setIsSendMessageOpen] = useState(false);
     const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+    const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);
     const [uploadType, setUploadType] = useState<'id_card_front' | 'id_card_back' | 'cv' | 'certificate'>('certificate');
 
     const openUploadModal = (type: 'id_card_front' | 'id_card_back' | 'cv' | 'certificate') => {
@@ -123,10 +145,12 @@ export default function VerificationShow({ teacher, stats, earnings = { wallet_b
         }
     };
 
+    const calculateProgress = () => {
+        // ... (existing logic)
+    };
+
     const handleApprove = () => {
-        if (confirm('Are you sure you want to approve this teacher?')) {
-            router.post(`/admin/verifications/${teacher.id}/approve`);
-        }
+        setIsApproveModalOpen(true);
     };
 
     const handleReject = () => {
@@ -182,14 +206,11 @@ export default function VerificationShow({ teacher, stats, earnings = { wallet_b
                                 <Icon icon="solar:map-point-linear" className="w-3.5 h-3.5" />
                                 <span>{teacher.city}, {teacher.country}</span>
                             </div>
-                            <div className={`flex items-center justify-center gap-1.5 font-bold text-xs mt-2 uppercase tracking-wider ${teacher.status === 'active' ? 'text-green-500' :
-                                teacher.status === 'rejected' ? 'text-red-500' : 'text-orange-400'
-                                }`}>
-                                <Icon
-                                    icon={teacher.status === 'active' ? "solar:verified-check-bold" : "solar:hourglass-bold"}
-                                    className="w-4 h-4"
+                            <div className="mt-2 flex justify-center">
+                                <TeacherStatusBadge
+                                    status={teacher.status}
+                                    tooltipContent={teacher.status === 'rejected' ? teacher.rejection_reason : undefined}
                                 />
-                                <span>{teacher.status === 'active' ? 'Verified' : teacher.status.replace('_', ' ')}</span>
                             </div>
                         </div>
                     </div>
@@ -757,14 +778,64 @@ export default function VerificationShow({ teacher, stats, earnings = { wallet_b
 
                 {/* Footer Actions */}
                 <div className="pt-8 sm:pt-12 pb-6 sm:pb-8 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-6">
-                    <Button onClick={handleApprove} className="h-12 px-6 sm:px-10 rounded-xl bg-[#338078] hover:bg-[#2a6a63] font-bold text-white transition-all active:scale-[0.98] justify-center cursor-pointer">
-                        Approve
-                    </Button>
+                    <TooltipProvider>
+                        <Tooltip delayDuration={0}>
+                            <TooltipTrigger asChild>
+                                <span className={['approved', 'active'].includes(teacher.status) ? 'cursor-not-allowed' : ''}>
+                                    <Button
+                                        onClick={handleApprove}
+                                        disabled={['approved', 'active'].includes(teacher.status)}
+                                        className={`h-12 px-6 sm:px-10 rounded-xl font-bold text-white transition-all active:scale-[0.98] justify-center cursor-pointer w-full sm:w-auto ${['approved', 'active'].includes(teacher.status) ? 'bg-gray-200 text-gray-400 pointer-events-none' : 'bg-[#338078] hover:bg-[#2a6a63]'}`}
+                                    >
+                                        Approve
+                                    </Button>
+                                </span>
+                            </TooltipTrigger>
+                            {['approved', 'active'].includes(teacher.status) && (
+                                <TooltipContent>
+                                    <p>Teacher is already approved</p>
+                                </TooltipContent>
+                            )}
+                        </Tooltip>
+                    </TooltipProvider>
+
                     <Button onClick={() => setIsSendMessageOpen(true)} variant="outline" className="h-12 px-6 sm:px-10 rounded-xl border-[#338078] text-[#338078] font-bold justify-center cursor-pointer">
                         Send Message
                     </Button>
-                    <button onClick={handleReject} className="text-[#101928] font-bold text-sm px-4 cursor-pointer">Reject</button>
-                    <button onClick={handleDelete} className="text-red-500 font-bold text-sm px-4 cursor-pointer">Delete Account</button>
+                    <TooltipProvider>
+                        <Tooltip delayDuration={0}>
+                            {!['approved', 'active', 'rejected'].includes(teacher.status) && (
+                                <TooltipTrigger asChild>
+                                    <span className={teacher.status === 'rejected' ? 'cursor-not-allowed' : ''}>
+                                        <button
+                                            onClick={handleReject}
+                                            disabled={teacher.status === 'rejected'}
+                                            className={`font-bold text-sm px-4 cursor-pointer ${teacher.status === 'rejected' ? 'text-gray-300 pointer-events-none' : 'text-[#101928]'}`}
+                                        >
+                                            Reject
+                                        </button>
+                                    </span>
+                                </TooltipTrigger>
+                            )}
+                            {teacher.status === 'rejected' && (
+                                <TooltipContent>
+                                    <p>Application is already rejected</p>
+                                </TooltipContent>
+                            )}
+                        </Tooltip>
+                    </TooltipProvider>
+
+                    {/* Suspend Button - Only for approved staff */}
+                    {['approved', 'active', 'suspended'].includes(teacher.status) && (
+                        <button
+                            onClick={() => setIsSuspendModalOpen(true)}
+                            className="text-orange-600 font-bold text-sm px-4 cursor-pointer hover:bg-orange-50 rounded-lg py-2 transition-colors"
+                        >
+                            {teacher.status === 'suspended' ? 'Manage Suspension' : 'Suspend Account'}
+                        </button>
+                    )}
+
+                    <button onClick={handleDelete} className="text-red-500 font-bold text-sm px-4 cursor-pointer hover:bg-red-50 rounded-lg py-2 transition-colors">Delete Account</button>
                 </div>
             </div>
 
@@ -794,10 +865,27 @@ export default function VerificationShow({ teacher, stats, earnings = { wallet_b
                 teacherId={teacher.id}
             />
 
+            <TeacherSuspensionModal
+                isOpen={isSuspendModalOpen}
+                onClose={() => setIsSuspendModalOpen(false)}
+                teacher={teacher}
+            />
+
             <DeleteAccountModal
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
                 teacherId={teacher.id}
+                teacherName={teacher.user.name}
+                deleteUrl={`/admin/verifications/${teacher.id}`}
+            />
+
+            <ApproveVerificationModal
+                isOpen={isApproveModalOpen}
+                onClose={() => setIsApproveModalOpen(false)}
+                teacherId={teacher.id}
+                teacherName={teacher.user.name}
+                verificationChecklist={verificationChecklist}
+                hasIncompleteVerifications={hasIncompleteVerifications}
             />
         </AdminLayout>
     );

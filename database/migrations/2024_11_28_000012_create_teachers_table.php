@@ -22,6 +22,7 @@ return new class extends Migration
             $table->timestamp('approved_at')->nullable();
             $table->timestamp('rejected_at')->nullable();
             $table->text('rejection_reason')->nullable();
+            $table->text('approval_override_reason')->nullable();
             $table->timestamp('application_submitted_at')->nullable();
 
             // Video Verification

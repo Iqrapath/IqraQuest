@@ -5,20 +5,23 @@ namespace App\Notifications;
 use App\Models\Teacher;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class TeacherRejectedNotification extends Notification implements ShouldBroadcastNow
+class TeacherRejectedNotification extends Notification implements ShouldQueue, ShouldBroadcast
 {
     use Queueable;
 
-    public function __construct(
-        public Teacher $teacher,
-        public string $rejectionReason
-    ) {
-        //
+    public int $teacherId;
+    public string $rejectionReason;
+
+    public function __construct(Teacher $teacher, string $rejectionReason)
+    {
+        $this->teacherId = $teacher->id;
+        $this->rejectionReason = $rejectionReason;
     }
 
     public function via(object $notifiable): array
@@ -44,7 +47,7 @@ class TeacherRejectedNotification extends Notification implements ShouldBroadcas
         return [
             'title' => 'Application Not Approved',
             'message' => 'Your teacher application was not approved. Please review the details.',
-            'teacher_id' => $this->teacher->id,
+            'teacher_id' => $this->teacherId,
             'rejection_reason' => $this->rejectionReason,
             'type' => 'application_rejected',
             'action_url' => route('teacher.waiting-area'),
@@ -56,7 +59,7 @@ class TeacherRejectedNotification extends Notification implements ShouldBroadcas
         return new BroadcastMessage([
             'title' => 'Application Not Approved',
             'message' => 'Your teacher application was not approved.',
-            'teacher_id' => $this->teacher->id,
+            'teacher_id' => $this->teacherId,
             'rejection_reason' => $this->rejectionReason,
             'type' => 'application_rejected',
             'action_url' => route('teacher.waiting-area'),

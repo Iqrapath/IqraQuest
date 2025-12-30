@@ -132,27 +132,26 @@ class TeacherRegistrationService
         return $teacher->fresh();
     }
 
-    /**
-     * Submit application for admin approval
-     */
-    public function submitApplication(Teacher $teacher): void
-    {
-        $teacher->update([
-            'status' => 'pending',
-            'application_submitted_at' => now(),
-        ]);
+/**
+ * Submit application for admin approval
+ */
+public function submitApplication(Teacher $teacher): void
+{
+    $teacher->update([
+        'status' => 'pending',
+        'application_submitted_at' => now(),
+    ]);
 
-        // Send confirmation email to teacher
-        $teacher->user->notify(new \App\Notifications\TeacherApplicationReceivedNotification($teacher));
-        
-        // Sleep to prevent Mailtrap rate limiting
-        sleep(10);
-
-        // Notify all admins about new teacher application
-        $admins = \App\Models\User::where('role', 'admin')->get();
-        foreach ($admins as $admin) {
-            $admin->notify(new \App\Notifications\NewTeacherApplicationNotification($teacher, $teacher->user));
-            sleep(10); // Sleep between admin emails
-        }
+    // Send confirmation email to teacher (queued)
+    $teacher->user->notify((new \App\Notifications\TeacherApplicationReceivedNotification($teacher))->delay(now()->addSeconds(5)));
+    
+    // Notify all admins about new teacher application (queued with delays)
+    $admins = \App\Models\User::where('role', 'admin')->get();
+    
+    $delaySeconds = 10; // Start with 5 second delay
+    foreach ($admins as $admin) {
+        $admin->notify((new \App\Notifications\NewTeacherApplicationNotification($teacher, $teacher->user))->delay(now()->addSeconds($delaySeconds)));
+        $delaySeconds += 10; // Add 5 seconds between each admin notification
     }
+}
 }

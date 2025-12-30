@@ -11,14 +11,26 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import TableLoader from '@/components/TableLoader';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import ScheduleCallModal from './components/ScheduleCallModal';
+import ApproveVerificationModal from './components/ApproveVerificationModal';
+import RejectVerificationModal from './components/RejectVerificationModal';
+import TeacherStatusBadge from '@/components/Teachers/TeacherStatusBadge';
+import TeacherSuspensionModal from '@/components/Teachers/TeacherSuspensionModal';
 
 interface VerificationRequest {
     id: number;
-    status: string;
+    status: 'pending' | 'approved' | 'active' | 'suspended' | 'rejected' | 'under_review';
+    rejection_reason?: string;
     video_verification_status: 'not_scheduled' | 'scheduled' | 'completed' | 'failed';
     video_verification_scheduled_at: string | null;
     application_submitted_at: string | null;
@@ -34,6 +46,14 @@ interface VerificationRequest {
         certificate_type: string;
         verification_status: string;
     }>;
+    verificationChecklist: {
+        id_front: { label: string; uploaded: boolean; verified: boolean; status: string };
+        id_back: { label: string; uploaded: boolean; verified: boolean; status: string };
+        cv: { label: string; uploaded: boolean; verified: boolean; status: string };
+        video_verification: { label: string; completed: boolean; status: string };
+        certificates: { label: string; total: number; verified: number };
+    };
+    hasIncompleteVerifications: boolean;
 }
 
 interface Props {
@@ -47,23 +67,28 @@ interface Props {
         search?: string;
         status?: string;
         date?: string;
+        application_status?: string;
     };
 }
 
 export default function VerificationIndex({ requests, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
-    const [filterStatus, setFilterStatus] = useState(filters.status || 'all');
+    const [filterStatus, setFilterStatus] = useState(filters.status || 'all'); // Video Verification Status
+    const [applicationStatus, setApplicationStatus] = useState(filters.application_status || 'pending');
     const [filterDate, setFilterDate] = useState(filters.date || '');
     const [isLoading, setIsLoading] = useState(false);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     // Modal states
     const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+    const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+    const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+    const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);
     const [selectedTeacher, setSelectedTeacher] = useState<VerificationRequest | null>(null);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        applyFilters({ search, status: filterStatus, date: filterDate });
+        applyFilters({ search, status: filterStatus, date: filterDate, application_status: applicationStatus });
     };
 
     const applyFilters = (newFilters: any) => {
@@ -98,6 +123,21 @@ export default function VerificationIndex({ requests, filters }: Props) {
         navigator.clipboard.writeText(url).then(() => {
             toast.success('Room URL copied to clipboard');
         });
+    };
+
+    const handleApproveAction = (request: VerificationRequest) => {
+        setSelectedTeacher(request);
+        setIsApproveModalOpen(true);
+    };
+
+    const handleRejectAction = (request: VerificationRequest) => {
+        setSelectedTeacher(request);
+        setIsRejectModalOpen(true);
+    };
+
+    const handleSuspendAction = (request: VerificationRequest) => {
+        setSelectedTeacher(request);
+        setIsSuspendModalOpen(true);
     };
 
     const getIdFileCount = (request: VerificationRequest) => {
@@ -145,19 +185,38 @@ export default function VerificationIndex({ requests, filters }: Props) {
                                 />
                             </div>
 
-                            <div className="relative min-w-[180px]">
-                                <select
-                                    value={filterStatus}
-                                    onChange={(e) => setFilterStatus(e.target.value)}
-                                    className="w-full h-12 pl-4 pr-10 rounded-xl border border-gray-200 bg-white text-gray-600 text-sm focus:ring-[#338078] focus:border-[#338078] appearance-none cursor-pointer"
+                            <div className="min-w-[180px]">
+                                <Select
+                                    value={applicationStatus}
+                                    onValueChange={(value) => setApplicationStatus(value)}
                                 >
-                                    <option value="all">Select Status</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="verified">Verified</option>
-                                    <option value="live_video">Live Video</option>
-                                    <option value="rejected">Rejected</option>
-                                </select>
-                                <Icon icon="tabler:chevron-down" className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+                                    <SelectTrigger className="h-12 rounded-xl bg-white border-gray-200">
+                                        <SelectValue placeholder="Application Status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="pending">Pending</SelectItem>
+                                        <SelectItem value="approved">Approved</SelectItem>
+                                        <SelectItem value="rejected">Rejected</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="min-w-[180px]">
+                                <Select
+                                    value={filterStatus}
+                                    onValueChange={(value) => setFilterStatus(value)}
+                                >
+                                    <SelectTrigger className="h-12 rounded-xl bg-white border-gray-200">
+                                        <SelectValue placeholder="Video Status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Any Video Status</SelectItem>
+                                        <SelectItem value="pending">Pending</SelectItem>
+                                        <SelectItem value="verified">Verified</SelectItem>
+                                        <SelectItem value="live_video">Live Video</SelectItem>
+                                        <SelectItem value="failed">Failed</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             <div className="relative min-w-[180px]">
@@ -256,10 +315,10 @@ export default function VerificationIndex({ requests, filters }: Props) {
                                                     </span>
                                                 </td>
                                                 <td className="px-4 py-6">
-                                                    <div className="flex items-center gap-2">
-                                                        <Icon icon="solar:hourglass-bold" className="text-orange-400 w-4 h-4" />
-                                                        <span className="text-sm font-bold text-orange-400 capitalize">{request.status}</span>
-                                                    </div>
+                                                    <TeacherStatusBadge
+                                                        status={request.status}
+                                                        tooltipContent={request.status === 'rejected' ? request.rejection_reason : undefined}
+                                                    />
                                                 </td>
                                                 <td className="px-6 py-6 text-right">
                                                     <DropdownMenu>
@@ -270,10 +329,11 @@ export default function VerificationIndex({ requests, filters }: Props) {
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end" className="w-[180px] p-2 rounded-xl shadow-[0_4px_24px_rgba(0,0,0,0.08)] bg-white border border-gray-100">
                                                             <DropdownMenuItem
-                                                                onSelect={() => router.visit(`/admin/verifications/${request.id}`)}
-                                                                className="flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium text-gray-700 hover:bg-[#338078]/5 transition-colors"
+                                                                onSelect={() => handleApproveAction(request)}
+                                                                disabled={request.status === 'approved' || request.status === 'active'}
+                                                                className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium transition-colors ${['approved', 'active'].includes(request.status) ? 'opacity-50 cursor-not-allowed' : 'text-gray-700 hover:bg-[#338078]/5'}`}
                                                             >
-                                                                <span>Verify</span>
+                                                                <span>Approve</span>
                                                                 <Icon icon="solar:verified-check-bold" className="w-5 h-5 text-green-500" />
                                                             </DropdownMenuItem>
 
@@ -303,12 +363,24 @@ export default function VerificationIndex({ requests, filters }: Props) {
                                                                 </DropdownMenuItem>
                                                             )}
 
-                                                            <DropdownMenuItem
-                                                                className="flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
-                                                            >
-                                                                <span>Reject</span>
-                                                                <Icon icon="solar:close-circle-bold" className="w-5 h-5 text-red-500" />
-                                                            </DropdownMenuItem>
+                                                            {!['approved', 'active'].includes(request.status) ? (
+                                                                <DropdownMenuItem
+                                                                    onSelect={() => handleRejectAction(request)}
+                                                                    disabled={request.status === 'rejected'}
+                                                                    className={`flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium transition-colors ${request.status === 'rejected' ? 'opacity-50 cursor-not-allowed' : 'text-red-600 hover:bg-red-50'}`}
+                                                                >
+                                                                    <span>Reject</span>
+                                                                    <Icon icon="solar:close-circle-bold" className="w-5 h-5 text-red-500" />
+                                                                </DropdownMenuItem>
+                                                            ) : (
+                                                                <DropdownMenuItem
+                                                                    onSelect={() => handleSuspendAction(request)}
+                                                                    className="flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer text-sm font-medium text-orange-600 hover:bg-orange-50 transition-colors"
+                                                                >
+                                                                    <span>{request.status === 'suspended' ? 'Manage Suspension' : 'Suspend'}</span>
+                                                                    <Icon icon="solar:forbidden-circle-bold" className="w-5 h-5 text-orange-500" />
+                                                                </DropdownMenuItem>
+                                                            )}
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                 </td>
@@ -348,6 +420,39 @@ export default function VerificationIndex({ requests, filters }: Props) {
                         video_verification_status: selectedTeacher.video_verification_status,
                         video_verification_scheduled_at: selectedTeacher.video_verification_scheduled_at
                     }}
+                />
+            )}
+            {selectedTeacher && (
+                <ApproveVerificationModal
+                    isOpen={isApproveModalOpen}
+                    onClose={() => {
+                        setIsApproveModalOpen(false);
+                        setSelectedTeacher(null);
+                    }}
+                    teacherId={selectedTeacher.id}
+                    teacherName={selectedTeacher.user.name}
+                    verificationChecklist={selectedTeacher.verificationChecklist}
+                    hasIncompleteVerifications={selectedTeacher.hasIncompleteVerifications}
+                />
+            )}
+            {selectedTeacher && (
+                <RejectVerificationModal
+                    isOpen={isRejectModalOpen}
+                    onClose={() => {
+                        setIsRejectModalOpen(false);
+                        setSelectedTeacher(null);
+                    }}
+                    teacherId={selectedTeacher.id}
+                />
+            )}
+            {selectedTeacher && (
+                <TeacherSuspensionModal
+                    isOpen={isSuspendModalOpen}
+                    onClose={() => {
+                        setIsSuspendModalOpen(false);
+                        setSelectedTeacher(null);
+                    }}
+                    teacher={selectedTeacher}
                 />
             )}
         </AdminLayout>

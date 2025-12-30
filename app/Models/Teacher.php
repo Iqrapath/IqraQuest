@@ -21,6 +21,7 @@ class Teacher extends Model
         'approved_at',
         'rejected_at',
         'rejection_reason',
+        'approval_override_reason',
         'application_submitted_at',
         'video_verification_status',
         'video_verification_room_id',

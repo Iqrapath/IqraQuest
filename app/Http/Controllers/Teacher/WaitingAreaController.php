@@ -72,7 +72,9 @@ class WaitingAreaController extends Controller
             'status' => $teacher->status,
             'isPending' => $teacher->isPending(),
             'isRejected' => $teacher->isRejected(),
+            'isSuspended' => $teacher->isSuspended(),
             'rejectionReason' => $teacher->rejection_reason,
+            'suspensionReason' => $teacher->suspension_reason,
             'rejectedAt' => $teacher->rejected_at,
             'conversation' => $formattedConversation,
         ]);

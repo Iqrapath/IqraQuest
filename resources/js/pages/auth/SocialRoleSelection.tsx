@@ -13,6 +13,7 @@ interface SocialRoleSelectionProps {
 export default function SocialRoleSelection({ name, email, avatar }: SocialRoleSelectionProps) {
     const [selectedRole, setSelectedRole] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [avatarError, setAvatarError] = useState(false);
 
     const handleRoleSubmit = (role: 'student' | 'guardian' | 'teacher') => {
         setIsSubmitting(true);
@@ -27,6 +28,8 @@ export default function SocialRoleSelection({ name, email, avatar }: SocialRoleS
         );
     };
 
+    const showAvatar = avatar && avatar.startsWith('http') && !avatarError;
+
     return (
         <AuthSplitLayout>
             <Head title="Complete Your Registration" />
@@ -35,11 +38,13 @@ export default function SocialRoleSelection({ name, email, avatar }: SocialRoleS
                 <div className="flex w-full max-w-[630px] flex-col items-center justify-center gap-[34px] rounded-[34px] border border-[#eff0f6] bg-white p-[60px] shadow-[0px_5px_16px_0px_rgba(8,15,52,0.06)]">
                     {/* User Info */}
                     <div className="flex flex-col items-center gap-4">
-                        {avatar ? (
+                        {showAvatar ? (
                             <img 
                                 src={avatar} 
                                 alt={name} 
-                                className="h-20 w-20 rounded-full border-4 border-[#338078]/20"
+                                className="h-20 w-20 rounded-full border-4 border-[#338078]/20 object-cover"
+                                referrerPolicy="no-referrer"
+                                onError={() => setAvatarError(true)}
                             />
                         ) : (
                             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#338078]/10">

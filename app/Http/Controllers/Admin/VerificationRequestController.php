@@ -34,8 +34,19 @@ class VerificationRequestController extends Controller
     public function index(Request $request): Response
     {
         $query = Teacher::with(['user', 'subjects', 'certificates'])
-            ->whereIn('status', ['pending', 'under_review', 'rejected'])
             ->latest('application_submitted_at');
+
+        // Filter by Application Status (Tabs)
+        $appStatus = $request->input('application_status', 'pending');
+        
+        if ($appStatus === 'approved') {
+            $query->whereIn('status', ['approved', 'active']);
+        } elseif ($appStatus === 'rejected') {
+            $query->where('status', 'rejected');
+        } else {
+            // Default to pending/under_review
+            $query->whereIn('status', ['pending', 'under_review']);
+        }
 
         // Simple search
         if ($request->filled('search')) {
@@ -51,9 +62,35 @@ class VerificationRequestController extends Controller
             $query->where('video_verification_status', $request->status);
         }
 
+        // Filter by date
+        if ($request->filled('date')) {
+            $query->whereDate('application_submitted_at', $request->date);
+        }
+
         return Inertia::render('Admin/Verifications/Index', [
-            'requests' => $query->paginate(20)->withQueryString(),
-            'filters' => $request->only(['search', 'status']),
+            'requests' => $query->paginate(20)->withQueryString()->through(fn($teacher) => [
+                'id' => $teacher->id,
+                'status' => $teacher->status,
+                'rejection_reason' => $teacher->rejection_reason,
+                'video_verification_status' => $teacher->video_verification_status,
+                'video_verification_scheduled_at' => $teacher->video_verification_scheduled_at,
+                'application_submitted_at' => $teacher->application_submitted_at,
+                'user' => [
+                    'id' => $teacher->user->id,
+                    'name' => $teacher->user->name,
+                    'email' => $teacher->user->email,
+                    'avatar' => $teacher->user->avatar,
+                ],
+                'subjects' => $teacher->subjects->map(fn($s) => ['id' => $s->id, 'name' => $s->name]),
+                'certificates' => $teacher->certificates->map(fn($c) => [
+                    'id' => $c->id,
+                    'certificate_type' => $c->certificate_type,
+                    'verification_status' => $c->verification_status
+                ]),
+                'verificationChecklist' => $this->approvalService->getVerificationChecklist($teacher),
+                'hasIncompleteVerifications' => $this->approvalService->hasIncompleteVerifications($teacher),
+            ]),
+            'filters' => $request->only(['search', 'status', 'application_status', 'date']),
         ]);
     }
 
@@ -80,6 +117,10 @@ class VerificationRequestController extends Controller
             ->where('status', 'completed')
             ->count();
 
+        // Get verification checklist for approval modal
+        $verificationChecklist = $this->approvalService->getVerificationChecklist($teacher);
+        $hasIncompleteVerifications = $this->approvalService->hasIncompleteVerifications($teacher);
+
         return Inertia::render('Admin/Verifications/Show', [
             'teacher' => $teacher,
             'stats' => [
@@ -94,7 +135,9 @@ class VerificationRequestController extends Controller
                 'wallet_balance' => (float) $wallet->balance,
                 'total_earned' => (float) $totalEarned,
                 'pending_payouts' => (float) $pendingPayouts,
-            ]
+            ],
+            'verificationChecklist' => $verificationChecklist,
+            'hasIncompleteVerifications' => $hasIncompleteVerifications,
         ]);
     }
 
@@ -203,7 +246,23 @@ class VerificationRequestController extends Controller
      */
     public function approve(Request $request, Teacher $teacher)
     {
-        $this->approvalService->approve($teacher, $request->user());
+        $hasIncomplete = $this->approvalService->hasIncompleteVerifications($teacher);
+        
+        // If there are incomplete verifications, require an override reason
+        if ($hasIncomplete) {
+            $request->validate([
+                'override_reason' => 'required|string|min:10|max:500',
+            ], [
+                'override_reason.required' => 'Please provide a reason for approving with incomplete verifications.',
+                'override_reason.min' => 'Override reason must be at least 10 characters.',
+            ]);
+        }
+
+        $this->approvalService->approve(
+            $teacher, 
+            $request->user(), 
+            $hasIncomplete ? $request->override_reason : null
+        );
 
         return redirect()->route('admin.teachers.index')->with('success', 'Teacher approved successfully.');
     }
@@ -213,6 +272,10 @@ class VerificationRequestController extends Controller
      */
     public function reject(Request $request, Teacher $teacher)
     {
+        if ($teacher->isApproved() || $teacher->status === 'active') {
+            return redirect()->back()->with('error', 'Approved or active teachers cannot be rejected.');
+        }
+
         $request->validate([
             'reason' => 'required|string|max:1000',
         ]);

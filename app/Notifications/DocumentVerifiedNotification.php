@@ -4,13 +4,13 @@ namespace App\Notifications;
 
 use App\Models\TeacherCertificate;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class DocumentVerifiedNotification extends Notification implements ShouldQueue, ShouldBroadcastNow
+class DocumentVerifiedNotification extends Notification implements ShouldQueue, ShouldBroadcast
 {
     use Queueable;
 

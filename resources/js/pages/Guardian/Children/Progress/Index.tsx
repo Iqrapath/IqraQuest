@@ -3,7 +3,7 @@ import GuardianLayout from '@/layouts/GuardianLayout';
 import { Icon } from '@iconify/react';
 import AttendanceTracker from './components/AttendanceTracker';
 import WeeklyAttendanceChart from './components/WeeklyAttendanceChart';
-import ProgressCard from '@/pages/Guardian/components/ProgressCard';
+// import ProgressCard from '@/pages/Guardian/components/ProgressCard';
 import TeacherFeedbackCard from './components/TeacherFeedbackCard';
 
 interface Props {
@@ -64,7 +64,7 @@ export default function ProgressIndex({ child, stats }: Props) {
                 {/* 4. Memorization Progress (Using Existing ProgressCard for Premium look) */}
                 <div className="flex flex-col gap-6">
                     <h2 className="font-['Nunito'] font-bold text-[28px] text-[#1a1d56]">Memorization Progress</h2>
-                    <ProgressCard
+                    {/* <ProgressCard
                         goalTitle={stats.memorization.goal}
                         percentage={stats.memorization.completed_percentage}
                         subjects={stats.memorization.subjects_status.map(s => ({
@@ -72,7 +72,7 @@ export default function ProgressIndex({ child, stats }: Props) {
                             status: s.level,
                             color: s.color
                         }))}
-                    />
+                    /> */}
                     <button className="text-[#338078] font-semibold text-[15px] hover:underline flex items-center gap-2 mt-[-8px]">
                         Download Progress Report PDF
                         <Icon icon="solar:download-minimalistic-bold" className="w-5 h-5" />

@@ -9,12 +9,17 @@ use App\Models\Payout;
 use App\Models\Transaction;
 use App\Models\Booking;
 use App\Services\WalletService;
+use App\Services\TeacherApprovalService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class TeacherController extends Controller
 {
+    public function __construct(
+        private TeacherApprovalService $approvalService
+    ) {}
+
     /**
      * Display a listing of all teachers
      */
@@ -542,22 +547,33 @@ class TeacherController extends Controller
             'reason' => 'required_if:status,suspended,rejected|string|max:500',
         ]);
 
-        $teacher->update([
-            'status' => $request->status,
-            'suspension_reason' => in_array($request->status, ['suspended', 'rejected']) ? $request->reason : null,
-            'suspended_at' => $request->status === 'suspended' ? now() : null,
-            'rejected_at' => $request->status === 'rejected' ? now() : null,
-            'approved_at' => $request->status === 'approved' ? now() : null,
-        ]);
+        if ($request->status === 'approved') {
+            $this->approvalService->approve($teacher, auth()->user());
+            return redirect()->back()->with('success', "Teacher {$teacher->user->name} has been approved.");
+        }
 
-        $message = match($request->status) {
-            'suspended' => "Teacher {$teacher->user->name} has been suspended.",
-            'rejected' => "Teacher {$teacher->user->name} has been rejected.",
-            'approved' => "Teacher {$teacher->user->name} has been approved.",
-            default => "Teacher status updated."
-        };
+        if ($request->status === 'rejected') {
+            if ($teacher->isApproved() || $teacher->status === 'active') {
+                return redirect()->back()->with('error', 'Approved or active teachers cannot be rejected. Please use suspension instead.');
+            }
+            $this->approvalService->reject($teacher, auth()->user(), $request->reason);
+            return redirect()->back()->with('success', "Teacher {$teacher->user->name} has been rejected.");
+        }
 
-        return redirect()->back()->with('success', $message);
+        if ($request->status === 'suspended') {
+            if (!$teacher->isApproved() && $teacher->status !== 'active') {
+                return redirect()->back()->with('error', 'Only approved or active teachers can be suspended.');
+            }
+            $this->approvalService->suspend($teacher, auth()->user(), $request->reason);
+            return redirect()->back()->with('success', "Teacher {$teacher->user->name} has been suspended.");
+        }
+
+        if ($request->status === 'approved') {
+            $this->approvalService->unsuspend($teacher, auth()->user());
+            return redirect()->back()->with('success', "Teacher {$teacher->user->name} has been activated.");
+        }
+
+        return redirect()->back()->with('error', 'Invalid status update requested.');
     }
 
     /**
@@ -614,5 +630,18 @@ class TeacherController extends Controller
         $certificateService->verify($certificate, $request->user());
 
         return redirect()->back()->with('success', 'Document verified successfully.');
+    }
+
+    /**
+     * Delete the teacher account and user record
+     */
+    public function destroy(Teacher $teacher)
+    {
+        $user = $teacher->user;
+        
+        // Delete the user which should cascade to the teacher profile
+        $user->delete();
+
+        return redirect()->route('admin.teachers.index')->with('success', 'Teacher account deleted successfully.');
     }
 }

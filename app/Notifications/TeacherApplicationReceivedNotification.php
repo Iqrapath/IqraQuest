@@ -10,7 +10,7 @@ use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class TeacherApplicationReceivedNotification extends Notification implements ShouldBroadcastNow
+class TeacherApplicationReceivedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 

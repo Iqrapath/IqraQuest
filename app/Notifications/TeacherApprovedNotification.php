@@ -5,18 +5,21 @@ namespace App\Notifications;
 use App\Models\Teacher;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class TeacherApprovedNotification extends Notification implements ShouldBroadcastNow
+class TeacherApprovedNotification extends Notification implements ShouldQueue, ShouldBroadcast
 {
     use Queueable;
 
-    public function __construct(public Teacher $teacher)
+    public int $teacherId;
+
+    public function __construct(Teacher $teacher)
     {
-        //
+        $this->teacherId = $teacher->id;
     }
 
     public function via(object $notifiable): array
@@ -41,7 +44,7 @@ class TeacherApprovedNotification extends Notification implements ShouldBroadcas
         return [
             'title' => 'Application Approved! 🎉',
             'message' => 'Congratulations! Your teacher application has been approved. You can now access your dashboard.',
-            'teacher_id' => $this->teacher->id,
+            'teacher_id' => $this->teacherId,
             'type' => 'application_approved',
             'action_url' => route('teacher.dashboard'),
         ];
@@ -52,7 +55,7 @@ class TeacherApprovedNotification extends Notification implements ShouldBroadcas
         return new BroadcastMessage([
             'title' => 'Application Approved! 🎉',
             'message' => 'Congratulations! Your teacher application has been approved.',
-            'teacher_id' => $this->teacher->id,
+            'teacher_id' => $this->teacherId,
             'type' => 'application_approved',
             'action_url' => route('teacher.dashboard'),
         ]);

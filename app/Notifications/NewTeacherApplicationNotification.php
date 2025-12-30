@@ -5,21 +5,29 @@ namespace App\Notifications;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewTeacherApplicationNotification extends Notification implements ShouldBroadcastNow
+class NewTeacherApplicationNotification extends Notification implements ShouldQueue, ShouldBroadcast
 {
     use Queueable;
 
+    public int $teacherId;
+    public string $applicantName;
+    public string $applicantEmail;
+    public string $submittedAt;
+
     public function __construct(
-        public Teacher $teacher,
-        public User $applicant
+        Teacher $teacher,
+        User $applicant
     ) {
-        //
+        $this->teacherId = $teacher->id;
+        $this->applicantName = $applicant->name;
+        $this->applicantEmail = $applicant->email;
+        $this->submittedAt = $teacher->created_at->toIso8601String();
     }
 
     public function via(object $notifiable): array
@@ -33,10 +41,10 @@ class NewTeacherApplicationNotification extends Notification implements ShouldBr
             ->subject('New Teacher Application - IqraQuest Admin')
             ->greeting('Hello Admin,')
             ->line('A new teacher application has been submitted and requires your review.')
-            ->line('**Applicant:** ' . $this->applicant->name)
-            ->line('**Email:** ' . $this->applicant->email)
-            ->line('**Submitted:** ' . $this->teacher->created_at->diffForHumans())
-            ->action('Review Application', route('admin.teachers.show', $this->teacher->id))
+            ->line('**Applicant:** ' . $this->applicantName)
+            ->line('**Email:** ' . $this->applicantEmail)
+            ->line('**Submitted:** ' . \Illuminate\Support\Carbon::parse($this->submittedAt)->diffForHumans())
+            ->action('Review Application', route('admin.teachers.show', $this->teacherId))
             ->line('Please review the application and take appropriate action.');
     }
 
@@ -44,12 +52,12 @@ class NewTeacherApplicationNotification extends Notification implements ShouldBr
     {
         return [
             'title' => 'New Teacher Application',
-            'message' => $this->applicant->name . ' has submitted a teacher application for review.',
-            'teacher_id' => $this->teacher->id,
-            'applicant_name' => $this->applicant->name,
-            'applicant_email' => $this->applicant->email,
+            'message' => $this->applicantName . ' has submitted a teacher application for review.',
+            'teacher_id' => $this->teacherId,
+            'applicant_name' => $this->applicantName,
+            'applicant_email' => $this->applicantEmail,
             'type' => 'new_application',
-            'action_url' => route('admin.teachers.show', $this->teacher->id),
+            'action_url' => route('admin.teachers.show', $this->teacherId),
         ];
     }
 
@@ -57,11 +65,11 @@ class NewTeacherApplicationNotification extends Notification implements ShouldBr
     {
         return new BroadcastMessage([
             'title' => 'New Teacher Application',
-            'message' => $this->applicant->name . ' has submitted a teacher application.',
-            'teacher_id' => $this->teacher->id,
-            'applicant_name' => $this->applicant->name,
+            'message' => $this->applicantName . ' has submitted a teacher application.',
+            'teacher_id' => $this->teacherId,
+            'applicant_name' => $this->applicantName,
             'type' => 'new_application',
-            'action_url' => route('admin.teachers.show', $this->teacher->id),
+            'action_url' => route('admin.teachers.show', $this->teacherId),
         ]);
     }
 }
