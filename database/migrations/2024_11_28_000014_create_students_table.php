@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->unique()->constrained()->onDelete('cascade');
             $table->date('date_of_birth')->nullable();
             $table->enum('gender', ['male', 'female', 'other'])->nullable();
-            $table->enum('level', ['beginner', 'intermediate', 'advanced'])->default('beginner');
+            $table->string('level', 50)->nullable()->default('beginner'); // Age Group, changed to string
             
             // Profile Details
             $table->text('bio')->nullable();
@@ -26,7 +26,7 @@ return new class extends Migration
             
             // Preferences
             $table->json('preferred_days')->nullable(); // Monday, Tuesday...
-            $table->string('preferred_hours')->nullable(); // e.g. "3 PM - 9 PM"
+            $table->text('preferred_hours')->nullable(); // e.g. JSON schedule
             $table->string('availability_type')->nullable(); // e.g. "Part-Time"
             // Subjects moved to pivot table
             $table->text('learning_goal_description')->nullable(); // "Complete Hifz..."

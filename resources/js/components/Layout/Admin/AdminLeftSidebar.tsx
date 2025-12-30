@@ -12,7 +12,7 @@ export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProp
     const mainMenuItems = [
         { name: 'Dashboard', icon: 'solar:widget-5-outline', route: '/admin/dashboard' },
         { name: 'Teacher Management', icon: 'hugeicons:teacher', route: '/admin/teachers' },
-        { name: 'Parent Management', icon: 'ri:parent-line', route: '/admin/parents' },
+        { name: 'Parent Management', icon: 'ri:parent-line', route: '/admin/students' },
         { name: 'Booking Management', icon: 'solar:calendar-outline', route: '/admin/bookings' },
         { name: 'Verification Requests', icon: 'uil:comment-verify', route: '/admin/verifications' },
         { name: 'Subscription Plans', icon: 'eos-icons:subscriptions-created-outlined', route: '#', comingSoon: true },

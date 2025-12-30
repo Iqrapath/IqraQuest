@@ -91,6 +91,17 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::post('/{teacher}/documents/{certificate}/verify', [\App\Http\Controllers\Admin\TeacherController::class, 'verifyDocument'])->name('documents.verify');
     });
 
+    // Student Management Routes
+    Route::prefix('students')->name('students.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\StudentController::class, 'index'])->name('index');
+        Route::get('/{id}', [\App\Http\Controllers\Admin\StudentController::class, 'show'])->name('show');
+        Route::post('/{user}/update-contact', [\App\Http\Controllers\Admin\StudentController::class, 'updateContact'])->name('update-contact');
+        Route::post('/{user}/update-learning-preferences', [\App\Http\Controllers\Admin\StudentController::class, 'updateLearningPreferences'])->name('update-learning-preferences');
+        Route::get('/{user}/progress', [\App\Http\Controllers\Admin\StudentController::class, 'progress'])->name('progress');
+        Route::patch('/{user}/status', [\App\Http\Controllers\Admin\StudentController::class, 'updateStatus'])->name('update-status');
+        Route::delete('/{user}', [\App\Http\Controllers\Admin\StudentController::class, 'destroy'])->name('destroy');
+    });
+
     // Payment Management Hub
     Route::prefix('payments')->name('payments.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('index');
