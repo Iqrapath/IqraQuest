@@ -17,9 +17,13 @@ export default defineConfig({
             },
         }),
         tailwindcss(),
-        wayfinder({
-            formVariants: true,
-        }),
+        ...(process.env.GITHUB_ACTIONS
+            ? []
+            : [
+                wayfinder({
+                    formVariants: true,
+                }),
+            ]),
     ],
     // resolve: {
     //     alias: {

@@ -81,11 +81,11 @@ export default function AdminLayout({ children, hideLeftSidebar = false, hideRig
                 </main>
 
                 {/* Right Sidebar */}
-                {showRightSidebar && (
+                {/* {showRightSidebar && (
                     <aside className="hidden xl:block shrink-0 bg-white/50 backdrop-blur-sm border-l border-gray-100 overflow-hidden mr-[clamp(8rem,2vw,12rem)] h-full">
                         <AdminRightSidebar />
                     </aside>
-                )}
+                )} */}
             </div>
 
             {/* Hide Scrollbar Completely */}

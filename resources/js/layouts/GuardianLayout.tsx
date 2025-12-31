@@ -83,11 +83,11 @@ export default function GuardianLayout({ children, hideLeftSidebar = false, hide
                     </main>
 
                     {/* Right Sidebar - Fixed, scrollable internally */}
-                    {showRightSidebar && (
+                    {/* {showRightSidebar && (
                         <aside className="hidden xl:block shrink-0 bg-white/50 backdrop-blur-sm border-l border-gray-100 h-full overflow-y-auto mr-[clamp(8rem,2vw,12rem)]">
                             <GuardianRightSidebar />
                         </aside>
-                    )}
+                    )} */}
                 </div>
 
                 {/* Mobile Menu Overlay */}

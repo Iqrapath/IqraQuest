@@ -17,21 +17,21 @@ export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProp
         { name: 'Booking Management', icon: 'solar:calendar-outline', route: '/admin/bookings' },
         { name: 'Verification Requests', icon: 'uil:comment-verify', route: '/admin/verifications' },
         { name: 'Subscription Plans', icon: 'eos-icons:subscriptions-created-outlined', route: '#', comingSoon: true },
-        { name: 'Guardian Management', icon: 'fluent:guardian-28-regular', route: '/admin/guardians' },
+        { name: 'Guardian Management', icon: 'fluent:guardian-28-regular', route: '#', comingSoon: true },
         { name: 'Payment Management', icon: 'streamline-plump:wallet', route: '/admin/payments' },
     ];
 
     const cmsItems = [
-        { name: 'CMS', icon: 'simple-icons:payloadcms', route: '/admin/cms' },
-        { name: 'Admin Controls', icon: 'carbon:network-admin-control', route: '/admin/admin-controls' },
-        { name: 'Referrals System', icon: 'carbon:review', route: '/admin/referrals' },
+        { name: 'CMS', icon: 'simple-icons:payloadcms', route: '#', comingSoon: true },
+        { name: 'Admin Controls', icon: 'carbon:network-admin-control', route: '#', comingSoon: true },
+        { name: 'Referrals System', icon: 'carbon:review', route: '#', comingSoon: true },
     ];
 
     const settingsItems = [
-        { name: 'Settings & Security', icon: 'solar:settings-outline', route: '/admin/settings' },
+        { name: 'Settings & Security', icon: 'solar:settings-outline', route: '#', comingSoon: true },
         { name: 'Notification System', icon: 'solar:bell-outline', route: '/admin/notifications' },
         { name: 'Messages', icon: 'mdi:message-text-outline', route: '/admin/messages' },
-        { name: 'Feedback & Support', icon: 'fluent:person-support-20-regular', route: '/admin/feedback' },
+        { name: 'Feedback & Support', icon: 'fluent:person-support-20-regular', route: '#', comingSoon: true },
     ];
 
     const isActive = (route: string) => route !== '#' && url.startsWith(route);
