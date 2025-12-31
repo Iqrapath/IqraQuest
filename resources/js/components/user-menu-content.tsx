@@ -29,8 +29,8 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
 
     return (
         <>
-            <DropdownMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+            <DropdownMenuLabel className="p-0 font-base">
+                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-base sm:text-base">
                     <UserInfo user={user} showEmail={true} />
                 </div>
             </DropdownMenuLabel>
@@ -44,7 +44,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                         prefetch
                         onClick={cleanup}
                     >
-                        <LayoutDashboard className="mr-2" />
+                        <LayoutDashboard className="mr-2 text-base" />
                         {user.role} Dashboard
                     </Link>
                 </DropdownMenuItem>
@@ -56,7 +56,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                         prefetch
                         onClick={cleanup}
                     >
-                        <Settings className="mr-2" />
+                        <Settings className="mr-2 text-base" />
                         Settings
                     </Link>
                 </DropdownMenuItem>
@@ -68,7 +68,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                     onClick={handleLogout}
                     data-test="logout-button"
                 >
-                    <LogOut className="mr-2" />
+                    <LogOut className="mr-2 text-base" />
                     Log out
                 </button>
             </DropdownMenuItem>

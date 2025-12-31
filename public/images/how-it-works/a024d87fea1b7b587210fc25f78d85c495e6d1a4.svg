@@ -1,0 +1,10 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 3.39884 3.39884" fill="none" xmlns="http://www.w3.org/2000/svg">
+<foreignObject x="-25.4913" y="-25.4913" width="54.3815" height="54.3815"><div xmlns="http://www.w3.org/1999/xhtml" style="backdrop-filter:blur(12.75px);clip-path:url(#bgblur_0_6557_109410_clip_path);height:100%;width:100%"></div></foreignObject><g id="Arrow" data-figma-bg-blur-radius="25.4913">
+<rect x="0.0354046" y="0.0354046" width="3.32803" height="3.32803" rx="1.66402" fill="var(--fill-0, #F3E5C3)"/>
+<rect x="0.0354046" y="0.0354046" width="3.32803" height="3.32803" rx="1.66402" stroke="var(--stroke-0, #338078)" stroke-width="0.0708092" style="mix-blend-mode:luminosity"/>
+<path id="arrow" opacity="0.8" fill-rule="evenodd" clip-rule="evenodd" d="M1.69952 1.4238L2.34185 2.06077C2.38945 2.10792 2.46623 2.10792 2.51383 2.06077C2.53657 2.03831 2.54936 2.00767 2.54936 1.97571C2.54936 1.94375 2.53657 1.91311 2.51383 1.89064L1.78564 1.1686C1.73809 1.12131 1.66121 1.12131 1.61366 1.1686L0.88547 1.89061C0.86273 1.91311 0.849939 1.94375 0.849939 1.97571C0.849939 2.00767 0.86273 2.03831 0.88547 2.0608C0.933079 2.10792 1.00985 2.10792 1.05745 2.06074L1.69952 1.4238Z" fill="var(--fill-0, #338078)"/>
+</g>
+<defs>
+<clipPath id="bgblur_0_6557_109410_clip_path" transform="translate(25.4913 25.4913)"><rect x="0.0354046" y="0.0354046" width="3.32803" height="3.32803" rx="1.66402"/>
+</clipPath></defs>
+</svg>

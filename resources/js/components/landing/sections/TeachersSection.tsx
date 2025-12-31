@@ -1,23 +1,44 @@
+import { useState } from 'react';
 import { Icon } from '@iconify/react';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
+import { TeacherProfileModal } from '@/components/Teachers/TeacherProfileModal';
 
 interface TeacherCardProps {
+    id: number;
     name: string;
     specialty: string;
     rating: string;
     reviews: number;
     experience: string;
-    image: string;
+    image: string | null;
+    onViewProfile: (id: number) => void;
 }
 
-function TeacherCard({ name, specialty, rating, reviews, experience, image }: TeacherCardProps) {
+function TeacherCard({ id, name, specialty, rating, reviews, experience, image, onViewProfile }: TeacherCardProps) {
+    const { auth } = usePage<any>().props;
+    const user = auth?.user;
+
+    const getBookingUrl = () => {
+        if (!user) return `/book/${id}`;
+        if (user.role === 'student') return `/student/book/${id}`;
+        if (user.role === 'guardian') return `/guardian/book/${id}`;
+        return '/login';
+    };
+
+    const getProfileUrl = () => {
+        if (!user) return '/login';
+        if (user.role === 'student') return `/student/teachers/${id}`;
+        if (user.role === 'guardian') return `/guardian/teachers/${id}`;
+        return '/login';
+    };
+
     return (
         <div className="relative h-[clamp(16rem,20.57vw,18.511rem)] w-[clamp(12rem,14.9vw,13.407rem)]">
             {/* Rectangle 20 - Main Background (extends beyond card) */}
             <div className="absolute inset-[-1.87%_-4.52%_-3.43%_-4.52%]">
-                <img 
-                    src="/images/Rectangle 20.png" 
-                    alt="" 
+                <img
+                    src="/images/Rectangle 20.png"
+                    alt=""
                     className="size-full object-cover"
                 />
             </div>
@@ -26,19 +47,25 @@ function TeacherCard({ name, specialty, rating, reviews, experience, image }: Te
             <div className="absolute left-0 top-[clamp(0.5rem,0.77vw,0.691rem)] flex h-[clamp(15rem,19.95vw,17.949rem)] w-full flex-col items-center gap-[clamp(0.25rem,0.29vw,0.259rem)]">
                 {/* Teacher Image & Info */}
                 <div className="flex w-[clamp(6.5rem,8.35vw,7.517rem)] flex-col items-center gap-[clamp(0.5rem,0.77vw,0.691rem)]">
-                    <div className="h-[clamp(6rem,7.78vw,7rem)] w-[clamp(5rem,6.6vw,5.938rem)] overflow-hidden rounded-[clamp(1.5rem,2.43vw,2.188rem)]">
-                        <img 
-                            src={image} 
-                            alt={name}
-                            className="size-full object-cover object-center"
-                        />
+                    <div className="h-[clamp(6rem,7.78vw,7rem)] w-[clamp(5rem,6.6vw,5.938rem)] overflow-hidden rounded-[clamp(1.5rem,2.43vw,2.188rem)] bg-[#338078]/10 flex items-center justify-center">
+                        {image ? (
+                            <img
+                                src={image}
+                                alt={name}
+                                className="size-full object-cover object-center"
+                            />
+                        ) : (
+                            <span className="font-['Nunito'] font-bold text-[#338078] text-[24px]">
+                                {name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                            </span>
+                        )}
                     </div>
                     <div className="flex w-full flex-col items-center">
-                        <p className="w-full min-w-full font-['Nunito'] text-[clamp(0.75rem,0.96vw,0.863rem)] font-bold leading-normal text-black">
+                        <p className="w-full min-w-full font-['Nunito'] text-[clamp(0.75rem,0.96vw,0.863rem)] font-bold leading-normal text-black text-center truncate">
                             {name}
                         </p>
                         <div className="overflow-hidden rounded-[clamp(1rem,1.68vw,1.514rem)] px-[clamp(0.25rem,0.38vw,0.346rem)] py-[clamp(0.125rem,0.19vw,0.173rem)]">
-                            <p className="font-['Nunito'] text-[clamp(0.5rem,0.77vw,0.691rem)] font-normal leading-normal text-black">
+                            <p className="font-['Nunito'] text-[clamp(0.5rem,0.77vw,0.691rem)] font-normal leading-normal text-black text-center truncate">
                                 {specialty}
                             </p>
                         </div>
@@ -50,9 +77,9 @@ function TeacherCard({ name, specialty, rating, reviews, experience, image }: Te
                     {/* Rectangle 23 Background */}
                     <div className="[grid-area:1_/_1] z-0 h-[clamp(7rem,8.94vw,8.044rem)] w-full">
                         <div className="absolute bottom-[3.34%] left-0 right-0 top-0">
-                            <img 
-                                src="/images/Rectangle 23.png" 
-                                alt="" 
+                            <img
+                                src="/images/Rectangle 23.png"
+                                alt=""
                                 className="size-full object-cover"
                             />
                         </div>
@@ -65,7 +92,7 @@ function TeacherCard({ name, specialty, rating, reviews, experience, image }: Te
                             <div className="flex shrink-0 items-center rounded-[clamp(3rem,7.21vw,6.487rem)] bg-white px-[clamp(0.25rem,0.38vw,0.346rem)] py-[clamp(0.0625rem,0.1vw,0.086rem)]">
                                 <Icon icon="mdi:star" className="h-[clamp(0.75rem,1.15vw,1.038rem)] w-[clamp(0.75rem,1.15vw,1.038rem)] shrink-0 text-[#ffc633]" />
                                 <p className="font-['Nunito'] text-[clamp(0.45rem,0.58vw,0.519rem)] font-normal leading-normal text-[#353535]">
-                                    {rating}/5 ({reviews} Reviews)
+                                    {rating}/5 ({reviews})
                                 </p>
                             </div>
                             <p className="shrink-0 font-['Nunito'] text-[clamp(0.45rem,0.58vw,0.519rem)] font-normal leading-normal text-[#222222]">
@@ -75,14 +102,14 @@ function TeacherCard({ name, specialty, rating, reviews, experience, image }: Te
 
                         {/* Buttons */}
                         <div className="flex w-full items-center justify-between">
-                            <Link 
-                                href="#view-profile"
-                                className="flex shrink-0 items-center justify-center rounded-[clamp(1.5rem,3.89vw,3.5rem)] px-[clamp(0.75rem,1.15vw,1.038rem)] py-[clamp(0.375rem,0.58vw,0.519rem)] font-['Nunito'] text-[clamp(0.5rem,0.77vw,0.691rem)] font-medium capitalize text-[#338078] transition-colors hover:bg-white/30"
+                            <button
+                                onClick={() => onViewProfile(id)}
+                                className="flex shrink-0 items-center justify-center rounded-[clamp(1.5rem,3.89vw,3.5rem)] px-[clamp(0.75rem,1.15vw,1.038rem)] py-[clamp(0.375rem,0.58vw,0.519rem)] font-['Nunito'] text-[clamp(0.5rem,0.77vw,0.691rem)] font-medium capitalize text-[#338078] transition-colors hover:bg-white/30 cursor-pointer"
                             >
                                 View profile
-                            </Link>
-                            <Link 
-                                href="#book-now"
+                            </button>
+                            <Link
+                                href={getBookingUrl()}
                                 className="flex shrink-0 items-center justify-center rounded-[clamp(1.5rem,3.89vw,3.5rem)] bg-[#338078] px-[clamp(0.75rem,1.15vw,1.038rem)] py-[clamp(0.375rem,0.58vw,0.519rem)] font-['Nunito'] text-[clamp(0.5rem,0.77vw,0.691rem)] font-medium capitalize text-white transition-all hover:bg-[#2a6b64] hover:shadow-lg"
                             >
                                 Book Now
@@ -95,41 +122,26 @@ function TeacherCard({ name, specialty, rating, reviews, experience, image }: Te
     );
 }
 
-export default function TeachersSection() {
-    const teachers = [
-        {
-            name: 'Ustadh Ahmad Ali',
-            specialty: 'Tajweed & Hifz',
-            rating: '4.9',
-            reviews: 120,
-            experience: '7+ Years Exp.',
-            image: '/images/feature-student.png',
-        },
-        {
-            name: 'Ustadha Fatima',
-            specialty: 'Tajweed & Hifz',
-            rating: '4.9',
-            reviews: 120,
-            experience: '7+ Years Exp.',
-            image: '/images/feature-student.png',
-        },
-        {
-            name: 'Ustadh Ibrahim',
-            specialty: 'Tajweed & Hifz',
-            rating: '4.9',
-            reviews: 120,
-            experience: '7+ Years Exp.',
-            image: '/images/feature-student.png',
-        },
-        {
-            name: 'Ustadha Aisha',
-            specialty: 'Tajweed & Hifz',
-            rating: '4.9',
-            reviews: 120,
-            experience: '7+ Years Exp.',
-            image: '/images/feature-student.png',
-        },
-    ];
+interface TeachersSectionProps {
+    teachers?: {
+        id: number;
+        name: string;
+        specialty: string;
+        rating: string;
+        reviews: number;
+        experience: string;
+        image: string | null;
+    }[];
+}
+
+export default function TeachersSection({ teachers = [] }: TeachersSectionProps) {
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(null);
+
+    const handleViewProfile = (id: number) => {
+        setSelectedTeacherId(id);
+        setIsProfileModalOpen(true);
+    };
 
     return (
         <div className="relative flex w-full flex-col items-center gap-[clamp(2.5rem,4.17vw,3.75rem)] overflow-hidden px-[clamp(2rem,4.38vw,4rem)] py-[clamp(3rem,5.56vw,5rem)] mb-20">
@@ -157,11 +169,32 @@ export default function TeachersSection() {
             </p>
 
             {/* Teachers Grid */}
-            <div className=" z-10 flex flex-wrap items-start justify-center gap-[clamp(2rem,4.58vw,4.125rem)] pb-20">
-                {teachers.map((teacher, index) => (
-                    <TeacherCard key={index} {...teacher} />
-                ))}
-            </div>
+            {teachers && teachers.length > 0 ? (
+                <div className=" z-10 flex flex-wrap items-start justify-center gap-[clamp(2rem,4.58vw,4.125rem)] pb-20">
+                    {teachers.map((teacher, index) => (
+                        <TeacherCard key={index} {...teacher} onViewProfile={handleViewProfile} />
+                    ))}
+                </div>
+            ) : (
+                <div className="z-10 flex flex-col items-center justify-center py-12 text-center bg-white/50 backdrop-blur-sm rounded-[30px] px-8 border border-[#338078]/10 w-full max-w-4xl shadow-sm">
+                    <div className="bg-[#338078]/10 p-6 rounded-full mb-6">
+                        <Icon icon="hugeicons:teacher" className="h-12 w-12 text-[#338078]" />
+                    </div>
+                    <h3 className="font-['Nunito'] text-[24px] font-bold text-[#101928] mb-2">More Teachers Coming Soon!</h3>
+                    <p className="font-['Nunito'] text-[16px] text-[#667085] max-w-md">
+                        Our master tutors are currently being verified to ensure the highest quality of Quranic education for you.
+                    </p>
+                </div>
+            )}
+
+            {/* Teacher Profile Modal */}
+            {selectedTeacherId && (
+                <TeacherProfileModal
+                    isOpen={isProfileModalOpen}
+                    onClose={() => setIsProfileModalOpen(false)}
+                    teacherId={selectedTeacherId}
+                />
+            )}
         </div>
     );
 }

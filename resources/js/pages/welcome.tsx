@@ -1,5 +1,5 @@
 import LandingPage from './LandingPage';
 
-export default function Welcome() {
-    return <LandingPage />;
+export default function Welcome(props: any) {
+    return <LandingPage {...props} />;
 }

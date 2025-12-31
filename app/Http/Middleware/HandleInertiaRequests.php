@@ -40,7 +40,11 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
-            'name' => config('app.name'),
+            'site_name' => $siteName = \App\Models\SystemSetting::get('site_name', config('app.name')),
+            'site_logo' => \App\Models\SystemSetting::get('site_logo') 
+                ? asset('storage/' . \App\Models\SystemSetting::get('site_logo')) 
+                : null,
+            'name' => $siteName,
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),

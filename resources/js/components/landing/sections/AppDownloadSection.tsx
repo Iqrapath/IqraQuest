@@ -1,6 +1,19 @@
 import { Icon } from '@iconify/react';
+import { toast } from 'sonner';
 
 export default function AppDownloadSection() {
+    const handleGoogleComingSoon = (e: React.MouseEvent) => {
+        e.preventDefault();
+        toast.info("Coming Soon!", {
+          description: "Our Android app is currently under development.",
+        });
+    };
+    const handleAppleComingSoon = (e: React.MouseEvent) => {
+        e.preventDefault();
+        toast.info("Coming Soon!", {
+          description: "Our iOS app is currently under development.",
+        });
+    };
     return (
         <div className="relative min-h-[407px] w-full overflow-hidden bg-white py-[clamp(3rem,5vw,4rem)]">
             {/* Background Blur Effects */}
@@ -26,6 +39,7 @@ export default function AppDownloadSection() {
                     {/* Google Play Button */}
                     <a 
                         href="#google-play"
+                        onClick={handleGoogleComingSoon}
                         className="flex h-[78px] w-[234px] items-center gap-[clamp(0.75rem,1.11vw,1rem)] rounded-[16px] border border-[#a6a6a6] bg-black px-[10px] py-[4px] transition-transform hover:scale-105"
                     >
                         <Icon 
@@ -33,10 +47,10 @@ export default function AppDownloadSection() {
                         className="h-[46.8px] w-[40.95px] text-white" 
                         />
                         <div className="flex flex-col">
-                            <p className="font-['Product_Sans'] text-[19.5px] uppercase leading-normal text-white">
+                            <p className="font-['PT_Sans'] text-[19.5px] uppercase leading-normal text-white">
                                 GET IT ON
                             </p>
-                            <p className="font-['Product_Sans'] text-[29.25px] font-bold leading-none text-white">
+                            <p className="font-['PT_Sans'] text-[29.25px] font-bold leading-none text-white">
                                 Google Play
                             </p>
                         </div>
@@ -45,14 +59,15 @@ export default function AppDownloadSection() {
                     {/* App Store Button */}
                     <a 
                         href="#app-store"
+                        onClick={handleAppleComingSoon}
                         className="flex h-[78px] w-[234px] items-center gap-[clamp(0.75rem,1.11vw,1rem)] rounded-[16px] border border-[#a6a6a6] bg-black px-[10px] py-[4px] transition-transform hover:scale-105"
                     >
                         <Icon icon="mdi:apple" className="h-[46.8px] w-[39px] text-white" />
                         <div className="flex flex-col">
-                            <p className="font-['SF_Compact_Text'] text-[17.55px] leading-[17.55px] text-white">
+                            <p className="font-['PT_Sans'] text-[17.55px] leading-[17.55px] text-white">
                                 Download on the
                             </p>
-                            <p className="font-['SF_Compact_Display'] text-[35.1px] font-medium leading-none tracking-[-0.47px] text-white">
+                            <p className="font-['PT_Sans'] text-[35.1px] font-medium leading-none tracking-[-0.47px] text-white">
                                 App Store
                             </p>
                         </div>

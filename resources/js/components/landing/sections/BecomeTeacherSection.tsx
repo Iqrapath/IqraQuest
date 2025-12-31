@@ -57,7 +57,7 @@ export default function BecomeTeacherSection() {
 
                     {/* CTA Button */}
                     <Link 
-                        href="#become-teacher"
+                        href="/register/teacher"
                         className="w-fit rounded-[clamp(1.5rem,3.89vw,3.5rem)] bg-white px-[clamp(1rem,1.67vw,1.5rem)] py-[clamp(0.5rem,0.83vw,0.75rem)] font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium capitalize text-[#338078] transition-all hover:bg-gray-100 hover:shadow-lg"
                     >
                         Become a Teacher

@@ -14,13 +14,17 @@ import AppDownloadSection from '@/components/landing/sections/AppDownloadSection
 import CTASection from '@/components/landing/sections/CTASection';
 import ScrollToTop from '@/components/landing/ScrollToTop';
 
-export default function LandingPage() {
+interface Props {
+    teachers: any[];
+}
+
+export default function LandingPage({ teachers }: Props) {
     return (
         <>
             <Head title="IqraQuest - Connect with Expert Quran Teachers">
-                <meta 
-                    name="description" 
-                    content="Find expert Quran tutors for kids and adults. Learn at your own pace, anytime, anywhere with certified teachers." 
+                <meta
+                    name="description"
+                    content="Find expert Quran tutors for kids and adults. Learn at your own pace, anytime, anywhere with certified teachers."
                 />
                 <meta name="keywords" content="Quran teacher, online Quran classes, Quran tutor, learn Quran online, Islamic education" />
                 <meta property="og:title" content="IqraQuest - Connect with Expert Quran Teachers" />
@@ -28,9 +32,9 @@ export default function LandingPage() {
                 <meta property="og:type" content="website" />
                 <meta property="og:image" content="/images/og-image.png" />
                 <meta name="twitter:card" content="summary_large_image" />
-                <link 
-                    href="https://fonts.bunny.net/css?family=poppins:300,400,500,600,700|inter:400,500,600,700|nunito:400,500,600,700,800" 
-                    rel="stylesheet" 
+                <link
+                    href="https://fonts.bunny.net/css?family=poppins:300,400,500,600,700|inter:400,500,600,700|nunito:400,500,600,700,800"
+                    rel="stylesheet"
                 />
             </Head>
 
@@ -54,7 +58,7 @@ export default function LandingPage() {
 
                 {/* Teachers Section */}
                 <section>
-                    <TeachersSection />
+                    <TeachersSection teachers={teachers} />
                 </section>
 
                 {/* Memorization Plans Section */}
@@ -66,7 +70,7 @@ export default function LandingPage() {
                 <section>
                     <TestimonialsSection />
                 </section>
-                
+
                 {/* Become a Teacher Section */}
                 <section>
                     <BecomeTeacherSection />

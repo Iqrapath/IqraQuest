@@ -4,11 +4,24 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
-Route::get('/', function () {
-    return Inertia::render('welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
-    ]);
-})->name('home');
+Route::get('/', [\App\Http\Controllers\WelcomeController::class, 'index'])->name('home');
+
+// Find Teacher Page
+Route::get('/find-teacher', [\App\Http\Controllers\FindTeacherController::class, 'index'])->name('find-teacher');
+
+// How It Works Page
+Route::get('/how-it-works', [\App\Http\Controllers\HowItWorksController::class, 'index'])->name('how-it-works');
+
+// About Us Page
+Route::get('/about-us', [\App\Http\Controllers\AboutUsController::class, 'index'])->name('about-us');
+
+// Match Request API (Teacher Matching with Gemini)
+Route::post('/api/match-request', [\App\Http\Controllers\MatchRequestController::class, 'store'])->name('match-request.store');
+
+// Booking Gateway (Preserves intent after login)
+Route::get('/book/{teacher}', [\App\Http\Controllers\WelcomeController::class, 'bookTeacher'])
+    ->middleware('auth')
+    ->name('book.teacher');
 
 // Teacher Registration (Separate from default registration)
 // GET route allows both guest and authenticated (for showing modal after registration)

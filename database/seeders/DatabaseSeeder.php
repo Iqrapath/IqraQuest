@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
     {
         // Seed demo users with roles
         $this->call([
+            AdminSettingSeeder::class,
             RoleSeeder::class,
             SubjectSeeder::class,
             TeacherSeeder::class,

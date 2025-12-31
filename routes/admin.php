@@ -131,19 +131,28 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::delete('/{broadcast}', [\App\Http\Controllers\Admin\NotificationController::class, 'destroy'])->name('destroy');
     });
 
-    // Messages Routes
-    Route::prefix('messages')->name('messages.')->group(function () {
-        Route::get('/unread-count', [\App\Http\Controllers\MessageController::class, 'unreadCount'])->name('unread-count');
-        Route::get('/recent', [\App\Http\Controllers\MessageController::class, 'recent'])->name('recent');
-        Route::get('/', [\App\Http\Controllers\MessageController::class, 'index'])->name('index');
-        Route::post('/user/{user}', [\App\Http\Controllers\MessageController::class, 'startWithUser'])->name('start-with-user');
-        Route::get('/{conversation}', [\App\Http\Controllers\MessageController::class, 'show'])->name('show');
-        Route::post('/{conversation}', [\App\Http\Controllers\MessageController::class, 'store'])->name('store');
-        Route::post('/{conversation}/typing', [\App\Http\Controllers\MessageController::class, 'typing'])->name('typing');
-        Route::post('/{conversation}/read', [\App\Http\Controllers\MessageController::class, 'markAsRead'])->name('read');
-    });
+        // Messages Routes
+        Route::prefix('messages')->name('messages.')->group(function () {
+            Route::get('/unread-count', [\App\Http\Controllers\MessageController::class, 'unreadCount'])->name('unread-count');
+            Route::get('/recent', [\App\Http\Controllers\MessageController::class, 'recent'])->name('recent');
+            Route::get('/', [\App\Http\Controllers\MessageController::class, 'index'])->name('index');
+            Route::post('/user/{user}', [\App\Http\Controllers\MessageController::class, 'startWithUser'])->name('start-with-user');
+            Route::get('/{conversation}', [\App\Http\Controllers\MessageController::class, 'show'])->name('show');
+            Route::post('/{conversation}', [\App\Http\Controllers\MessageController::class, 'store'])->name('store');
+            Route::post('/{conversation}/typing', [\App\Http\Controllers\MessageController::class, 'typing'])->name('typing');
+            Route::post('/{conversation}/read', [\App\Http\Controllers\MessageController::class, 'markAsRead'])->name('read');
+        });
 
-    // Verification Requests Routes
+        // Settings & Security Routes
+        Route::prefix('settings')->name('settings.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('index');
+            Route::post('/general', [\App\Http\Controllers\Admin\SettingsController::class, 'updateGeneral'])->name('general.update');
+            Route::post('/features', [\App\Http\Controllers\Admin\SettingsController::class, 'updateFeatures'])->name('features.update');
+            Route::post('/roles', [\App\Http\Controllers\Admin\SettingsController::class, 'saveRole'])->name('roles.save');
+            Route::post('/admins', [\App\Http\Controllers\Admin\SettingsController::class, 'saveAdmin'])->name('admins.save');
+        });
+
+        // Verification Requests Routes
     Route::prefix('verifications')->name('verifications.')->group(function () {
         Route::get('/', [VerificationRequestController::class, 'index'])->name('index');
         Route::get('/{teacher}', [VerificationRequestController::class, 'show'])->name('show');

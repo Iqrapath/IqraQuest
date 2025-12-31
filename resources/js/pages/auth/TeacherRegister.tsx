@@ -84,7 +84,7 @@ export default function TeacherRegister() {
                             value={data.name}
                             onChange={(e) => setData('name', e.target.value)}
                             className={cn(
-                                'h-[45px] w-full rounded-[5px] border border-[#338078] bg-white px-[17px] font-["Gilroy"] text-[15px] text-[#080808] outline-none transition-colors',
+                                'h-[45px] w-full rounded-[5px] border border-[#338078] bg-white px-[17px] font-["Manrope"] text-[15px] text-[#080808] outline-none transition-colors',
                                 'focus:border-[#338078] focus:ring-2 focus:ring-[#338078]/20',
                                 errors.name && 'border-red-500',
                             )}
@@ -110,7 +110,7 @@ export default function TeacherRegister() {
                             value={data.email}
                             onChange={(e) => setData('email', e.target.value)}
                             className={cn(
-                                'h-[45px] w-full rounded-[5px] border border-[#338078] bg-white px-[17px] font-["Gilroy"] text-[15px] text-[#080808] outline-none transition-colors',
+                                'h-[45px] w-full rounded-[5px] border border-[#338078] bg-white px-[17px] font-["Manrope"] text-[15px] text-[#080808] outline-none transition-colors',
                                 'focus:border-[#338078] focus:ring-2 focus:ring-[#338078]/20',
                                 errors.email && 'border-red-500',
                             )}
@@ -137,7 +137,7 @@ export default function TeacherRegister() {
                                 value={data.password}
                                 onChange={(e) => setData('password', e.target.value)}
                                 className={cn(
-                                    'h-[45px] w-full rounded-[5px] border border-[#338078] bg-white px-[17px] pr-[50px] font-["Gilroy"] text-[15px] text-[#080808] outline-none transition-colors',
+                                    'h-[45px] w-full rounded-[5px] border border-[#338078] bg-white px-[17px] pr-[50px] font-["Manrope"] text-[15px] text-[#080808] outline-none transition-colors',
                                     'focus:border-[#338078] focus:ring-2 focus:ring-[#338078]/20',
                                     errors.password && 'border-red-500',
                                 )}
@@ -177,7 +177,7 @@ export default function TeacherRegister() {
                                     setData('password_confirmation', e.target.value)
                                 }
                                 className={cn(
-                                    'h-[45px] w-full rounded-[5px] border border-[#338078] bg-white px-[17px] pr-[50px] font-["Gilroy"] text-[15px] text-[#080808] outline-none transition-colors',
+                                    'h-[45px] w-full rounded-[5px] border border-[#338078] bg-white px-[17px] pr-[50px] font-["Manrope"] text-[15px] text-[#080808] outline-none transition-colors',
                                     'focus:border-[#338078] focus:ring-2 focus:ring-[#338078]/20',
                                 )}
                                 placeholder="Confirm your password"

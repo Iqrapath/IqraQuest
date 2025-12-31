@@ -7,7 +7,8 @@ interface AdminLeftSidebarProps {
 }
 
 export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProps = {}) {
-    const { url } = usePage();
+    const { url, props } = usePage<any>();
+    const { site_logo, site_name } = props;
 
     const mainMenuItems = [
         { name: 'Dashboard', icon: 'solar:widget-5-outline', route: '/admin/dashboard' },
@@ -73,8 +74,8 @@ export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProp
                 key={item.name}
                 href={item.route}
                 className={`flex items-center px-[16px] py-[10px] rounded-[8px] transition-all duration-200 group relative ${isActive(item.route)
-                        ? 'bg-[#F3E5C3]/50'
-                        : 'hover:bg-[#F3E5C3]/10'
+                    ? 'bg-[#F3E5C3]/50'
+                    : 'hover:bg-[#F3E5C3]/10'
                     }`}
             >
                 <div className="flex items-center gap-[12px] flex-1">

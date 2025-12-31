@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('google_id')->nullable();
             $table->string('facebook_id')->nullable();
             $table->string('role')->default(UserRole::STUDENT->value);
+            $table->foreignId('role_id')->nullable()->constrained('roles')->nullOnDelete();
             $table->string('phone')->nullable();
             $table->string('avatar')->nullable();
             $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');

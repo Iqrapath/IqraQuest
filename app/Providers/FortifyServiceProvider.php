@@ -64,8 +64,8 @@ class FortifyServiceProvider extends ServiceProvider
             // which listens to the Login event fired by Fortify
             
             // Check if there's an intended URL (e.g., email verification link)
-            if (session()->has('url.intended')) {
-                return redirect()->intended();
+            if ($intended = session()->pull('url.intended')) {
+                return $intended;
             }
             
             // If teacher hasn't completed onboarding, redirect to onboarding

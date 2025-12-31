@@ -1,16 +1,17 @@
+import { usePage } from '@inertiajs/react';
 import AppLogoIcon from './app-logo-icon';
 
 export default function AppLogo() {
+    const { site_name } = usePage<any>().props;
+
     return (
-        <>
-            <div className="">
-                <AppLogoIcon className="h-auto w-auto" />
-            </div>
-            {/* <div className="ml-1 grid flex-1 text-left text-sm">
-                <span className="mb-0.5 truncate leading-tight font-semibold">
-                    Laravel Starter Kit
+        <div className="flex items-center gap-2">
+            <AppLogoIcon className="h-8 w-auto" />
+            {/* <div className="flex flex-col text-left">
+                <span className="truncate leading-none font-bold text-[#101928] font-['Nunito'] text-[18px]">
+                    {site_name || 'IQRAQUEST'}
                 </span>
             </div> */}
-        </>
+        </div>
     );
 }

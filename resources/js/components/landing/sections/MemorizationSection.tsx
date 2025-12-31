@@ -1,6 +1,11 @@
 import { Link } from '@inertiajs/react';
+import { toast } from 'sonner';
 
 export default function MemorizationSection() {
+    const handleComingSoon = (e: React.MouseEvent) => {
+        e.preventDefault();
+        toast.info("Coming Soon! Our subscription and memorization plans are currently being finalized.");
+    };
     const features = [
         { number: '01', text: "Learn at your child's pace" },
         { number: '03', text: 'Earn a certificate upon completion' },
@@ -90,6 +95,7 @@ export default function MemorizationSection() {
                         <div className="flex flex-col items-stretch gap-[clamp(1rem,2vw,1.5rem)] lg:flex-row lg:items-center lg:gap-[clamp(0.5rem,0.56vw,0.5rem)]">
                             <Link
                                 href="#memorization-plans"
+                                onClick={handleComingSoon}
                                 className="rounded-full bg-[#338078] px-[20px] py-[10px] text-center font-['Nunito'] text-[clamp(1rem,1.67vw,1.5rem)] font-semibold capitalize text-white transition-all hover:bg-[#2a6b64] hover:shadow-lg"
                             >
                                 View Memorization Plans
@@ -102,6 +108,7 @@ export default function MemorizationSection() {
                                 </div>
                                 <Link
                                     href="#match-me"
+                                    onClick={handleComingSoon}
                                     className="rounded-full border-[1.5px] border-solid border-[#338078] px-[20px] py-[8px] text-center font-['Nunito'] text-[clamp(1rem,1.67vw,1.5rem)] font-semibold capitalize text-[#338078] transition-all hover:bg-[#338078] hover:text-white"
                                 >
                                     Match Me
