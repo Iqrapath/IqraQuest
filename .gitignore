@@ -28,3 +28,16 @@ yarn-error.log
 /.zed
 *.kiro
 test*.php
+
+# Documentation and test files (local only)
+.env.financial.example
+.env.security
+check_commission.php
+classroom_plan.md
+coding_rules.md
+FINANCIAL_BACKEND_ARCHITECTURE.md
+PAYMENT_GATEWAYS.md
+temp_log.txt
+test_escrow.php
+test_teachers.php
+test-banks.ps1
