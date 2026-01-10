@@ -48,7 +48,7 @@ class RescheduleRequestedNotification extends Notification implements ShouldQueu
                 return $message->line('**Reason:** ' . $this->rescheduleRequest->reason);
             })
             ->line('Please respond within 48 hours.')
-            ->action('View Request', url('/teacher/bookings'))
+            ->action('View Request', url('/teacher/requests'))
             ->line('JazakAllahu Khairan for your dedication to teaching!');
     }
 

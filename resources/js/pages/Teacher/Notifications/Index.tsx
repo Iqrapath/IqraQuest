@@ -163,7 +163,7 @@ export default function NotificationsIndex({ paginatedNotifications, paymentType
         <>
             <Head title="Notifications" />
 
-            <div className="max-w-3xl mx-auto px-4 py-6">
+            <div className="max-w-3xl px-4 py-6">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="font-['Nunito'] font-semibold text-[24px] text-black">

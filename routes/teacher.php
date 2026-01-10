@@ -60,6 +60,8 @@ Route::middleware(['auth', 'verified', 'role:teacher'])
             Route::get('/requests', [\App\Http\Controllers\Teacher\BookingController::class, 'index'])->name('requests.index');
             Route::post('/requests/{booking}/accept', [\App\Http\Controllers\Teacher\BookingController::class, 'accept'])->name('requests.accept');
             Route::post('/requests/{booking}/reject', [\App\Http\Controllers\Teacher\BookingController::class, 'reject'])->name('requests.reject');
+            Route::post('/requests/{booking}/reschedule/accept', [\App\Http\Controllers\Teacher\BookingController::class, 'acceptReschedule'])->name('requests.reschedule.accept');
+            Route::post('/requests/{booking}/reschedule/reject', [\App\Http\Controllers\Teacher\BookingController::class, 'rejectReschedule'])->name('requests.reschedule.reject');
 
             // Schedule & Availability Management
             Route::get('/schedule', [\App\Http\Controllers\Teacher\ScheduleController::class, 'index'])->name('schedule.index');

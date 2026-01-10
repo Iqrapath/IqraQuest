@@ -27,10 +27,13 @@ class SocialLoginController extends Controller
             abort(404);
         }
 
-        // Build the state with role if provided
+        // Build the state with role or context if provided
         $state = [];
         if ($request->has('role')) {
             $state['role'] = $request->role;
+        }
+        if ($request->has('context')) {
+            $state['context'] = $request->context;
         }
 
         // Use stateless mode with additional state parameters
@@ -57,12 +60,16 @@ class SocialLoginController extends Controller
             return redirect()->route('login')->with('error', 'Unable to login with ' . ucfirst($provider));
         }
 
-        // Extract role from state if present
+        // Extract role and context from state if present
         $role = null;
+        $context = null;
         if ($request->has('state')) {
             $stateData = json_decode(base64_decode($request->state), true);
             if (isset($stateData['role'])) {
                 $role = $stateData['role'];
+            }
+            if (isset($stateData['context'])) {
+                $context = $stateData['context'];
             }
         }
 
@@ -92,6 +99,7 @@ class SocialLoginController extends Controller
                 'name' => $socialUser->getName(),
                 'email' => $socialUser->getEmail(),
                 'avatar' => $socialUser->getAvatar(),
+                'context' => $context,
             ]);
 
             \Illuminate\Support\Facades\Log::info("New user without role. Redirecting to social role selection.");
@@ -118,6 +126,7 @@ class SocialLoginController extends Controller
             'name' => $socialData['name'],
             'email' => $socialData['email'],
             'avatar' => $socialData['avatar'],
+            'context' => $socialData['context'] ?? null,
         ]);
     }
 

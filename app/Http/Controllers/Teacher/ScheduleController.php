@@ -34,9 +34,9 @@ class ScheduleController extends Controller
                 'end_time' => $a->end_time ? substr($a->end_time, 0, 5) : null,
             ]);
 
-        // Get session counts
+        // Get session counts (Only confirmed sessions, rescheduling sessions are "on hold")
         $upcomingCount = Booking::where('teacher_id', $teacher->id)
-            ->whereIn('status', ['confirmed', 'rescheduling'])
+            ->where('status', 'confirmed')
             ->where('start_time', '>', now())
             ->count();
 
@@ -70,7 +70,7 @@ class ScheduleController extends Controller
             ->with(['student', 'subject']);
 
         if ($tab === 'upcoming') {
-            $query->whereIn('status', ['confirmed', 'rescheduling'])
+            $query->where('status', 'confirmed')
                 ->where('start_time', '>', now())
                 ->orderBy('start_time', 'asc');
         } else {
@@ -168,7 +168,30 @@ class ScheduleController extends Controller
             'availability.*.day_of_week' => 'required|string|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
             'availability.*.is_available' => 'required|boolean',
             'availability.*.start_time' => 'nullable|date_format:H:i',
-            'availability.*.end_time' => 'nullable|date_format:H:i|after:availability.*.start_time',
+            'availability.*.end_time' => [
+                'nullable',
+                'date_format:H:i',
+                'after:availability.*.start_time',
+                function ($attribute, $value, $fail) use ($request) {
+                    $index = explode('.', $attribute)[1];
+                    $avail = $request->input("availability.{$index}");
+                    if ($avail['is_available'] && !empty($avail['start_time']) && !empty($value)) {
+                        $startParts = explode(':', $avail['start_time']);
+                        $endParts = explode(':', $value);
+                        $startMin = (int)$startParts[0] * 60 + (int)$startParts[1];
+                        $endMin = (int)$endParts[0] * 60 + (int)$endParts[1];
+
+                        // Handle rollover (e.g. 23:00 to 00:00)
+                        if ($endMin < $startMin) {
+                            $endMin += 1440;
+                        }
+
+                        if (($endMin - $startMin) !== 60) {
+                            $fail("The duration for {$avail['day_of_week']} must be exactly 1 hour.");
+                        }
+                    }
+                }
+            ],
         ]);
 
         $teacher = Auth::user()->teacher;

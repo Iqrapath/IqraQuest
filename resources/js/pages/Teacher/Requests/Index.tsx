@@ -17,6 +17,7 @@ import { RequestActionModal } from './Components/RequestActionModal';
 
 interface Request {
     id: number;
+    status: string;
     student: {
         name: string;
         avatar: string;
@@ -31,6 +32,10 @@ interface Request {
     currency: string;
     days_requested: string;
     time_range: string;
+    is_reschedule?: boolean;
+    new_days_requested?: string;
+    new_time_range?: string;
+    reschedule_reason?: string;
 }
 
 interface Props {
@@ -99,10 +104,21 @@ export default function TeacherRequestsIndex({ requests, subjects }: Props) {
     const handleConfirmAction = () => {
         if (!actionModal.requestId) return;
 
+        const request = requests.find(r => r.id === actionModal.requestId);
+        if (!request) return;
+
         setIsProcessing(true);
-        const url = actionModal.type === 'accept'
-            ? `/teacher/requests/${actionModal.requestId}/accept`
-            : `/teacher/requests/${actionModal.requestId}/reject`;
+        let url = '';
+
+        if (request.status === 'rescheduling') {
+            url = actionModal.type === 'accept'
+                ? `/teacher/requests/${actionModal.requestId}/reschedule/accept`
+                : `/teacher/requests/${actionModal.requestId}/reschedule/reject`;
+        } else {
+            url = actionModal.type === 'accept'
+                ? `/teacher/requests/${actionModal.requestId}/accept`
+                : `/teacher/requests/${actionModal.requestId}/reject`;
+        }
 
         router.post(url, {}, {
             onFinish: () => {
@@ -269,14 +285,40 @@ export default function TeacherRequestsIndex({ requests, subjects }: Props) {
 
                                 {/* Details Grid */}
                                 <div className="space-y-3 mb-6">
-                                    <div className="grid grid-cols-[100px_1fr] gap-2 text-sm">
-                                        <span className="text-gray-400">Requested Days</span>
-                                        <span className="font-medium text-gray-800">{request.days_requested}</span>
-                                    </div>
-                                    <div className="grid grid-cols-[100px_1fr] gap-2 text-sm">
-                                        <span className="text-gray-400">Time</span>
-                                        <span className="font-medium text-gray-800">{request.time_range}</span>
-                                    </div>
+                                    {request.status === 'rescheduling' ? (
+                                        <div className="bg-[#f0f9ff] border border-[#bae6fd] rounded-xl p-3 mb-2">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Icon icon="mdi:calendar-clock" className="text-[#0369a1] w-4 h-4" />
+                                                <span className="text-xs font-bold text-[#0369a1] uppercase">Reschedule Request</span>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="grid grid-cols-[80px_1fr] gap-2 text-xs">
+                                                    <span className="text-gray-400">Original</span>
+                                                    <span className="text-gray-500 line-through">{request.days_requested} • {request.time_range}</span>
+                                                </div>
+                                                <div className="grid grid-cols-[80px_1fr] gap-2 text-xs">
+                                                    <span className="text-[#0369a1] font-bold">New Time</span>
+                                                    <span className="text-[#1e40af] font-bold">{request.new_days_requested} • {request.new_time_range}</span>
+                                                </div>
+                                                {request.reschedule_reason && (
+                                                    <div className="mt-2 pt-2 border-t border-[#bae6fd]">
+                                                        <p className="text-[11px] text-[#0369a1] italic">"{request.reschedule_reason}"</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="grid grid-cols-[100px_1fr] gap-2 text-sm">
+                                                <span className="text-gray-400">Requested Days</span>
+                                                <span className="font-medium text-gray-800">{request.days_requested}</span>
+                                            </div>
+                                            <div className="grid grid-cols-[100px_1fr] gap-2 text-sm">
+                                                <span className="text-gray-400">Time</span>
+                                                <span className="font-medium text-gray-800">{request.time_range}</span>
+                                            </div>
+                                        </>
+                                    )}
                                     <div className="grid grid-cols-[100px_1fr] gap-2 text-sm">
                                         <span className="text-gray-400">Subject</span>
                                         <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold inline-block w-fit">
@@ -297,13 +339,13 @@ export default function TeacherRequestsIndex({ requests, subjects }: Props) {
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => handleDecline(request.student.name, request.id)}
-                                            className="px-4 py-2 rounded-full border border-[#358D83] text-[#358D83] font-bold text-sm hover:bg-teal-50 transition-colors"
+                                            className="px-4 py-2 rounded-full border border-[#358D83] text-[#358D83] font-bold text-sm hover:bg-teal-50 transition-colors cursor-pointer"
                                         >
                                             Decline
                                         </button>
                                         <button
                                             onClick={() => handleAccept(request.student.name, request.id)}
-                                            className="px-6 py-2 rounded-full bg-[#358D83] text-white font-bold text-sm hover:bg-[#2b756d] transition-colors shadow-lg shadow-teal-900/10"
+                                            className="px-6 py-2 rounded-full bg-[#358D83] text-white font-bold text-sm hover:bg-[#2b756d] transition-colors shadow-lg shadow-teal-900/10 cursor-pointer"
                                         >
                                             Accept
                                         </button>

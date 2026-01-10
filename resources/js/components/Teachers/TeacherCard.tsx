@@ -124,7 +124,7 @@ export const TeacherCard: React.FC<TeacherCardProps> = ({
                 {/* Availability */}
                 <div className="mb-3 flex items-center justify-center gap-1 text-xs sm:items-baseline sm:justify-start">
                     <span className="flex-shrink-0 text-gray-500">Availability:</span>
-                    <span className="truncate font-semibold text-gray-900">
+                    <span className="font-semibold text-gray-900">
                         {teacher.availability_summary || "Flexible schedule"}
                     </span>
                 </div>

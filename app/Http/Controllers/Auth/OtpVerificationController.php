@@ -46,6 +46,7 @@ class OtpVerificationController extends Controller
 
         return Inertia::render('auth/verify-otp', [
             'hasValidOtp' => $hasValidOtp,
+            'email' => $request->user()->email,
         ]);
     }
 
@@ -149,5 +150,29 @@ class OtpVerificationController extends Controller
         $request->user()->notify(new EmailVerificationOtpNotification($otpCode, $expiryMinutes));
 
         return back()->with('status', 'verification-otp-sent');
+    }
+
+    public function updateEmail(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'email' => ['required', 'string', 'email:rfc,dns', 'max:255', 'unique:users'],
+        ]);
+
+        $user = $request->user();
+
+        // Only allow updating if not verified
+        if ($user->hasVerifiedEmail()) {
+            return redirect()->route('dashboard');
+        }
+
+        $user->update(['email' => $request->email]);
+
+        // Clear OTP rate limiting for this user to allow resend
+        RateLimiter::clear('otp-resend:' . $user->id);
+
+        // Generate and send new OTP
+        $this->resend($request);
+
+        return back()->with('success', 'Email updated successfully and a new code has been sent!');
     }
 }

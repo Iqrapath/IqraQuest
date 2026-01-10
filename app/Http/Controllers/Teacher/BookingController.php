@@ -8,6 +8,8 @@ use App\Models\Subject;
 use App\Models\Transaction;
 use App\Notifications\BookingConfirmedNotification;
 use App\Notifications\BookingRejectedNotification;
+use App\Notifications\RescheduleApprovedNotification;
+use App\Notifications\RescheduleRejectedNotification;
 use App\Services\EscrowService;
 use App\Services\WalletService;
 use Illuminate\Http\Request;
@@ -31,17 +33,22 @@ class BookingController extends Controller
         $teacher = Auth::user()->teacher;
 
         $requests = Booking::where('teacher_id', $teacher->id)
-            ->where('status', 'awaiting_approval')
-            ->with(['student', 'subject'])
+            ->whereIn('status', ['awaiting_approval', 'rescheduling'])
+            ->with(['student', 'subject', 'rescheduleRequests' => function($query) {
+                $query->where('status', 'pending')->latest();
+            }])
             ->orderBy('start_time', 'asc')
             ->get()
             ->map(function ($booking) {
+                $reschedule = $booking->status === 'rescheduling' ? $booking->rescheduleRequests->first() : null;
+                
                 return [
                     'id' => $booking->id,
+                    'status' => $booking->status,
                     'student' => [
                         'name' => $booking->student->name,
                         'avatar' => $booking->student->avatar,
-                        'level' => 'Intermediate', // Placeholder or add Relationship
+                        'level' => 'Intermediate',
                     ],
                     'subject' => [
                         'name' => $booking->subject->name,
@@ -50,8 +57,16 @@ class BookingController extends Controller
                     'end_time' => $booking->end_time,
                     'total_price' => $booking->total_price,
                     'currency' => $booking->currency,
-                    'days_requested' => $booking->start_time->format('l, M j'), // e.g. Monday, Dec 20
+                    'days_requested' => $booking->start_time->format('l, M j'),
                     'time_range' => $booking->start_time->format('h:i A') . ' - ' . $booking->end_time->format('h:i A'),
+                    // Reschedule specific data
+                    'is_reschedule' => $booking->status === 'rescheduling',
+                    'reschedule_id' => $reschedule?->id,
+                    'new_start_time' => $reschedule?->new_start_time,
+                    'new_end_time' => $reschedule?->new_end_time,
+                    'reschedule_reason' => $reschedule?->reason,
+                    'new_days_requested' => $reschedule?->new_start_time?->format('l, M j'),
+                    'new_time_range' => $reschedule ? ($reschedule->new_start_time->format('h:i A') . ' - ' . $reschedule->new_end_time->format('h:i A')) : null,
                 ];
             });
 
@@ -107,5 +122,69 @@ class BookingController extends Controller
         });
 
         return back()->with('success', 'Booking declined and refund processed.');
+    }
+
+    public function acceptReschedule(Booking $booking)
+    {
+        // Security check
+        if ($booking->teacher_id !== Auth::user()->teacher->id) {
+            abort(403);
+        }
+
+        if ($booking->status !== 'rescheduling') {
+            return back()->with('error', 'This booking is not in rescheduling status.');
+        }
+
+        $rescheduleRequest = $booking->rescheduleRequests()->where('status', 'pending')->latest()->first();
+        if (!$rescheduleRequest) {
+            return back()->with('error', 'No pending reschedule request found.');
+        }
+
+        DB::transaction(function () use ($booking, $rescheduleRequest) {
+            // 1. Update Booking
+            $booking->update([
+                'start_time' => $rescheduleRequest->new_start_time,
+                'end_time' => $rescheduleRequest->new_end_time,
+                'status' => 'confirmed'
+            ]);
+
+            // 2. Update Reschedule Request
+            $rescheduleRequest->update(['status' => 'approved']);
+
+            // 3. Notify Student
+            $booking->student->notify(new RescheduleApprovedNotification($rescheduleRequest));
+        });
+
+        return back()->with('success', 'Reschedule request accepted.');
+    }
+
+    public function rejectReschedule(Booking $booking)
+    {
+        // Security check
+        if ($booking->teacher_id !== Auth::user()->teacher->id) {
+            abort(403);
+        }
+
+        if ($booking->status !== 'rescheduling') {
+            return back()->with('error', 'This booking is not in rescheduling status.');
+        }
+
+        $rescheduleRequest = $booking->rescheduleRequests()->where('status', 'pending')->latest()->first();
+        if (!$rescheduleRequest) {
+            return back()->with('error', 'No pending reschedule request found.');
+        }
+
+        DB::transaction(function () use ($booking, $rescheduleRequest) {
+            // 1. Update Booking (back to confirmed)
+            $booking->update(['status' => 'confirmed']);
+
+            // 2. Update Reschedule Request
+            $rescheduleRequest->update(['status' => 'rejected']);
+
+            // 3. Notify Student
+            $booking->student->notify(new RescheduleRejectedNotification($rescheduleRequest));
+        });
+
+        return back()->with('success', 'Reschedule request declined.');
     }
 }

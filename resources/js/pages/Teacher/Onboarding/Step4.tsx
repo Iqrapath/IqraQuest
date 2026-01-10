@@ -344,7 +344,7 @@ export default function Step4({ teacher }: Props) {
                                     <div>
                                         <label className="block text-[#170F49] text-[14px] mb-1">Account Number</label>
                                         <input
-                                            type="text"
+                                            type="number"
                                             value={data.account_number}
                                             onChange={(e) => setData('account_number', e.target.value)}
                                             className="w-full h-[42px] px-[14px] border border-[#9E9E9E] rounded-[5px]"

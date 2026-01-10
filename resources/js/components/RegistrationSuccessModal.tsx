@@ -30,7 +30,7 @@ export default function RegistrationSuccessModal({
             <div className="relative flex w-full max-w-[500px] flex-col items-center gap-[24px] rounded-[32px] bg-white px-[48px] py-[88px] shadow-2xl">
                 {/* Logo */}
                 <div className="flex items-center">
-                    <AppLogoIcon className="h-[25px] w-[35px] fill-current text-[#317b74]" />
+                    <AppLogoIcon />
                 </div>
 
                 {/* Success Icon with decorative squares */}

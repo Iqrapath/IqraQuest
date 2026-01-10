@@ -9,7 +9,7 @@ use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class WelcomeTeacherNotification extends Notification implements ShouldBroadcastNow
+class WelcomeTeacherNotification extends Notification implements ShouldBroadcastNow, ShouldQueue
 {
     use Queueable;
 

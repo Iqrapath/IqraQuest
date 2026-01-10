@@ -13,6 +13,16 @@ use Illuminate\Notifications\Notification;
 class TeacherApplicationReceivedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
+    
+    /**
+     * The number of times the job may be attempted.
+     */
+    public $tries = 5;
+
+    /**
+     * The number of seconds to wait before retrying the job.
+     */
+    public $backoff = 30;
 
     /**
      * Create a new notification instance.

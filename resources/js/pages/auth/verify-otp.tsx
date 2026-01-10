@@ -11,13 +11,19 @@ import { logout } from '@/routes';
 interface VerifyOtpProps {
     hasValidOtp: boolean;
     status?: string;
+    email: string;
 }
 
-export default function VerifyOtp({ hasValidOtp, status }: VerifyOtpProps) {
+export default function VerifyOtp({ hasValidOtp, status, email }: VerifyOtpProps) {
     const [value, setValue] = useState('');
     const [resendCooldown, setResendCooldown] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isEditingEmail, setIsEditingEmail] = useState(false);
+
     const { post: resendPost, processing: resending } = useForm();
+    const { data: emailData, setData: setEmailData, post: updateEmailPost, processing: updatingEmail, errors: emailErrors } = useForm({
+        email: email,
+    });
 
     // Countdown timer for resend button
     useEffect(() => {
@@ -77,6 +83,16 @@ export default function VerifyOtp({ hasValidOtp, status }: VerifyOtpProps) {
         }
     }, [status]);
 
+    const handleUpdateEmail = (e: React.FormEvent) => {
+        e.preventDefault();
+        updateEmailPost('/email/verify/otp/update-email', {
+            onSuccess: () => {
+                setIsEditingEmail(false);
+                toast.success('Email updated successfully!');
+            },
+        });
+    };
+
     return (
         <AuthLayout
             title="Verify Your Account"
@@ -94,8 +110,40 @@ export default function VerifyOtp({ hasValidOtp, status }: VerifyOtpProps) {
                         Enter Verification Code
                     </h2>
                     <p className="font-['Inter'] text-[#64748b] text-[15px] leading-relaxed max-w-[320px]">
-                        The code was sent to your registered email address and expires in 10 minutes.
+                        The code was sent to <span className="font-bold text-[#1a1d56]">{email}</span> and expires in 10 minutes.
                     </p>
+
+                    <button
+                        onClick={() => setIsEditingEmail(!isEditingEmail)}
+                        className="text-[#338078] text-xs font-semibold uppercase tracking-wider hover:text-[#2a6b64] transition-colors cursor-pointer hover:underline"
+                    >
+                        {isEditingEmail ? 'Close Editor' : 'Edit Email Address'}
+                    </button>
+
+                    {isEditingEmail && (
+                        <form onSubmit={handleUpdateEmail} className="w-full max-w-[300px] flex flex-col gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <div className="flex gap-2">
+                                <input
+                                    type="email"
+                                    value={emailData.email}
+                                    onChange={e => setEmailData('email', e.target.value)}
+                                    className={`flex-1 px-3 py-2 rounded-lg border text-sm outline-none transition-all ${emailErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-200 focus:border-[#338078] focus:ring-2 focus:ring-[#338078]/10'}`}
+                                    placeholder="Enter correct email"
+                                    required
+                                />
+                                <Button
+                                    type="submit"
+                                    disabled={updatingEmail}
+                                    className="h-auto py-2 bg-[#338078] text-white hover:bg-[#2a6b64]"
+                                >
+                                    {updatingEmail ? <Spinner className="w-4 h-4" /> : 'Update'}
+                                </Button>
+                            </div>
+                            {emailErrors.email && (
+                                <p className="text-[11px] text-red-500 font-medium pl-1">{emailErrors.email}</p>
+                            )}
+                        </form>
+                    )}
                 </div>
 
                 {/* OTP Input Section */}
@@ -133,8 +181,8 @@ export default function VerifyOtp({ hasValidOtp, status }: VerifyOtpProps) {
                             type="submit"
                             disabled={resending || resendCooldown > 0}
                             className={`w-full py-7 rounded-[18px] font-['Nunito'] font-bold text-[16px] transition-all shadow-lg ${resendCooldown > 0
-                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
-                                    : 'bg-[#338078] text-white hover:bg-[#2a6b64] hover:shadow-[#338078]/20'
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                                : 'bg-[#338078] text-white hover:bg-[#2a6b64] hover:shadow-[#338078]/20'
                                 }`}
                         >
                             {resending ? (
@@ -156,7 +204,7 @@ export default function VerifyOtp({ hasValidOtp, status }: VerifyOtpProps) {
                     <div className="flex items-center justify-between px-2 text-[14px]">
                         <button
                             onClick={() => router.get(logout())}
-                            className="text-[#64748b] hover:text-[#1a1d56] font-medium flex items-center gap-1.5 transition-colors"
+                            className="text-[#64748b] hover:text-[#1a1d56] font-medium flex items-center gap-1.5 transition-colors cursor-pointer hover:underline"
                         >
                             <Icon icon="solar:logout-2-linear" className="w-4 h-4" />
                             Log out

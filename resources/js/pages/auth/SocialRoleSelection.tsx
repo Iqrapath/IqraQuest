@@ -8,9 +8,10 @@ interface SocialRoleSelectionProps {
     name: string;
     email: string;
     avatar?: string;
+    context?: string;
 }
 
-export default function SocialRoleSelection({ name, email, avatar }: SocialRoleSelectionProps) {
+export default function SocialRoleSelection({ name, email, avatar, context }: SocialRoleSelectionProps) {
     const [selectedRole, setSelectedRole] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [avatarError, setAvatarError] = useState(false);
@@ -39,9 +40,9 @@ export default function SocialRoleSelection({ name, email, avatar }: SocialRoleS
                     {/* User Info */}
                     <div className="flex flex-col items-center gap-4">
                         {showAvatar ? (
-                            <img 
-                                src={avatar} 
-                                alt={name} 
+                            <img
+                                src={avatar}
+                                alt={name}
                                 className="h-20 w-20 rounded-full border-4 border-[#338078]/20 object-cover"
                                 referrerPolicy="no-referrer"
                                 onError={() => setAvatarError(true)}
@@ -123,30 +124,32 @@ export default function SocialRoleSelection({ name, email, avatar }: SocialRoleS
                             </div>
                         </button>
 
-                        {/* Teacher Option */}
-                        <button
-                            type="button"
-                            onClick={() => handleRoleSubmit('teacher')}
-                            disabled={isSubmitting}
-                            className={cn(
-                                "flex w-full items-center gap-[14px] rounded-[16px] border-[1.5px] border-[#eff0f6] bg-white p-[20px] shadow-[0px_2px_6px_0px_rgba(19,18,66,0.07)] transition-all",
-                                "hover:border-[#338078] hover:shadow-[0px_4px_12px_0px_rgba(51,128,120,0.15)]",
-                                selectedRole === 'teacher' && isSubmitting && "opacity-50 cursor-wait",
-                                "disabled:cursor-not-allowed"
-                            )}
-                        >
-                            <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-full bg-[#F0F5FF]">
-                                <Icon icon="mdi:teach" className="h-7 w-7 text-[#3B82F6]" />
-                            </div>
-                            <div className="flex flex-col items-start gap-1">
-                                <p className="font-['Nunito'] text-[16px] font-bold text-[#170f49]">
-                                    I'm a Teacher
-                                </p>
-                                <p className="font-['Nunito'] text-[13px] font-normal text-[#6f6c90]">
-                                    Share knowledge and teach Quran online
-                                </p>
-                            </div>
-                        </button>
+                        {/* Teacher Option - Only show if not in student-guardian context */}
+                        {context !== 'student-guardian' && (
+                            <button
+                                type="button"
+                                onClick={() => handleRoleSubmit('teacher')}
+                                disabled={isSubmitting}
+                                className={cn(
+                                    "flex w-full items-center gap-[14px] rounded-[16px] border-[1.5px] border-[#eff0f6] bg-white p-[20px] shadow-[0px_2px_6px_0px_rgba(19,18,66,0.07)] transition-all",
+                                    "hover:border-[#338078] hover:shadow-[0px_4px_12px_0px_rgba(51,128,120,0.15)]",
+                                    selectedRole === 'teacher' && isSubmitting && "opacity-50 cursor-wait",
+                                    "disabled:cursor-not-allowed"
+                                )}
+                            >
+                                <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-full bg-[#F0F5FF]">
+                                    <Icon icon="mdi:teach" className="h-7 w-7 text-[#3B82F6]" />
+                                </div>
+                                <div className="flex flex-col items-start gap-1">
+                                    <p className="font-['Nunito'] text-[16px] font-bold text-[#170f49]">
+                                        I'm a Teacher
+                                    </p>
+                                    <p className="font-['Nunito'] text-[13px] font-normal text-[#6f6c90]">
+                                        Share knowledge and teach Quran online
+                                    </p>
+                                </div>
+                            </button>
+                        )}
                     </div>
 
                     {/* Footer Note */}

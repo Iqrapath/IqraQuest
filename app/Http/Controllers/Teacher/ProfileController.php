@@ -59,7 +59,30 @@ class ProfileController extends Controller
             'availability.*.day_of_week' => 'required_with:availability|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
             'availability.*.is_available' => 'required_with:availability|boolean',
             'availability.*.start_time' => 'required_with:availability|nullable|date_format:H:i',
-            'availability.*.end_time' => 'required_with:availability|nullable|date_format:H:i',
+            'availability.*.end_time' => [
+                'required_with:availability',
+                'nullable',
+                'date_format:H:i',
+                function ($attribute, $value, $fail) use ($request) {
+                    $index = explode('.', $attribute)[1];
+                    $avail = $request->input("availability.{$index}");
+                    if (!empty($avail['is_available']) && !empty($avail['start_time']) && !empty($value)) {
+                        $startParts = explode(':', $avail['start_time']);
+                        $endParts = explode(':', $value);
+                        $startMin = (int)$startParts[0] * 60 + (int)$startParts[1];
+                        $endMin = (int)$endParts[0] * 60 + (int)$endParts[1];
+
+                        // Handle rollover (e.g. 23:00 to 00:00)
+                        if ($endMin < $startMin) {
+                            $endMin += 1440;
+                        }
+
+                        if (($endMin - $startMin) !== 60) {
+                            $fail('The availability duration must be exactly 1 hour.');
+                        }
+                    }
+                }
+            ],
         ]);
 
         DB::transaction(function () use ($user, $teacher, $validated, $request) {

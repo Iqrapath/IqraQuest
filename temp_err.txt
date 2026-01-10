@@ -1,0 +1,54 @@
+= """
+  Symfony\Component\Mailer\Exception\UnexpectedResponseException: Expected response code "354" but got code "550", with message "550 5.7.0 Too many emails per second. Please upgrade your plan https://mailtrap.io/billing/plans/testing". in C:\xampp\htdocs\IqraQuest\vendor\symfony\mailer\Transport\Smtp\SmtpTransport.php:331\n
+  Stack trace:\n
+  #0 C:\xampp\htdocs\IqraQuest\vendor\symfony\mailer\Transport\Smtp\SmtpTransport.php(187): Symfony\Component\Mailer\Transport\Smtp\SmtpTransport->assertResponseCode()\n
+  #1 C:\xampp\htdocs\IqraQuest\vendor\symfony\mailer\Transport\Smtp\EsmtpTransport.php(150): Symfony\Component\Mailer\Transport\Smtp\SmtpTransport->executeCommand()\n
+  #2 C:\xampp\htdocs\IqraQuest\vendor\symfony\mailer\Transport\Smtp\SmtpTransport.php(209): Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport->executeCommand()\n
+  #3 C:\xampp\htdocs\IqraQuest\vendor\symfony\mailer\Transport\AbstractTransport.php(69): Symfony\Component\Mailer\Transport\Smtp\SmtpTransport->doSend()\n
+  #4 C:\xampp\htdocs\IqraQuest\vendor\symfony\mailer\Transport\Smtp\SmtpTransport.php(138): Symfony\Component\Mailer\Transport\AbstractTransport->send()\n
+  #5 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Mail\Mailer.php(584): Symfony\Component\Mailer\Transport\Smtp\SmtpTransport->send()\n
+  #6 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Mail\Mailer.php(331): Illuminate\Mail\Mailer->sendSymfonyMessage()\n
+  #7 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Notifications\Channels\MailChannel.php(66): Illuminate\Mail\Mailer->send()\n
+  #8 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Notifications\NotificationSender.php(163): Illuminate\Notifications\Channels\MailChannel->send()\n
+  #9 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Notifications\NotificationSender.php(118): Illuminate\Notifications\NotificationSender->sendToNotifiable()\n
+  #10 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Support\Traits\Localizable.php(19): Illuminate\Notifications\NotificationSender->{closure:Illuminate\Notifications\NotificationSender::sendNow():113}()\n
+  #11 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Notifications\NotificationSender.php(113): Illuminate\Notifications\NotificationSender->withLocale()\n
+  #12 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Notifications\ChannelManager.php(54): Illuminate\Notifications\NotificationSender->sendNow()\n
+  #13 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Notifications\SendQueuedNotifications.php(118): Illuminate\Notifications\ChannelManager->sendNow()\n
+  #14 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Container\BoundMethod.php(36): Illuminate\Notifications\SendQueuedNotifications->handle()\n
+  #15 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Container\Util.php(43): Illuminate\Container\BoundMethod::{closure:Illuminate\Container\BoundMethod::call():35}()\n
+  #16 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Container\BoundMethod.php(96): Illuminate\Container\Util::unwrapIfClosure()\n
+  #17 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Container\BoundMethod.php(35): Illuminate\Container\BoundMethod::callBoundMethod()\n
+  #18 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Container\Container.php(836): Illuminate\Container\BoundMethod::call()\n
+  #19 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Bus\Dispatcher.php(129): Illuminate\Container\Container->call()\n
+  #20 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(180): Illuminate\Bus\Dispatcher->{closure:Illuminate\Bus\Dispatcher::dispatchNow():126}()\n
+  #21 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(137): Illuminate\Pipeline\Pipeline->{closure:Illuminate\Pipeline\Pipeline::prepareDestination():178}()\n
+  #22 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Bus\Dispatcher.php(133): Illuminate\Pipeline\Pipeline->then()\n
+  #23 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Queue\CallQueuedHandler.php(134): Illuminate\Bus\Dispatcher->dispatchNow()\n
+  #24 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(180): Illuminate\Queue\CallQueuedHandler->{closure:Illuminate\Queue\CallQueuedHandler::dispatchThroughMiddleware():127}()\n
+  #25 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Pipeline\Pipeline.php(137): Illuminate\Pipeline\Pipeline->{closure:Illuminate\Pipeline\Pipeline::prepareDestination():178}()\n
+  #26 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Queue\CallQueuedHandler.php(127): Illuminate\Pipeline\Pipeline->then()\n
+  #27 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Queue\CallQueuedHandler.php(68): Illuminate\Queue\CallQueuedHandler->dispatchThroughMiddleware()\n
+  #28 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Queue\Jobs\Job.php(102): Illuminate\Queue\CallQueuedHandler->call()\n
+  #29 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Queue\Worker.php(469): Illuminate\Queue\Jobs\Job->fire()\n
+  #30 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Queue\Worker.php(419): Illuminate\Queue\Worker->process()\n
+  #31 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Queue\Worker.php(187): Illuminate\Queue\Worker->runJob()\n
+  #32 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Queue\Console\WorkCommand.php(148): Illuminate\Queue\Worker->daemon()\n
+  #33 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Queue\Console\WorkCommand.php(131): Illuminate\Queue\Console\WorkCommand->runWorker()\n
+  #34 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Container\BoundMethod.php(36): Illuminate\Queue\Console\WorkCommand->handle()\n
+  #35 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Container\Util.php(43): Illuminate\Container\BoundMethod::{closure:Illuminate\Container\BoundMethod::call():35}()\n
+  #36 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Container\BoundMethod.php(96): Illuminate\Container\Util::unwrapIfClosure()\n
+  #37 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Container\BoundMethod.php(35): Illuminate\Container\BoundMethod::callBoundMethod()\n
+  #38 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Container\Container.php(836): Illuminate\Container\BoundMethod::call()\n
+  #39 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Console\Command.php(211): Illuminate\Container\Container->call()\n
+  #40 C:\xampp\htdocs\IqraQuest\vendor\symfony\console\Command\Command.php(318): Illuminate\Console\Command->execute()\n
+  #41 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Console\Command.php(180): Symfony\Component\Console\Command\Command->run()\n
+  #42 C:\xampp\htdocs\IqraQuest\vendor\symfony\console\Application.php(1073): Illuminate\Console\Command->run()\n
+  #43 C:\xampp\htdocs\IqraQuest\vendor\symfony\console\Application.php(356): Symfony\Component\Console\Application->doRunCommand()\n
+  #44 C:\xampp\htdocs\IqraQuest\vendor\symfony\console\Application.php(195): Symfony\Component\Console\Application->doRun()\n
+  #45 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Foundation\Console\Kernel.php(197): Symfony\Component\Console\Application->run()\n
+  #46 C:\xampp\htdocs\IqraQuest\vendor\laravel\framework\src\Illuminate\Foundation\Application.php(1235): Illuminate\Foundation\Console\Kernel->handle()\n
+  #47 C:\xampp\htdocs\IqraQuest\artisan(16): Illuminate\Foundation\Application->handleCommand()\n
+  #48 {main}
+  """
+

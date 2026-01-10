@@ -1,4 +1,5 @@
-import { Link, usePage } from '@inertiajs/react';
+import React, { useEffect } from 'react';
+import { Link, usePage, router } from '@inertiajs/react';
 import { Icon } from '@iconify/react';
 
 interface TeacherLeftSidebarProps {
@@ -6,18 +7,49 @@ interface TeacherLeftSidebarProps {
 }
 
 export default function TeacherLeftSidebar({ onLogoutClick }: TeacherLeftSidebarProps = {}) {
-    const { url } = usePage();
+    const { url, props } = usePage<any>();
+    const { auth, unreadMessagesCount, pendingRequestsCount, unreadNotificationsCount, dueSessionsCount } = props;
+    const userId = auth?.user?.id;
+
+    useEffect(() => {
+        if (!userId) return;
+
+        // Listen for standard Laravel notifications (Request & General notifications)
+        const notificationChannel = (window as any).Echo.private(`App.Models.User.${userId}`)
+            .notification((notification: any) => {
+                console.log('🔔 Notification received:', notification);
+                router.reload({ only: ['unreadNotificationsCount', 'pendingRequestsCount'] });
+            });
+
+        // Listen for new messages
+        const messageChannel = (window as any).Echo.private(`user.${userId}`)
+            .listen('.new.message', (data: any) => {
+                console.log('✉️ New message received:', data);
+                router.reload({ only: ['unreadMessagesCount'] });
+            });
+
+        // Periodic check for due sessions every 5 minutes
+        const timer = setInterval(() => {
+            router.reload({ only: ['dueSessionsCount'] });
+        }, 5 * 60 * 1000);
+
+        return () => {
+            (window as any).Echo.leave(`App.Models.User.${userId}`);
+            (window as any).Echo.leave(`user.${userId}`);
+            clearInterval(timer);
+        };
+    }, [userId]);
 
     const menuItems = [
         { name: 'Dashboard', icon: 'mage:dashboard', route: '/teacher/dashboard' },
-        { name: 'Schedule', icon: 'material-symbols:event-available-outline', route: '/teacher/schedule' },
-        { name: 'Requests', icon: 'tabler:message-user', route: '/teacher/requests' },
+        { name: 'Schedule', icon: 'material-symbols:event-available-outline', route: '/teacher/schedule', badge: dueSessionsCount, badgeColor: '#3498db' },
+        { name: 'Requests', icon: 'tabler:message-user', route: '/teacher/requests', badge: pendingRequestsCount },
         { name: 'Earnings', icon: 'stash:wallet', route: '/teacher/earnings' },
-        { name: 'Messages', icon: 'mdi:message-text-outline', route: '/teacher/messages' },
+        { name: 'Messages', icon: 'mdi:message-text-outline', route: '/teacher/messages', badge: unreadMessagesCount },
         { name: 'Profile', icon: 'iconamoon:profile', route: '/teacher/profile' },
         { name: 'Rating & Feedback', icon: 'carbon:review', route: '/teacher/ratings' },
         { name: 'Settings', icon: 'solar:settings-outline', route: '/teacher/settings' },
-        { name: 'Notification', icon: 'mdi:bell-outline', route: '/teacher/notifications' },
+        { name: 'Notification', icon: 'mdi:bell-outline', route: '/teacher/notifications', badge: unreadNotificationsCount },
     ];
 
     const isActive = (route: string) => url.startsWith(route);
@@ -73,13 +105,23 @@ export default function TeacherLeftSidebar({ onLogoutClick }: TeacherLeftSidebar
                                 {item.name}
                             </span>
                         </div>
-                        {isActive(item.route) && (
-                            <Icon
-                                icon="mdi:chevron-right"
-                                className="text-white/70 shrink-0"
-                                style={{ width: 'clamp(16px, 1.5vw, 20px)', height: 'clamp(16px, 1.5vw, 20px)' }}
-                            />
-                        )}
+                        <div className="flex items-center gap-2">
+                            {item.badge > 0 && (
+                                <span
+                                    className="text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center"
+                                    style={{ backgroundColor: item.badgeColor || '#ff4d4d' }}
+                                >
+                                    {item.badge > 99 ? '99+' : item.badge}
+                                </span>
+                            )}
+                            {isActive(item.route) && (
+                                <Icon
+                                    icon="mdi:chevron-right"
+                                    className="text-white/70 shrink-0"
+                                    style={{ width: 'clamp(16px, 1.5vw, 20px)', height: 'clamp(16px, 1.5vw, 20px)' }}
+                                />
+                            )}
+                        </div>
                     </Link>
                 ))}
             </div>

@@ -77,6 +77,47 @@ class HandleInertiaRequests extends Middleware
             'unreadNotificationsCount' => $request->user() 
                 ? $request->user()->unreadNotifications()->count()
                 : 0,
+            'unreadMessagesCount' => $request->user()
+                ? \App\Models\Message::whereHas('conversation', function ($q) use ($request) {
+                    $q->where('user_one_id', $request->user()->id)
+                      ->orWhere('user_two_id', $request->user()->id);
+                })
+                ->where('sender_id', '!=', $request->user()->id)
+                ->whereNull('read_at')
+                ->count()
+                : 0,
+            'pendingRequestsCount' => ($request->user() && $request->user()->isTeacher() && $request->user()->teacher)
+                ? \App\Models\Booking::where('teacher_id', $request->user()->teacher->id)
+                    ->whereIn('status', ['awaiting_approval', 'rescheduling'])
+                    ->count()
+                : 0,
+            'dueSessionsCount' => ($request->user() && $request->user()->isTeacher() && $request->user()->teacher)
+                ? \App\Models\Booking::where('teacher_id', $request->user()->teacher->id)
+                    ->where('status', 'confirmed') // Only confirmed sessions can be "due"
+                    ->where('start_time', '<=', now()->addMinutes(15))
+                    ->where('end_time', '>=', now())
+                    ->count()
+                : 0,
+            'studentDueSessionsCount' => ($request->user() && $request->user()->isStudent())
+                ? \App\Models\Booking::where('user_id', $request->user()->id)
+                    ->whereIn('status', ['confirmed', 'rescheduling'])
+                    ->where('start_time', '<=', now()->addMinutes(15))
+                    ->where('end_time', '>=', now())
+                    ->count()
+                : 0,
+            'guardianDueSessionsCount' => ($request->user() && $request->user()->isGuardian() && $request->user()->guardian)
+                ? \App\Models\Booking::whereIn('user_id', $request->user()->guardian->students()->pluck('user_id'))
+                    ->whereIn('status', ['confirmed', 'rescheduling'])
+                    ->where('start_time', '<=', now()->addMinutes(15))
+                    ->where('end_time', '>=', now())
+                    ->count()
+                : 0,
+            'pendingTeacherApplicationsCount' => ($request->user() && $request->user()->isAdmin())
+                ? \App\Models\Teacher::where('status', 'pending')->count()
+                : 0,
+            'pendingPayoutsCount' => ($request->user() && $request->user()->isAdmin())
+                ? \App\Models\Payout::where('status', 'pending')->count()
+                : 0,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

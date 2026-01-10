@@ -88,7 +88,7 @@ class PayoutController extends Controller
 
             return redirect()
                 ->route('teacher.payouts.show', $payout->id)
-                ->with('success', 'Payout request submitted successfully!');
+                ->with('success', 'Withdrawal request submitted! It will be processed during the weekend.');
         } catch (\Exception $e) {
             return back()
                 ->withErrors(['error' => $e->getMessage()])

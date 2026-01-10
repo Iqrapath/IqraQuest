@@ -85,6 +85,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('verification.otp.verify');
     Route::post('/email/verify/otp/resend', [\App\Http\Controllers\Auth\OtpVerificationController::class, 'resend'])
         ->name('verification.otp.resend');
+    Route::post('/email/verify/otp/update-email', [\App\Http\Controllers\Auth\OtpVerificationController::class, 'updateEmail'])
+        ->name('verification.otp.update');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

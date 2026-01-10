@@ -4,19 +4,31 @@ import { Icon } from '@iconify/react';
 import TeacherLayout from '@/layouts/TeacherLayout';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const DAY_LABELS: Record<string, string> = {
     monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu',
     friday: 'Fri', saturday: 'Sat', sunday: 'Sun',
 };
-const TIME_OPTIONS = [
-    '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00',
-    '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00',
-    '20:00', '21:00', '22:00',
-];
+function getTimeInMinutes(time: string): number {
+    if (!time) return 0;
+    const [h, m] = time.split(':').map(Number);
+    return h * 60 + m;
+}
+
+function isValidDuration(start: string, end: string): boolean {
+    if (!start || !end) return false;
+    return getTimeInMinutes(end) - getTimeInMinutes(start) === 60;
+}
+
+function addOneHour(time: string): string {
+    const minutes = getTimeInMinutes(time) + 60;
+    const h = (Math.floor(minutes / 60) % 24).toString().padStart(2, '0');
+    const m = (minutes % 60).toString().padStart(2, '0');
+    return `${h}:${m}`;
+}
 
 function formatTime(time: string): string {
     const [hours, minutes] = time.split(':').map(Number);
@@ -109,8 +121,8 @@ export default function Schedule({ tab, sessionTab, availability, holidayMode, s
         if (newTab === activeTab) return;
         setActiveTab(newTab);
         setIsLoading(true);
-        router.get('/teacher/schedule', { tab: newTab, session_tab: activeSessionTab }, { 
-            preserveState: true, 
+        router.get('/teacher/schedule', { tab: newTab, session_tab: activeSessionTab }, {
+            preserveState: true,
             preserveScroll: true,
             onFinish: () => setIsLoading(false),
         });
@@ -120,9 +132,9 @@ export default function Schedule({ tab, sessionTab, availability, holidayMode, s
         if (newTab === activeSessionTab) return;
         setActiveSessionTab(newTab);
         setIsLoading(true);
-        router.get('/teacher/schedule', { tab: activeTab, session_tab: newTab }, { 
-            preserveState: true, 
-            preserveScroll: true, 
+        router.get('/teacher/schedule', { tab: activeTab, session_tab: newTab }, {
+            preserveState: true,
+            preserveScroll: true,
             only: ['sessions', 'counts', 'sessionTab'],
             onFinish: () => setIsLoading(false),
         });
@@ -133,10 +145,28 @@ export default function Schedule({ tab, sessionTab, availability, holidayMode, s
     };
 
     const updateTime = (day: string, field: 'start' | 'end', value: string) => {
-        setAvailabilityState((prev: AvailabilityState) => ({ ...prev, [day]: { ...prev[day], [field]: value } }));
+        if (field === 'end') return; // End time is now strictly calculated
+
+        setAvailabilityState((prev: AvailabilityState) => {
+            const newState = { ...prev, [day]: { ...prev[day], start: value } };
+            newState[day].end = addOneHour(value);
+            return newState;
+        });
     };
 
     const handleSaveAvailability = () => {
+        // Validate all enabled days have at least 1 hour duration
+        const invalidDays = DAYS.filter(day =>
+            availabilityState[day].enabled &&
+            !isValidDuration(availabilityState[day].start, availabilityState[day].end)
+        );
+
+        if (invalidDays.length > 0) {
+            const dayNames = invalidDays.map(d => d.charAt(0).toUpperCase() + d.slice(1)).join(', ');
+            alert(`The following days must have at least a 1-hour duration: ${dayNames}`);
+            return;
+        }
+
         setIsSaving(true);
         const availabilityData = DAYS.map(day => ({
             day_of_week: day,
@@ -144,7 +174,15 @@ export default function Schedule({ tab, sessionTab, availability, holidayMode, s
             start_time: availabilityState[day].enabled ? availabilityState[day].start : null,
             end_time: availabilityState[day].enabled ? availabilityState[day].end : null,
         }));
-        router.post('/teacher/schedule/availability', { availability: availabilityData }, { preserveScroll: true, onFinish: () => setIsSaving(false) });
+        router.post('/teacher/schedule/availability', { availability: availabilityData }, {
+            preserveScroll: true,
+            onSuccess: () => toast.success('Availability updated successfully'),
+            onError: (errors) => {
+                const firstError = Object.values(errors)[0];
+                toast.error(firstError || 'Failed to update availability');
+            },
+            onFinish: () => setIsSaving(false)
+        });
     };
 
     const handleToggleHolidayMode = () => {
@@ -230,29 +268,29 @@ function AvailabilitySettings({ availabilityState, isHolidayMode, isSaving, onTo
                                 <input type="checkbox" checked={availabilityState[day].enabled} onChange={() => onToggleDay(day)} className="h-4 w-4 rounded border-[#338078] text-[#338078] focus:ring-[#338078]" />
                                 <span className="font-['Nunito'] font-medium text-[clamp(0.875rem,1.5vw,1rem)] text-[#181818] capitalize">{day}</span>
                             </div>
-                            <div className="flex items-center gap-4 ml-6">
-                                <div className="flex flex-col gap-1">
-                                    <label className="font-['Nunito'] text-xs text-[#6b7280]">From</label>
-                                    <Select value={availabilityState[day].start} onValueChange={(value) => onUpdateTime(day, 'start', value)}>
-                                        <SelectTrigger className="w-36 rounded-lg border-[#e5e7eb] font-['Nunito'] text-sm text-[#181818] focus:border-[#338078] focus:ring-1 focus:ring-[#338078]">
-                                            <SelectValue placeholder="Select time..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {TIME_OPTIONS.map(time => <SelectItem key={time} value={time}>{formatTime(time)}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
+                            <div className="flex flex-col gap-2 ml-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="flex flex-col gap-1">
+                                        <label className="font-['Nunito'] text-xs text-[#6b7280]">From</label>
+                                        <input
+                                            type="time"
+                                            value={availabilityState[day].start}
+                                            onChange={(e) => onUpdateTime(day, 'start', e.target.value)}
+                                            className="w-40 rounded-lg border border-[#e5e7eb] px-3 py-2 font-['Nunito'] text-sm text-[#181818] focus:border-[#338078] focus:ring-1 focus:ring-[#338078] bg-white"
+                                        />
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <label className="font-['Nunito'] text-xs text-[#6b7280]">To</label>
+                                        <input
+                                            type="time"
+                                            value={availabilityState[day].end}
+                                            readOnly
+                                            className="w-40 rounded-lg border border-[#e5e7eb] px-3 py-2 font-['Nunito'] text-sm text-[#9ca3af] bg-gray-50 cursor-not-allowed outline-none"
+                                            title="End time is automatically set to 1 hour after start time"
+                                        />
+                                    </div>
                                 </div>
-                                <div className="flex flex-col gap-1">
-                                    <label className="font-['Nunito'] text-xs text-[#6b7280]">To</label>
-                                    <Select value={availabilityState[day].end} onValueChange={(value) => onUpdateTime(day, 'end', value)}>
-                                        <SelectTrigger className="w-36 rounded-lg border-[#e5e7eb] font-['Nunito'] text-sm text-[#181818] focus:border-[#338078] focus:ring-1 focus:ring-[#338078]">
-                                            <SelectValue placeholder="Select time..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {TIME_OPTIONS.map(time => <SelectItem key={time} value={time}>{formatTime(time)}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                <p className="text-[11px] text-[#338078] font-['Nunito'] italic">Duration is fixed at exactly 1 hour</p>
                             </div>
                         </div>
                     ))}
@@ -339,9 +377,9 @@ function YourSchedule({ activeSessionTab, sessions, counts, onSessionTabChange, 
                                 const isToday = date.toDateString() === parseServerDate(serverDate).toDateString();
                                 const hasSession = sessions.some(s => s.date_key === `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`);
                                 return (
-                                    <button 
-                                        key={idx} 
-                                        onClick={() => setSelectedDate(date)} 
+                                    <button
+                                        key={idx}
+                                        onClick={() => setSelectedDate(date)}
                                         className={cn(
                                             "flex flex-col items-center py-3 px-2 rounded-xl transition-all relative",
                                             isSelected(date) ? 'bg-[#338078] text-white' : 'hover:bg-[#f3f4f6]',

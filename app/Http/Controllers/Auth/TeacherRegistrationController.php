@@ -8,6 +8,7 @@ use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -28,6 +29,18 @@ class TeacherRegistrationController extends Controller
      */
     public function store(TeacherRegistrationRequest $request): RedirectResponse
     {
+        // Rate limiting: 3 registrations per IP per hour
+        $key = 'teacher-registration-attempts:' . $request->ip();
+        if (RateLimiter::tooManyAttempts($key, 3)) {
+            $seconds = RateLimiter::availableIn($key);
+            $minutes = ceil($seconds / 60);
+            return back()->withErrors([
+                'email' => "Too many registration attempts. Please try again in {$minutes} minutes.",
+            ]);
+        }
+
+        RateLimiter::hit($key, 3600);
+
         // Create user with teacher role
         $user = User::create([
             'name' => $request->name,
@@ -58,6 +71,12 @@ class TeacherRegistrationController extends Controller
             // Use default link-based email verification
             $user->sendEmailVerificationNotification();
         }
+
+        // Log the user in so they can access the OTP verification page
+        auth()->login($user);
+
+        // Store email in session for the OTP page display
+        session()->put('verification_email', $user->email);
 
         // DON'T log the user in - they need to verify email first
         // Stay on page to show modal

@@ -1,4 +1,5 @@
-import { Link, usePage } from '@inertiajs/react';
+import React, { useEffect } from 'react';
+import { Link, usePage, router } from '@inertiajs/react';
 import { Icon } from '@iconify/react';
 import { toast } from 'sonner';
 
@@ -7,19 +8,47 @@ interface StudentLeftSidebarProps {
 }
 
 export default function StudentLeftSidebar({ onLogoutClick }: StudentLeftSidebarProps = {}) {
-    const { url } = usePage();
+    const { url, props } = usePage<any>();
+    const { auth, unreadMessagesCount, unreadNotificationsCount, studentDueSessionsCount } = props;
+    const userId = auth?.user?.id;
+
+    useEffect(() => {
+        if (!userId) return;
+
+        // Listen for system notifications
+        const notificationChannel = (window as any).Echo.private(`App.Models.User.${userId}`)
+            .notification((notification: any) => {
+                router.reload({ only: ['unreadNotificationsCount'] });
+            });
+
+        // Listen for new messages
+        const messageChannel = (window as any).Echo.private(`user.${userId}`)
+            .listen('.new.message', (data: any) => {
+                router.reload({ only: ['unreadMessagesCount'] });
+            });
+
+        // Periodic check for due sessions
+        const timer = setInterval(() => {
+            router.reload({ only: ['studentDueSessionsCount'] });
+        }, 5 * 60 * 1000);
+
+        return () => {
+            (window as any).Echo.leave(`App.Models.User.${userId}`);
+            (window as any).Echo.leave(`user.${userId}`);
+            clearInterval(timer);
+        };
+    }, [userId]);
 
     const menuItems = [
         { name: 'Dashboard', icon: 'mage:dashboard', route: '/student/dashboard' },
         { name: 'Browse Teachers', icon: 'hugeicons:teacher', route: '/student/teachers' },
-        { name: 'My Bookings', icon: 'tabler:message-user', route: '/student/bookings' },
-        // { name: 'Subscriptions', icon: 'eos-icons:subscriptions-created-outlined', route: '#', comingSoon: true },
+        { name: 'My Bookings', icon: 'tabler:message-user', route: '/student/bookings', badge: studentDueSessionsCount, badgeColor: '#3498db' },
         { name: 'Payments', icon: 'stash:wallet', route: '/student/wallet' },
-        { name: 'Messages', icon: 'mdi:message-text-outline', route: '/student/messages' },
+        { name: 'Messages', icon: 'mdi:message-text-outline', route: '/student/messages', badge: unreadMessagesCount },
         { name: 'Profile', icon: 'iconamoon:profile', route: '/student/profile' },
         { name: 'Rating & Feedback', icon: 'carbon:review', route: '/student/ratings' },
         { name: 'Settings', icon: 'solar:settings-outline', route: '/student/settings' },
-        { name: 'Notification', icon: 'mdi:bell-outline', route: '/student/notifications' },
+        { name: 'Notification', icon: 'mdi:bell-outline', route: '/student/notifications', badge: unreadNotificationsCount },
     ];
 
     const isActive = (route: string) => route !== '#' && url.startsWith(route);
@@ -50,7 +79,7 @@ export default function StudentLeftSidebar({ onLogoutClick }: StudentLeftSidebar
             />
 
             {/* Content Container - scrollable if needed */}
-            <div 
+            <div
                 className="relative z-10 flex flex-col w-full h-full overflow-y-auto overflow-x-hidden sidebar-scroll"
                 style={{
                     padding: 'clamp(0.75rem, 1.5vh, 1.25rem) 0 clamp(1rem, 2vh, 1.5rem) 0',
@@ -107,13 +136,23 @@ export default function StudentLeftSidebar({ onLogoutClick }: StudentLeftSidebar
                                     {item.name}
                                 </span>
                             </div>
-                            {isActive(item.route) && (
-                                <Icon
-                                    icon="mdi:chevron-right"
-                                    className="text-white/70 shrink-0"
-                                    style={{ width: 'clamp(16px, 1.5vw, 20px)', height: 'clamp(16px, 1.5vw, 20px)' }}
-                                />
-                            )}
+                            <div className="flex items-center gap-2">
+                                {(item.badge ?? 0) > 0 && (
+                                    <span
+                                        className="text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center"
+                                        style={{ backgroundColor: item.badgeColor || '#ff4d4d' }}
+                                    >
+                                        {item.badge! > 99 ? '99+' : item.badge}
+                                    </span>
+                                )}
+                                {isActive(item.route) && (
+                                    <Icon
+                                        icon="mdi:chevron-right"
+                                        className="text-white/70 shrink-0"
+                                        style={{ width: 'clamp(16px, 1.5vw, 20px)', height: 'clamp(16px, 1.5vw, 20px)' }}
+                                    />
+                                )}
+                            </div>
                         </Link>
                     ))}
                 </div>
@@ -139,18 +178,18 @@ export default function StudentLeftSidebar({ onLogoutClick }: StudentLeftSidebar
 
                 {/* Subscription Promo Card - Coming Soon */}
                 <div className="w-full px-[12px] shrink-0">
-                    <div 
+                    <div
                         className="rounded-[11px] px-[11px] py-[15px] flex flex-col items-start gap-[12px] cursor-pointer hover:opacity-90 transition-opacity"
-                        style={{ 
+                        style={{
                             background: 'linear-gradient(transparent, #F3E5C3)'
                         }}
                         onClick={handleComingSoonClick}
                     >
                         {/* Quran Image */}
                         <div className="w-full flex justify-center">
-                            <img 
-                                src="/images/quran-stand.png" 
-                                alt="Quran on stand" 
+                            <img
+                                src="/images/quran-stand.png"
+                                alt="Quran on stand"
                                 className="w-[70px] h-auto object-contain"
                             />
                         </div>

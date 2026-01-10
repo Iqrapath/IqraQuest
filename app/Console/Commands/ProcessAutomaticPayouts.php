@@ -93,5 +93,27 @@ class ProcessAutomaticPayouts extends Command
         }
 
         $this->info("Automatic payout processing completed. Processed: {$count}, Errors: {$errors}");
+
+        // --- PART 2: Process approved manual payouts ---
+        $this->info('Starting processing for approved manual payouts...');
+        
+        $approvedPayouts = \App\Models\Payout::where('status', 'approved')->get();
+        $manualCount = 0;
+        $manualErrors = 0;
+
+        foreach ($approvedPayouts as $payout) {
+            try {
+                $this->info("Processing approved Payout ID {$payout->id} for Teacher ID {$payout->teacher_id}");
+                $payoutService->processPayout($payout->id);
+                $this->info("Payout ID {$payout->id} processed successfully.");
+                $manualCount++;
+            } catch (\Exception $e) {
+                $this->error("Failed to process approved payout ID {$payout->id}: " . $e->getMessage());
+                Log::error("Approved payout processing failed", ['payout_id' => $payout->id, 'exception' => $e]);
+                $manualErrors++;
+            }
+        }
+
+        $this->info("Approved payout processing completed. Processed: {$manualCount}, Errors: {$manualErrors}");
     }
 }

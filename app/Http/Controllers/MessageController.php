@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use App\Notifications\NewMessageNotification;
 
 class MessageController extends Controller
 {
@@ -146,6 +147,9 @@ class MessageController extends Controller
         // Broadcast to the recipient's user channel for the message bell
         $recipient = $conversation->getOtherUser($user);
         broadcast(new NewMessageReceived($message->load('sender'), $recipient));
+        
+        // Send email/database notification to the recipient
+        $recipient->notify(new NewMessageNotification($message));
         
         return response()->json([
             'message' => $this->formatMessage($message->load('sender'), $user),

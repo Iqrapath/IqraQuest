@@ -249,7 +249,7 @@ export default function Register() {
                         <button
                             type="button"
                             className="flex h-[49.225px] w-full items-center justify-center gap-[11.36px] rounded-[53.148px] border border-[#d0d5dd] bg-white px-[15.146px] py-[15.146px] font-['Nunito'] text-[15.146px] font-semibold text-[#344054] transition-colors hover:bg-gray-50 cursor-pointer"
-                            onClick={() => window.location.href = '/auth/google/redirect?role=student'}
+                            onClick={() => window.location.href = '/auth/google/redirect?context=student-guardian'}
                         >
                             <Icon icon="flat-color-icons:google" className="h-[18.933px] w-[18.933px]" />
                             Continue with Google
@@ -258,7 +258,7 @@ export default function Register() {
                         <button
                             type="button"
                             className="flex h-[49.225px] w-full items-center justify-center gap-[11.36px] rounded-[53.148px] border border-[#d0d5dd] bg-white px-[15.146px] py-[15.146px] font-['Nunito'] text-[15.146px] font-semibold text-[#344054] transition-colors hover:bg-gray-50 cursor-pointer"
-                            onClick={() => window.location.href = '/auth/facebook/redirect?role=student'}
+                            onClick={() => window.location.href = '/auth/facebook/redirect?context=student-guardian'}
                         >
                             <Icon icon="logos:facebook" className="h-[18.933px] w-[18.933px]" />
                             Continue with Facebook

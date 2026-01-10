@@ -105,17 +105,23 @@ export default function EarningsTab({
                         </div>
 
                         {/* Automatic Payouts */}
-                        <div className="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-start">
-                            <span className="text-gray-700 font-medium text-lg">Automatic Payouts</span>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    className="sr-only peer"
-                                    checked={data.automatic_payouts}
-                                    onChange={(e) => setData('automatic_payouts', e.target.checked)}
-                                />
-                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#338078]"></div>
-                            </label>
+                        <div className="flex flex-col gap-2 w-full md:w-auto">
+                            <div className="flex items-center space-x-3 justify-between md:justify-start">
+                                <span className="text-gray-700 font-medium text-lg">Automatic Payouts</span>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        className="sr-only peer"
+                                        checked={data.automatic_payouts}
+                                        onChange={(e) => setData('automatic_payouts', e.target.checked)}
+                                    />
+                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#338078]"></div>
+                                </label>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-[#2D7A70] font-medium bg-[#E9FFFD] px-3 py-1.5 rounded-lg border border-[#ccfbf1] w-fit">
+                                <Icon icon="solar:clock-circle-bold" className="w-4 h-4" />
+                                <span>Processed every weekend (Saturday & Sunday)</span>
+                            </div>
                         </div>
                     </div>
 

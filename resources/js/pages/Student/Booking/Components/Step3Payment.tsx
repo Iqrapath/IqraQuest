@@ -120,9 +120,9 @@ export default function Step3Payment({
                 <div className="space-y-6">
                     {[
                         { id: 'wallet', label: 'My Wallet' },
-                        { id: 'paypal', label: 'PayPal' },
-                        { id: 'card', label: 'Credit/Debit Card' },
-                        { id: 'bank', label: 'Bank Transfer' }
+                        // { id: 'paypal', label: 'PayPal' },
+                        // { id: 'card', label: 'Credit/Debit Card' },
+                        // { id: 'bank', label: 'Bank Transfer' }
                     ].map((method) => (
                         <label key={method.id} className="flex items-center gap-4 cursor-pointer group">
                             <div className={`

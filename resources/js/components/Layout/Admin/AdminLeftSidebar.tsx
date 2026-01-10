@@ -1,4 +1,5 @@
-import { Link, usePage } from '@inertiajs/react';
+import React, { useEffect } from 'react';
+import { Link, usePage, router } from '@inertiajs/react';
 import { Icon } from '@iconify/react';
 import { toast } from 'sonner';
 
@@ -8,17 +9,39 @@ interface AdminLeftSidebarProps {
 
 export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProps = {}) {
     const { url, props } = usePage<any>();
-    const { site_logo, site_name } = props;
+    const { auth, site_logo, site_name, unreadMessagesCount, unreadNotificationsCount, pendingTeacherApplicationsCount, pendingPayoutsCount } = props;
+    const userId = auth?.user?.id;
+
+    useEffect(() => {
+        if (!userId) return;
+
+        // Listen for system notifications
+        const notificationChannel = (window as any).Echo.private(`App.Models.User.${userId}`)
+            .notification((notification: any) => {
+                router.reload({ only: ['unreadNotificationsCount', 'pendingTeacherApplicationsCount', 'pendingPayoutsCount'] });
+            });
+
+        // Listen for new messages
+        const messageChannel = (window as any).Echo.private(`user.${userId}`)
+            .listen('.new.message', (data: any) => {
+                router.reload({ only: ['unreadMessagesCount'] });
+            });
+
+        return () => {
+            (window as any).Echo.leave(`App.Models.User.${userId}`);
+            (window as any).Echo.leave(`user.${userId}`);
+        };
+    }, [userId]);
 
     const mainMenuItems = [
         { name: 'Dashboard', icon: 'solar:widget-5-outline', route: '/admin/dashboard' },
         { name: 'Teacher Management', icon: 'hugeicons:teacher', route: '/admin/teachers' },
         { name: 'Parent Management', icon: 'ri:parent-line', route: '/admin/students' },
         { name: 'Booking Management', icon: 'solar:calendar-outline', route: '/admin/bookings' },
-        { name: 'Verification Requests', icon: 'uil:comment-verify', route: '/admin/verifications' },
+        { name: 'Verification Requests', icon: 'uil:comment-verify', route: '/admin/verifications', badge: pendingTeacherApplicationsCount },
         { name: 'Subscription Plans', icon: 'eos-icons:subscriptions-created-outlined', route: '#', comingSoon: true },
         { name: 'Guardian Management', icon: 'fluent:guardian-28-regular', route: '#', comingSoon: true },
-        { name: 'Payment Management', icon: 'streamline-plump:wallet', route: '/admin/payments' },
+        { name: 'Payment Management', icon: 'streamline-plump:wallet', route: '/admin/payments', badge: pendingPayoutsCount },
     ];
 
     const cmsItems = [
@@ -29,8 +52,8 @@ export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProp
 
     const settingsItems = [
         { name: 'Settings & Security', icon: 'solar:settings-outline', route: '#', comingSoon: true },
-        { name: 'Notification System', icon: 'solar:bell-outline', route: '/admin/notifications' },
-        { name: 'Messages', icon: 'mdi:message-text-outline', route: '/admin/messages' },
+        { name: 'Notification System', icon: 'solar:bell-outline', route: '/admin/notifications', badge: unreadNotificationsCount },
+        { name: 'Messages', icon: 'mdi:message-text-outline', route: '/admin/messages', badge: unreadMessagesCount },
         { name: 'Feedback & Support', icon: 'fluent:person-support-20-regular', route: '#', comingSoon: true },
     ];
 
@@ -44,7 +67,7 @@ export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProp
         });
     };
 
-    const renderMenuItem = (item: { name: string; icon: string; route: string; comingSoon?: boolean }) => {
+    const renderMenuItem = (item: { name: string; icon: string; route: string; comingSoon?: boolean; badge?: number; badgeColor?: string }) => {
         if (item.comingSoon) {
             return (
                 <button
@@ -87,6 +110,14 @@ export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProp
                     <span className="font-['Poppins'] font-normal text-[13px] text-white leading-tight">
                         {item.name}
                     </span>
+                    {(item.badge ?? 0) > 0 && (
+                        <span
+                            className="ml-auto text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center"
+                            style={{ backgroundColor: item.badgeColor || '#ff4d4d' }}
+                        >
+                            {item.badge! > 99 ? '99+' : item.badge}
+                        </span>
+                    )}
                 </div>
             </Link>
         );

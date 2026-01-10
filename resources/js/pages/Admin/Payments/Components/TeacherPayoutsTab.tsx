@@ -390,6 +390,53 @@ export default function TeacherPayoutsTab({ payouts, filters }: Props) {
                     </tbody>
                 </table>
             </div>
+
+            {/* Pagination */}
+            {payouts.last_page > 1 && (
+                <div className="mt-8 flex flex-col sm:flex-row items-center justify-between bg-white gap-4 border-t border-gray-100 pt-6">
+                    <p className="text-sm text-gray-500 font-['Nunito']">
+                        Showing <span className="font-bold text-[#192020]">{payouts.data.length}</span> of <span className="font-bold text-[#192020]">{payouts.total}</span> requests
+                    </p>
+                    <div className="flex items-center gap-2">
+                        {payouts.links.map((link: any, index: number) => {
+                            const isFirst = index === 0;
+                            const isLast = index === payouts.links.length - 1;
+                            const isPrevNext = isFirst || isLast;
+
+                            if (!link.url && isPrevNext) {
+                                return (
+                                    <span
+                                        key={index}
+                                        className="w-10 h-10 flex items-center justify-center rounded-xl text-gray-300 cursor-not-allowed border border-gray-100"
+                                    >
+                                        <Icon icon={isFirst ? 'mdi:chevron-left' : 'mdi:chevron-right'} className="w-5 h-5" />
+                                    </span>
+                                );
+                            }
+
+                            if (!link.url) return null;
+
+                            return (
+                                <Link
+                                    key={index}
+                                    href={link.url}
+                                    preserveState={true}
+                                    className={`w-10 h-10 flex items-center justify-center rounded-xl text-sm font-medium transition-all ${link.active
+                                        ? 'bg-[#2D7A70] text-white shadow-md'
+                                        : 'text-gray-600 hover:bg-gray-50 border border-gray-200'
+                                        }`}
+                                >
+                                    {isPrevNext ? (
+                                        <Icon icon={isFirst ? 'mdi:chevron-left' : 'mdi:chevron-right'} className="w-5 h-5" />
+                                    ) : (
+                                        <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                                    )}
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
             {/* Modals */}
             <ApprovePayoutModal
                 isOpen={showApproveModal}

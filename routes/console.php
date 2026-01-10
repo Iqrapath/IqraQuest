@@ -30,7 +30,8 @@ Schedule::call(function () {
 
 // Finance: Process automatic payouts daily at midnight
 Schedule::command('payouts:process-automatic')
-    ->dailyAt('00:00')
+    ->weekends()
+    ->at('00:00')
     ->appendOutputTo(storage_path('logs/payouts.log'));
 
 // Escrow: Process eligible fund releases every hour

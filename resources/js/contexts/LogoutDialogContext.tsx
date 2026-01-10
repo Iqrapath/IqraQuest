@@ -67,14 +67,14 @@ export function LogoutDialogProvider({ children }: { children: ReactNode }) {
                         <Button
                             variant="outline"
                             onClick={handleCancel}
-                            className="flex-1 sm:flex-none"
+                            className="flex-1 sm:flex-none cursor-pointer hover:bg-gray-100 hover:text-base-300"
                         >
                             Cancel
                         </Button>
                         <Button
                             variant="destructive"
                             onClick={handleConfirm}
-                            className="flex-1 sm:flex-none"
+                            className="flex-1 sm:flex-none cursor-pointer"
                         >
                             Log Out
                         </Button>

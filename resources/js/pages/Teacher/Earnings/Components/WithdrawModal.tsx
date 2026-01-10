@@ -129,8 +129,8 @@ export function WithdrawModal({ isOpen, onClose, availableBalance, paymentMethod
                                         setIsSelecting(false);
                                     }}
                                     className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-start gap-4 ${selectedMethod?.id === method.id
-                                            ? 'border-[#2D7A70] bg-[#E9FFFD]'
-                                            : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
+                                        ? 'border-[#2D7A70] bg-[#E9FFFD]'
+                                        : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
                                         }`}
                                 >
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${selectedMethod?.id === method.id ? 'bg-[#2D7A70] text-white' : 'bg-gray-100 text-gray-500'
@@ -207,9 +207,9 @@ export function WithdrawModal({ isOpen, onClose, availableBalance, paymentMethod
 
                         {/* Amount Input Section */}
                         <div className="bg-[#E9FFFD] rounded-[20px] p-8">
-                            <p className="text-[#525252] mb-4 text-center">Please input the amount you wish to withdraw from your wallet.</p>
+                            <p className="text-[#525252] mb-4 text-center font-medium">Please input the amount you wish to withdraw.</p>
 
-                            <div className="flex items-center gap-4 mb-3">
+                            <div className="flex items-center gap-4 mb-4">
                                 <div className="relative flex-1">
                                     <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                                         <span className="text-gray-900 font-bold text-lg">{config.symbol}</span>
@@ -232,9 +232,15 @@ export function WithdrawModal({ isOpen, onClose, availableBalance, paymentMethod
                                 </button>
                             </div>
 
-                            <p className="text-xs text-[#525252] font-medium text-center">
-                                Note: You can only withdraw the minimum amount of {minAmountText}
-                            </p>
+                            <div className="flex flex-col gap-2">
+                                <p className="text-[11px] text-[#525252] font-medium text-center opacity-80">
+                                    Note: Minimum withdrawal is {minAmountText}
+                                </p>
+                                <div className="flex items-center justify-center gap-2 text-xs text-[#2D7A70] font-bold bg-white/50 backdrop-blur-sm px-4 py-2 rounded-xl border border-[#2D7A70]/10 w-fit mx-auto shadow-sm">
+                                    <Icon icon="solar:clock-circle-bold" className="w-4 h-4" />
+                                    <span>Transfers are processed on weekends (Sat & Sun)</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}

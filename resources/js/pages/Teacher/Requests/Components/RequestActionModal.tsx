@@ -55,7 +55,7 @@ export const RequestActionModal: React.FC<RequestActionModalProps> = ({
                         onClick={onConfirm}
                         disabled={isProcessing}
                         className={cn(
-                            "min-w-[140px] rounded-full px-6 py-6 text-base font-medium shadow-none hover:shadow-md transition-all",
+                            "min-w-[140px] rounded-full px-6 py-6 text-base font-medium shadow-none hover:shadow-md transition-all cursor-pointer",
                             isAccept
                                 ? "bg-[#388E7B] hover:bg-[#2F7A6A] text-white"
                                 : "bg-[#388E7B] hover:bg-[#2F7A6A] text-white" // User requested specific UI, keeping similar style or Red? 
@@ -88,7 +88,7 @@ export const RequestActionModal: React.FC<RequestActionModalProps> = ({
                         variant="outline"
                         onClick={onClose}
                         disabled={isProcessing}
-                        className="min-w-[140px] rounded-full border-gray-300 px-6 py-6 text-base font-medium text-gray-600 hover:bg-gray-50"
+                        className="min-w-[140px] rounded-full border-gray-300 px-6 py-6 text-base font-medium text-gray-600 hover:bg-gray-50 cursor-pointer hover:text-gray-600"
                     >
                         Cancel
                     </Button>
