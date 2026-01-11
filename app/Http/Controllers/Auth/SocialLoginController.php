@@ -87,7 +87,7 @@ class SocialLoginController extends Controller
 
             Auth::login($user);
 
-            return redirect()->intended($user->dashboardRoute());
+            return redirect()->intended(route($user->dashboardRoute()));
         }
 
         // NEW USER - No role specified (came from login page)

@@ -239,13 +239,13 @@ export const WalletBalance: React.FC<WalletBalanceProps> = ({ balance, paystackP
                     >
                         {showTopUp ? 'Cancel' : 'Top Up Balance'}
                     </button>
-                    <button
+                    {/* <button
                         disabled
                         className="w-full sm:w-auto py-3 sm:py-0 text-[#2D7A70] font-medium hover:text-[#24635b] transition-colors cursor-not-allowed opacity-50 text-center"
                         title="Withdrawals are currently disabled"
                     >
                         Withdraw Fund
-                    </button>
+                    </button> */}
                 </div>
             </div>
 

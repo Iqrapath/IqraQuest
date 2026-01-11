@@ -176,10 +176,10 @@ export default function WalletIndex({ auth, balance, currency, transactions, pay
                         <WalletBalance balance={balance} paystackPublicKey={paystack_public_key} />
 
                         {/* Upcoming Payments Due Section */}
-                        <UpcomingPayments />
+                        {/* <UpcomingPayments /> */}
 
                         {/* Payment History Section */}
-                        <PaymentHistory transactions={transactions} />
+                        {/* <PaymentHistory transactions={transactions} /> */}
                     </div>
                 )}
 
