@@ -35,7 +35,7 @@ export interface BookingData {
     meeting_link: string | null;
 }
 
-type BookingStatus = 'upcoming' | 'ongoing' | 'completed';
+type BookingStatus = 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
 type UserRole = 'student' | 'guardian' | 'teacher';
 
 interface BookingCardProps {
@@ -78,7 +78,7 @@ export function BookingCard(props: BookingCardProps) {
                 {/* Date/Time and Status Row */}
                 <div className="flex items-center gap-[clamp(0.5rem,1vw,0.75rem)] flex-wrap">
                     <DateTimeBadge date={booking.formatted_date} time={booking.formatted_time} />
-                    {status !== 'upcoming' && <StatusBadge status={booking.display_status} />}
+                    <StatusBadge status={booking.display_status} />
                 </div>
 
                 {/* Actions Row */}

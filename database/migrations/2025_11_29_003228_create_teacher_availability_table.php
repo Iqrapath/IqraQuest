@@ -27,8 +27,9 @@ return new class extends Migration
             
             $table->timestamps();
             
-            // Unique constraint: one record per teacher per day
-            $table->unique(['teacher_id', 'day_of_week']);
+            // Unique constraint: prevent duplicate time slots (same teacher, day, start_time)
+            // This allows multiple slots per day with different start times
+            $table->unique(['teacher_id', 'day_of_week', 'start_time']);
             $table->index('teacher_id');
             $table->index('day_of_week');
             $table->index('is_available');

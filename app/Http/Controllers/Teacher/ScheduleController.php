@@ -36,8 +36,8 @@ class ScheduleController extends Controller
 
         // Get session counts (Only confirmed sessions, rescheduling sessions are "on hold")
         $upcomingCount = Booking::where('teacher_id', $teacher->id)
-            ->where('status', 'confirmed')
-            ->where('start_time', '>', now())
+            ->whereIn('status', ['confirmed', 'ongoing'])
+            ->where('end_time', '>', now())
             ->count();
 
         $pastCount = Booking::where('teacher_id', $teacher->id)
@@ -70,8 +70,8 @@ class ScheduleController extends Controller
             ->with(['student', 'subject']);
 
         if ($tab === 'upcoming') {
-            $query->where('status', 'confirmed')
-                ->where('start_time', '>', now())
+            $query->whereIn('status', ['confirmed', 'ongoing'])
+                ->where('end_time', '>', now())
                 ->orderBy('start_time', 'asc');
         } else {
             $query->where('status', 'completed')
@@ -108,7 +108,7 @@ class ScheduleController extends Controller
      */
     protected function canJoinSession(Booking $booking): bool
     {
-        if (!in_array($booking->status, ['confirmed', 'rescheduling'])) {
+        if (!in_array($booking->status, ['confirmed', 'rescheduling', 'ongoing'])) {
             return false;
         }
 
@@ -133,7 +133,7 @@ class ScheduleController extends Controller
         $date = Carbon::parse($request->date);
 
         $sessions = Booking::where('teacher_id', $teacher->id)
-            ->whereIn('status', ['confirmed', 'rescheduling'])
+            ->whereIn('status', ['confirmed', 'rescheduling', 'ongoing'])
             ->whereDate('start_time', $date)
             ->with(['student', 'subject'])
             ->orderBy('start_time', 'asc')
@@ -171,7 +171,6 @@ class ScheduleController extends Controller
             'availability.*.end_time' => [
                 'nullable',
                 'date_format:H:i',
-                'after:availability.*.start_time',
                 function ($attribute, $value, $fail) use ($request) {
                     $index = explode('.', $attribute)[1];
                     $avail = $request->input("availability.{$index}");

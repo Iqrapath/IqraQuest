@@ -148,10 +148,20 @@ export default function TeacherUpcomingSessions({ sessions, serverDate }: Teache
                                         </div>
                                     </div>
                                 </div>
-                                <button
-                                    className="text-[#2c7870] hover:text-[#236158] font-medium text-sm hover:underline cursor-pointer"
-                                    onClick={() => setSelectedSession(session)}
-                                >View Details</button>
+                                <div className="flex items-center gap-4">
+                                    {session.can_join && (
+                                        <a
+                                            href={`/classroom/${session.id}`}
+                                            className="px-4 py-2 bg-[#338078] text-white text-sm font-medium rounded-full hover:bg-[#2b6b64] transition-colors shadow-sm animate-pulse"
+                                        >
+                                            Join Class
+                                        </a>
+                                    )}
+                                    <button
+                                        className="text-[#2c7870] hover:text-[#236158] font-medium text-sm hover:underline cursor-pointer"
+                                        onClick={() => setSelectedSession(session)}
+                                    >View Details</button>
+                                </div>
                             </div>
                         </div>
                     ))

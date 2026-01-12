@@ -138,11 +138,11 @@ export default function Dashboard({ student, stats, upcomingClasses, topTeachers
                     <StudentProfileCard student={student} />
 
                     {/* Progress Card Section */}
-                    <ProgressCard
+                    {/* <ProgressCard
                         goalTitle={progress.label}
                         percentage={progress.percentage}
                         upcomingGoal={progress.upcoming_goal}
-                    />
+                    /> */}
 
                     {/* Upcoming Classes Section */}
                     <div className="bg-white border border-[#e5e7eb] rounded-[clamp(1.5rem,3vw,2rem)] overflow-hidden shadow-sm">
@@ -160,7 +160,7 @@ export default function Dashboard({ student, stats, upcomingClasses, topTeachers
                                 <Icon icon="mdi:calendar-clock" className="h-16 w-16 text-[#d1d5db] mb-4" />
                                 <h3 className="font-['Poppins'] font-medium text-lg text-[#374151] mb-2">No upcoming classes</h3>
                                 <p className="font-['Nunito'] text-sm text-[#6b7280] mb-4 text-center">Book a session with a teacher!</p>
-                                <Link href="/teachers">
+                                <Link href="/student/teachers">
                                     <Button className="bg-[#338078] hover:bg-[#2a6b64] text-white rounded-[56px] font-['Nunito'] font-semibold">
                                         Browse Teachers
                                     </Button>

@@ -44,6 +44,7 @@ interface WalletPageProps extends PageProps {
     gateways: any;
     paystack_public_key: string;
     paymentMethods: any[];
+    upcomingPayments: any[];
 }
 
 // Helper function to get wallet provider icon
@@ -58,7 +59,7 @@ const getWalletProviderIcon = (provider: string) => {
     return icons[provider?.toLowerCase()] || 'solar:wallet-bold';
 };
 
-export default function WalletIndex({ auth, balance, currency, transactions, paystack_public_key, paymentMethods }: WalletPageProps) {
+export default function WalletIndex({ auth, balance, currency, transactions, paystack_public_key, paymentMethods, upcomingPayments }: WalletPageProps) {
     const [activeTab, setActiveTab] = useState('Earnings');
     const { flash } = usePage<any>().props;
     const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -176,10 +177,10 @@ export default function WalletIndex({ auth, balance, currency, transactions, pay
                         <WalletBalance balance={balance} paystackPublicKey={paystack_public_key} />
 
                         {/* Upcoming Payments Due Section */}
-                        {/* <UpcomingPayments /> */}
+                        <UpcomingPayments payments={upcomingPayments} />
 
                         {/* Payment History Section */}
-                        {/* <PaymentHistory transactions={transactions} /> */}
+                        <PaymentHistory transactions={transactions} />
                     </div>
                 )}
 

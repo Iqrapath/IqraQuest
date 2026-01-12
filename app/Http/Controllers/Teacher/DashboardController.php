@@ -41,10 +41,9 @@ class DashboardController extends Controller
                 ->where('status', 'pending')
                 ->count();
 
-            // Upcoming Sessions for Calendar (Similar to ScheduleController)
             $sessions = Booking::where('teacher_id', $teacher->id)
-                ->where('status', 'confirmed')
-                ->where('start_time', '>=', now())
+                ->whereIn('status', ['confirmed', 'ongoing'])
+                ->where('end_time', '>', now())
                 ->with(['student', 'subject'])
                 ->orderBy('start_time', 'asc')
                 ->limit(20) // Limit for dashboard performance

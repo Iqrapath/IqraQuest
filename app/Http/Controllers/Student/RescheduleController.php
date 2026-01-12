@@ -53,9 +53,9 @@ class RescheduleController extends Controller
 
         // Fetch existing bookings to prevent double booking (exclude current booking)
         $bookedSlots = Booking::where('teacher_id', $teacher->id)
-            ->whereIn('status', ['pending', 'confirmed', 'awaiting_approval'])
+            ->active()
             ->where('id', '!=', $booking->id) // Exclude current booking
-            ->where('start_time', '>=', now())
+            ->where('end_time', '>', now())
             ->get(['start_time', 'end_time'])
             ->map(function ($b) {
                 return [
@@ -127,7 +127,7 @@ class RescheduleController extends Controller
         }
 
         $request->validate([
-            'new_start_time' => 'required|date|after:now',
+            'new_start_time' => 'required|date|after:' . now()->subMinutes(10)->toDateTimeString(),
             'reason' => 'nullable|string|max:500',
         ]);
 

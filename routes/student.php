@@ -44,6 +44,7 @@ Route::middleware(['auth', 'verified', 'role:student'])
         Route::get('/bookings/{booking}/details', [\App\Http\Controllers\Student\BookingController::class, 'details'])->name('bookings.details');
         Route::post('/bookings/{booking}/review', [\App\Http\Controllers\Student\BookingController::class, 'submitReview'])->name('bookings.review');
         Route::put('/bookings/{booking}/review', [\App\Http\Controllers\Student\BookingController::class, 'updateReview'])->name('bookings.review.update');
+        Route::post('/bookings/{booking}/pay-now', [\App\Http\Controllers\Student\BookingController::class, 'payNow'])->name('bookings.pay-now');
         Route::get('/bookings/{booking}/summary/pdf', [\App\Http\Controllers\BookingSummaryController::class, 'show'])->name('bookings.summary.pdf');
         
         // Wallet Routes
@@ -51,6 +52,7 @@ Route::middleware(['auth', 'verified', 'role:student'])
         Route::post('/wallet/currency', [WalletController::class, 'updateCurrency'])->name('wallet.currency');
         Route::get('/wallet/transactions', [WalletController::class, 'transactions'])->name('wallet.transactions');
         Route::get('/wallet/transactions/export', [WalletController::class, 'exportTransactions'])->name('wallet.transactions.export');
+        Route::post('/wallet/transactions/email-report', [WalletController::class, 'emailTransactions'])->name('wallet.transactions.email-report');
         
         // Payment Routes
         Route::post('/payment/initialize', [PaymentController::class, 'initializePayment'])->name('payment.initialize');

@@ -6,41 +6,41 @@ interface BookingSummaryModalProps {
     isOpen: boolean;
     onClose: () => void;
     teacher: any;
-    selectedDate: Date | null;
-    selectedTimeSlot: { start: string; end: string } | null;
+    selectedSessions: any[]; // Changed
     selectedSubjectName: string;
     totalCost: { usd: number, ngn: number };
     currency: string;
     notes: string;
     isProcessing?: boolean;
     onConfirm: () => void;
+    // New Props
+    isRecurring: boolean;
+    occurrences: number;
 }
 
 export const BookingSummaryModal: React.FC<BookingSummaryModalProps> = ({
     isOpen,
     onClose,
     teacher,
-    selectedDate,
-    selectedTimeSlot,
+    selectedSessions,
     selectedSubjectName,
     totalCost,
     currency,
     notes,
     isProcessing = false,
-    onConfirm
+    onConfirm,
+    isRecurring,
+    occurrences
 }) => {
-    if (!selectedDate || !selectedTimeSlot) return null;
+    if (selectedSessions.length === 0) return null;
 
-    const formattedDate = selectedDate.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
-
-    // Format Time Range (e.g. 5:00 PM - 6:00 PM)
+    // Format Time: e.g. "5:00 PM"
     const formatTime = (timeStr: string) => {
         const [h, m] = timeStr.split(':');
         const d = new Date();
         d.setHours(Number(h), Number(m));
         return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
     };
-    const timeRange = `${formatTime(selectedTimeSlot.start)} - ${formatTime(selectedTimeSlot.end)}`;
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -68,15 +68,33 @@ export const BookingSummaryModal: React.FC<BookingSummaryModalProps> = ({
                 </div>
 
                 <div className="space-y-4 mb-8">
-                    {/* Date & Time */}
-                    <div className="flex items-center gap-3">
-                        <Icon icon="mdi:calendar-clock" className="text-gray-400 w-5 h-5 flex-shrink-0" />
-                        <span className="text-gray-400 text-sm w-20">Date & Time:</span>
-                        <div className="bg-[#FFF9EA] text-[#6A5A2E] px-4 py-2 rounded-lg text-sm font-medium flex-1 flex justify-between">
-                            <span>{formattedDate}</span>
-                            <span>{timeRange}</span>
-                        </div>
+                    {/* Sessions List */}
+                    <div className="space-y-2 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Schedule Detail</p>
+                        {selectedSessions.map((session, i) => (
+                            <div key={i} className="flex items-center justify-between text-sm bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-8 w-8 rounded-lg bg-white border border-gray-100 flex flex-col items-center justify-center text-[#358D83]">
+                                        <span className="text-[8px] font-black uppercase leading-none">{session.date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                                        <span className="text-[10px] font-bold">{session.date.getDate()}</span>
+                                    </div>
+                                    <span className="font-bold text-gray-700">
+                                        {session.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                    </span>
+                                </div>
+                                <span className="text-xs font-bold text-gray-500">
+                                    {formatTime(session.start)} - {formatTime(session.end)}
+                                </span>
+                            </div>
+                        ))}
                     </div>
+
+                    {isRecurring && (
+                        <div className="bg-[#E0F2F1] text-[#358D83] px-4 py-3 rounded-xl flex items-center gap-3 text-xs font-bold border border-[#358D83]/20">
+                            <Icon icon="mdi:calendar-repeat" className="w-5 h-5" />
+                            <span>Repeating weekly for {occurrences} weeks</span>
+                        </div>
+                    )}
 
                     {/* Total Fee */}
                     <div className="flex items-center gap-3">

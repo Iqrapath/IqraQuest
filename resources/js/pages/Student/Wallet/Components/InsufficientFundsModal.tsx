@@ -168,7 +168,7 @@ export const InsufficientFundsModal: React.FC<InsufficientFundsModalProps> = ({
 
                     {/* Description */}
                     <p className="text-[#6B7280] text-base leading-relaxed mb-8 max-w-[320px]">
-                        You do not have enough funds in your account to pay for this class. Please fund your wallet and try again.
+                        You do not have enough funds to complete this booking. We've saved it for you—once you top up, you can pay for it directly in your wallet.
                     </p>
 
                     {/* Buttons */}

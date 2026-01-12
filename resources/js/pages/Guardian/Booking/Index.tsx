@@ -33,6 +33,7 @@ interface TimeSlot {
     end: string;
     period: string;
     is_available: boolean;
+    conflict?: string | Date[]; // Added conflict info
 }
 
 interface RebookData {
@@ -52,13 +53,20 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
 
     const isRebook = !!rebook_data;
 
+    const parseNaiveTime = (s: string) => {
+        const match = s.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
+        if (!match) return new Date(s);
+        const [_, y, m, d, h, min, sec] = match.map(Number);
+        return new Date(y, m - 1, d, h, min, sec);
+    };
+
     const [step, setStep] = useState(1);
     const [isBookingSummaryOpen, setIsBookingSummaryOpen] = useState(false);
     const [isInsufficientFundsOpen, setIsInsufficientFundsOpen] = useState(false);
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-    const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
+    const [selectedSessions, setSelectedSessions] = useState<{ date: Date; start: string; end: string; period: string }[]>([]); // Added
     const [selectedDuration, setSelectedDuration] = useState(rebook_data?.duration || 60);
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [userTimeZone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
@@ -85,48 +93,63 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
         if (!date) return [];
 
         const dayOfWeekName = date.toLocaleDateString('en-US', { weekday: 'long' });
-        const isAvailableDay = teacher.availability_schedule.some(s =>
+
+        // Get ALL slots for this day (not just one)
+        const daySchedules = teacher.availability_schedule.filter(s =>
             s.day_of_week.toLowerCase() === dayOfWeekName.toLowerCase() && s.is_available
         );
 
-        if (!isAvailableDay) return [];
-
-        const daySchedule = teacher.availability_schedule.find(s =>
-            s.day_of_week.toLowerCase() === dayOfWeekName.toLowerCase()
-        );
-
-        if (!daySchedule || !daySchedule.start_time || !daySchedule.end_time) return [];
+        if (daySchedules.length === 0) return [];
 
         const slots: TimeSlot[] = [];
-        const startTime = new Date(`2000-01-01 ${daySchedule.start_time}`);
-        const endTime = new Date(`2000-01-01 ${daySchedule.end_time}`);
 
-        let currentSlotStart = new Date(startTime);
+        // Iterate through each availability slot for this day
+        for (const daySchedule of daySchedules) {
+            if (!daySchedule.start_time || !daySchedule.end_time) continue;
 
-        while (currentSlotStart < endTime) {
-            const currentSlotEnd = new Date(currentSlotStart.getTime() + selectedDuration * 60000);
-            if (currentSlotEnd > endTime) break;
+            const startTime = new Date(`2000-01-01 ${daySchedule.start_time}`);
+            const endTime = new Date(`2000-01-01 ${daySchedule.end_time}`);
 
-            const startStr = currentSlotStart.toTimeString().slice(0, 5);
-            const endStr = currentSlotEnd.toTimeString().slice(0, 5);
+            let currentSlotStart = new Date(startTime);
 
-            const hour = currentSlotStart.getHours();
-            let period = 'morning';
-            if (hour >= 12 && hour < 17) period = 'afternoon';
-            if (hour >= 17) period = 'evening';
+            while (currentSlotStart < endTime) {
+                const currentSlotEnd = new Date(currentSlotStart.getTime() + selectedDuration * 60000);
+                if (currentSlotEnd > endTime) break;
 
-            const isBooked = booked_slots?.some(booking => {
-                const bookingStart = new Date(booking.start);
-                const bookingEnd = new Date(booking.end);
-                return currentSlotStart < bookingEnd && currentSlotEnd > bookingStart;
-            });
+                const startStr = currentSlotStart.toTimeString().slice(0, 5);
+                const endStr = currentSlotEnd.toTimeString().slice(0, 5);
 
-            if (!isBooked) {
-                slots.push({ start: startStr, end: endStr, period, is_available: true });
+                const hour = currentSlotStart.getHours();
+                let period = 'morning';
+                if (hour >= 12 && hour < 17) period = 'afternoon';
+                if (hour >= 17) period = 'evening';
+
+                const slotStartDateTime = new Date(date);
+                slotStartDateTime.setHours(currentSlotStart.getHours(), currentSlotStart.getMinutes(), 0, 0);
+                const slotEndDateTime = new Date(slotStartDateTime.getTime() + selectedDuration * 60000);
+
+                // Core Conflict Logic
+                const cartConflict = getSlotConflict(date, startStr, endStr, true);
+                const recurrenceConflicts = validateRecurrence(date, startStr, endStr);
+
+                // Check if slot is in the past
+                const now = new Date();
+                const isPast = slotStartDateTime < now;
+
+                slots.push({
+                    start: startStr,
+                    end: endStr,
+                    period: period,
+                    is_available: !cartConflict && recurrenceConflicts.length === 0 && !isPast,
+                    conflict: cartConflict || (recurrenceConflicts.length > 0 ? recurrenceConflicts : (isPast ? 'past' : undefined))
+                });
+
+                currentSlotStart = new Date(currentSlotEnd);
             }
-
-            currentSlotStart = new Date(currentSlotEnd);
         }
+
+        // Sort slots by start time
+        slots.sort((a, b) => a.start.localeCompare(b.start));
 
         return slots;
     };
@@ -139,6 +162,52 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
         const date = new Date();
         date.setHours(parseInt(hours), parseInt(minutes));
         return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    };
+
+    const getSlotConflict = (date: Date, start: string, end: string, checkCart = true) => {
+        const slotStart = new Date(date);
+        const [sH, sM] = start.split(':').map(Number);
+        slotStart.setHours(sH, sM, 0, 0);
+
+        const slotEnd = new Date(date);
+        const [eH, eM] = end.split(':').map(Number);
+        slotEnd.setHours(eH, eM, 0, 0);
+
+        // 1. Check against backend booked_slots
+        const isExternalConflict = booked_slots?.some(booking => {
+            const bStart = parseNaiveTime(booking.start);
+            const bEnd = parseNaiveTime(booking.end);
+            return slotStart < bEnd && slotEnd > bStart;
+        });
+
+        if (isExternalConflict) return 'booked';
+
+        // 2. Check against current selection in cart (to prevent double picking same day/time)
+        if (checkCart) {
+            const isInternalConflict = selectedSessions.some(session => {
+                if (session.date.toDateString() !== date.toDateString()) return false;
+                return session.start === start;
+            });
+            if (isInternalConflict) return 'selected';
+        }
+
+        return null;
+    };
+
+    const validateRecurrence = (date: Date, start: string, end: string, checkCart = true, forceRecurring?: boolean, forceOccurrences?: number) => {
+        const loopCount = (forceRecurring ?? isRecurring) ? (forceOccurrences ?? occurrences) : 1;
+        const conflicts: Date[] = [];
+
+        for (let i = 0; i < loopCount; i++) {
+            const futureDate = new Date(date);
+            futureDate.setDate(date.getDate() + (i * 7));
+
+            if (getSlotConflict(futureDate, start, end, checkCart)) {
+                conflicts.push(futureDate);
+            }
+        }
+
+        return conflicts;
     };
 
     const getAvailabilitySummary = (schedule: any[]) => {
@@ -176,84 +245,148 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
     const handleDateClick = (day: number) => {
         const newDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
         setSelectedDate(newDate);
-        setSelectedTimeSlot(null);
     };
 
     const handleDurationChange = (duration: number) => {
         setSelectedDuration(duration);
-        setSelectedTimeSlot(null);
+        setSelectedSessions([]);
     };
 
     const goToPrevStep = () => setStep(prev => prev - 1);
 
-    const handleStep1Next = async () => {
-        if (!selectedDate || !selectedTimeSlot) {
-            toast.error("Please select a date and time slot.");
+    const handleStep1Next = () => {
+        if (selectedSessions.length === 0) {
+            toast.error("Please select at least one time slot.");
             return;
         }
 
-        setIsProcessing(true);
+        // Final comprehensive validation sweep before proceeding
+        const invalidSessions = selectedSessions.filter(s => {
+            // Check direct conflicts
+            if (getSlotConflict(s.date, s.start, s.end, false)) return true;
+            // Check recurrence conflicts
+            const conflicts = validateRecurrence(s.date, s.start, s.end, false);
+            return conflicts.length > 0;
+        });
 
-        try {
-            const [hours, minutes] = selectedTimeSlot.start.split(':').map(Number);
-            const d = new Date(selectedDate);
-            d.setHours(hours, minutes, 0, 0);
-            const isoStartTime = d.toISOString();
+        if (invalidSessions.length > 0) {
+            toast.error(`Some selected slots are no longer available. ${invalidSessions.length} sessions were removed.`);
+            setSelectedSessions(prev => prev.filter(s => !invalidSessions.includes(s)));
+            return;
+        }
 
-            const response = await axios.post('/guardian/book/check-availability', {
-                teacher_id: teacher.id,
-                start_time: isoStartTime,
-                duration: selectedDuration
-            });
+        setStep(2);
+    };
 
-            if (response.data.available) {
-                setStep(2);
-            } else {
-                toast.error("This time slot is no longer available. Please choose another.");
-                setSelectedTimeSlot(null);
+    const handleSlotToggle = (slot: TimeSlot) => {
+        if (!selectedDate) return;
+
+        // Feedback for unavailable slots
+        if (slot.conflict && slot.conflict !== 'selected') {
+            if (slot.conflict === 'booked') {
+                toast.error("This slot is already booked. Please choose another time.");
+                return;
             }
-        } catch (error) {
-            console.error("Availability Check Error:", error);
-            toast.error("Failed to check availability. Please try again.");
-        } finally {
-            setIsProcessing(false);
+            if (slot.conflict === 'past') {
+                toast.error("This time has already passed for today.");
+                return;
+            }
+            if (Array.isArray(slot.conflict)) {
+                const firstConflict = slot.conflict[0];
+                toast.error(`Recurring conflict: This slot is already booked on ${firstConflict.toLocaleDateString()}`);
+                return;
+            }
+        }
+
+        const isAlreadySelected = selectedSessions.some(s =>
+            s.date.toDateString() === selectedDate.toDateString() && s.start === slot.start
+        );
+
+        if (isAlreadySelected) {
+            setSelectedSessions(prev => prev.filter(s =>
+                !(s.date.toDateString() === selectedDate.toDateString() && s.start === slot.start)
+            ));
+        } else {
+            // Check for future conflicts just to be sure
+            const conflicts = validateRecurrence(selectedDate, slot.start, slot.end);
+            if (conflicts.length > 0) {
+                toast.error(`Cannot select this slot. There is a conflict on ${conflicts[0].toLocaleDateString()}`);
+                return;
+            }
+
+            setSelectedSessions(prev => [...prev, {
+                date: new Date(selectedDate),
+                start: slot.start,
+                end: slot.end,
+                period: slot.period
+            }]);
+        }
+    };
+
+    const handleRecurrenceChange = (checked: boolean) => {
+        setIsRecurring(checked);
+        // Re-validate everything in the cart
+        if (checked && selectedSessions.length > 0) {
+            toast.info("Re-validating your selected slots for future conflicts...");
+            const validSessions = selectedSessions.filter(s => {
+                const conflicts = validateRecurrence(s.date, s.start, s.end, true, checked, occurrences);
+                return conflicts.length === 0;
+            });
+            if (validSessions.length < selectedSessions.length) {
+                toast.warning(`${selectedSessions.length - validSessions.length} slots were removed due to recurring conflicts.`);
+            }
+            setSelectedSessions(validSessions);
+        }
+    };
+
+    const handleOccurrencesChange = (val: number) => {
+        setOccurrences(val);
+        // Re-validate everything in the cart
+        if (isRecurring && selectedSessions.length > 0) {
+            const validSessions = selectedSessions.filter(s => {
+                const conflicts = validateRecurrence(s.date, s.start, s.end, true, isRecurring, val);
+                return conflicts.length === 0;
+            });
+            if (validSessions.length < selectedSessions.length) {
+                toast.warning(`${selectedSessions.length - validSessions.length} slots were removed due to new conflicts.`);
+            }
+            setSelectedSessions(validSessions);
         }
     };
 
     const handleProceedCheck = () => {
-        if (!selectedDate || !selectedTimeSlot || !selectedSubject) return;
-
-        if (paymentMethod === 'wallet') {
-            const balance = Number(userWalletBalance);
-            const cost = Number(totalCostNGN.toFixed(2));
-
-            if (balance < cost) {
-                setIsInsufficientFundsOpen(true);
-                return;
-            }
-        }
+        if (selectedSessions.length === 0 || !selectedSubject) return;
 
         setIsBookingSummaryOpen(true);
     };
 
     const handleFinalBooking = () => {
-        if (!selectedDate || !selectedTimeSlot || !selectedSubject) return;
+        if (selectedSessions.length === 0 || !selectedSubject) return;
 
-        const year = selectedDate.getFullYear();
-        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-        const day = String(selectedDate.getDate()).padStart(2, '0');
-        const dateStr = `${year}-${month}-${day}`;
+        // Process all sessions
+        const formattedSessions = selectedSessions.map(s => {
+            const startD = new Date(s.date);
+            const [sH, sM] = s.start.split(':').map(Number);
+            startD.setHours(sH, sM, 0, 0);
 
-        const [hours, minutes] = selectedTimeSlot.start.split(':').map(Number);
-        const d = new Date(selectedDate);
-        d.setHours(hours, minutes, 0, 0);
-        const isoStartTime = d.toISOString();
+            const endD = new Date(s.date);
+            const [eH, eM] = s.end.split(':').map(Number);
+            endD.setHours(eH, eM, 0, 0);
+
+            const pad = (n: number) => String(n).padStart(2, '0');
+            const formatForBackend = (date: Date) =>
+                `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+
+            return {
+                start_time: formatForBackend(startD),
+                end_time: formatForBackend(endD),
+                date: `${s.date.getFullYear()}-${pad(s.date.getMonth() + 1)}-${pad(s.date.getDate())}`
+            };
+        });
 
         router.post('/guardian/book/process', {
             teacher_id: teacher.id,
-            date: dateStr,
-            start_time: isoStartTime,
-            end_time: selectedTimeSlot.end,
+            sessions: formattedSessions, // Updated to batch
             subject_id: selectedSubject,
             notes: notes,
             duration: selectedDuration,
@@ -265,9 +398,15 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
             preserveScroll: true,
             onStart: () => setIsProcessing(true),
             onFinish: () => setIsProcessing(false),
-            onSuccess: () => {
+            onSuccess: (page) => {
                 setIsBookingSummaryOpen(false);
-                setIsSuccessModalOpen(true);
+                const flash = page.props.flash as any;
+                if (flash?.booking_status === 'awaiting_payment') {
+                    toast.warning("Booking saved, payment pending. Please top up!");
+                    setIsInsufficientFundsOpen(true);
+                } else {
+                    setIsSuccessModalOpen(true);
+                }
             },
             onError: (errors) => {
                 console.error(errors);
@@ -300,18 +439,21 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
                     selectedDate={selectedDate}
                     currentMonth={currentMonth}
                     daysArray={daysArray}
-                    availableSlots={availableSlots}
-                    selectedTimeSlot={selectedTimeSlot}
+                    availableSlots={availableSlots as any}
+                    selectedSessions={selectedSessions}
                     selectedDuration={selectedDuration}
                     userTimeZone={userTimeZone}
                     isRecurring={isRecurring}
                     occurrences={occurrences}
+                    totalCost={{ usd: totalCostUSD, ngn: totalCostNGN }}
+                    sessionCount={totalSessions}
+                    currency={currency}
                     onMonthChange={handleMonthChange}
                     onDateClick={handleDateClick}
-                    onTimeSlotSelect={setSelectedTimeSlot}
+                    onTimeSlotToggle={handleSlotToggle}
                     onDurationChange={handleDurationChange}
-                    onRecurrenceToggle={setIsRecurring}
-                    onOccurrencesChange={setOccurrences}
+                    onRecurrenceToggle={handleRecurrenceChange}
+                    onOccurrencesChange={handleOccurrencesChange}
                     onNext={handleStep1Next}
                     getAvailabilitySummary={getAvailabilitySummary}
                     formatTimePill={formatTimePill}
@@ -321,8 +463,7 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
             {step === 2 && (
                 <Step2SessionDetails
                     teacher={teacher}
-                    selectedDate={selectedDate}
-                    selectedTimeSlot={selectedTimeSlot}
+                    selectedSessions={selectedSessions}
                     selectedSubject={selectedSubject}
                     notes={notes}
                     onSubjectSelect={setSelectedSubject}
@@ -341,6 +482,7 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
                     paymentMethod={paymentMethod}
                     isRecurring={isRecurring}
                     occurrences={occurrences}
+                    totalCost={{ usd: totalCostUSD, ngn: totalCostNGN }}
                     onCurrencyChange={(c) => setCurrency(c as any)}
                     onPaymentMethodChange={setPaymentMethod}
                     onBack={goToPrevStep}
@@ -352,14 +494,15 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
                 isOpen={isBookingSummaryOpen}
                 onClose={() => setIsBookingSummaryOpen(false)}
                 teacher={teacher}
-                selectedDate={selectedDate}
-                selectedTimeSlot={selectedTimeSlot}
+                selectedSessions={selectedSessions}
                 selectedSubjectName={selectedSubjectName}
                 totalCost={{ usd: totalCostUSD, ngn: totalCostNGN }}
                 currency={currency}
                 notes={notes}
                 isProcessing={isProcessing}
                 onConfirm={handleFinalBooking}
+                isRecurring={isRecurring}
+                occurrences={occurrences}
             />
 
             <InsufficientFundsModal
@@ -368,15 +511,14 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
                 requiredAmount={totalCostNGN}
             />
 
-            {selectedDate && selectedTimeSlot && (
-                <BookingSuccessModal
-                    isOpen={isSuccessModalOpen}
-                    onClose={() => router.visit('/guardian/dashboard')}
-                    teacherName={teacher.user.name}
-                    date={selectedDate}
-                    timeSlot={selectedTimeSlot}
-                />
-            )}
+            <BookingSuccessModal
+                isOpen={isSuccessModalOpen}
+                onClose={() => router.visit('/guardian/dashboard')}
+                teacherName={teacher.user.name}
+                sessions={selectedSessions}
+                isRecurring={isRecurring}
+                occurrences={occurrences}
+            />
         </div>
     );
 }

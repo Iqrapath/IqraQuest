@@ -46,6 +46,12 @@ class FortifyServiceProvider extends ServiceProvider
             \Laravel\Fortify\Contracts\VerifyEmailResponse::class,
             \App\Http\Responses\VerifyEmailResponse::class
         );
+
+        // Custom login response - handle teacher onboarding redirects
+        $this->app->singleton(
+            \Laravel\Fortify\Contracts\LoginResponse::class,
+            \App\Http\Responses\LoginResponse::class
+        );
     }
 
     /**
@@ -58,7 +64,10 @@ class FortifyServiceProvider extends ServiceProvider
             $user = auth()->user();
             
             // Update last login
-            $user->update(['last_login_at' => now()]);
+            $user->update([
+                'last_login_at' => now(),
+                'last_login_ip' => request()->ip(),
+            ]);
             
             // Note: Login notification is sent by SendLoginNotification listener
             // which listens to the Login event fired by Fortify
@@ -68,10 +77,26 @@ class FortifyServiceProvider extends ServiceProvider
                 return $intended;
             }
             
-            // If teacher hasn't completed onboarding, redirect to onboarding
+            // If teacher hasn't completed onboarding, redirect to the correct step
+            \Illuminate\Support\Facades\Log::info('Login Redirect Debug:', [
+                'is_teacher' => $user->isTeacher(),
+                'has_teacher_profile' => (bool) $user->teacher,
+                'onboarding_step' => $user->teacher?->onboarding_step,
+            ]);
+
             if ($user->isTeacher() && $user->teacher && $user->teacher->onboarding_step < 5) {
-                return redirect()->route('teacher.onboarding.step1')
-                    ->with('success', 'Welcome! Please complete your teacher onboarding.');
+                $step = $user->teacher->onboarding_step;
+                
+                // Map step number to route name
+                $routeName = match ($step) {
+                    2 => 'teacher.onboarding.step2',
+                    3 => 'teacher.onboarding.step3',
+                    4 => 'teacher.onboarding.step4',
+                    default => 'teacher.onboarding.step1',
+                };
+
+                // Return URL string, not a RedirectResponse
+                return route($routeName);
             }
             
             // Redirect to role-specific dashboard
@@ -122,13 +147,15 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureRateLimiting(): void
     {
         RateLimiter::for('two-factor', function (Request $request) {
-            return Limit::perMinute(5)->by($request->session()->get('login.id'));
+            //  return Limit::perMinute(5)->by($request->session()->get('login.id'));
+            return Limit::perMinute(1000)->by($request->session()->get('login.id'));
         });
 
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
 
-            return Limit::perMinute(5)->by($throttleKey);
+            // return Limit::perMinute(5)->by($throttleKey);
+            return Limit::perMinute(1000)->by($throttleKey);
         });
     }
 }

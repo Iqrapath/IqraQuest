@@ -16,31 +16,24 @@ interface Props {
     timezones: string[];
 }
 
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+interface TimeSlot {
+    day: string;
+    start: string;
+    end: string;
+    [key: string]: string; // Index signature for FormDataConvertible compatibility
+}
 
-const TIME_SLOTS = Array.from({ length: 24 }, (_, i) => {
-    const hour = i;
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const hour12 = hour % 12 || 12;
-    const hour24 = hour.toString().padStart(2, '0');
-    return {
-        value: `${hour24}:00`,
-        label: `${hour12}:00 ${ampm}`
-    };
-});
+const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const MAX_SLOTS_PER_DAY = 5;
 
 export default function Step3({ teacher, timezones = Intl.supportedValuesOf('timeZone') }: Props) {
-    // Initialize availability from teacher data or default empty
-    // Initialize availability from teacher data or default empty
-    // Map DB fields (day_of_week, start_time, end_time) to frontend fields (day, start, end)
-    const initialAvailability = (teacher.availability || []).map((slot: any) => ({
-        day: slot.day || slot.day_of_week,
-        start: slot.start || slot.start_time?.slice(0, 5),
-        end: slot.end || slot.end_time?.slice(0, 5)
+    // Map DB fields to frontend fields
+    const initialAvailability: TimeSlot[] = (teacher.availability || []).map((slot: any) => ({
+        day: (slot.day || slot.day_of_week || '').toLowerCase(),
+        start: slot.start || slot.start_time?.slice(0, 5) || '09:00',
+        end: slot.end || slot.end_time?.slice(0, 5) || '10:00'
     }));
 
-    // Ensure teaching_modes is treated as a single string if it comes as an array from backend
-    // or if it's already a string (depending on how backend sends it back if validation fails)
     let initialMode = '';
     if (Array.isArray(teacher.teaching_modes) && teacher.teaching_modes.length > 0) {
         initialMode = teacher.teaching_modes[0];
@@ -55,13 +48,19 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
         availability: initialAvailability,
     });
 
+    // Track which days are expanded
+    const [expandedDays, setExpandedDays] = useState<string[]>(
+        [...new Set(initialAvailability.map((s: TimeSlot) => s.day))]
+    );
+
     const handleModeToggle = (mode: string) => {
-        // Single selection logic
         setData('teaching_mode', mode);
 
-        // If switching to part-time, check if we need to trim availability
-        if (mode === 'part-time' && data.availability.length > 3) {
-            toast.warning('Part-time teachers are limited to 3 days of availability. Please adjust your schedule.');
+        if (mode === 'part-time') {
+            const uniqueDays = [...new Set(data.availability.map((a: TimeSlot) => a.day))];
+            if (uniqueDays.length > 3) {
+                toast.warning('Part-time teachers are limited to 3 days. Please reduce your days.');
+            }
         }
     };
 
@@ -78,52 +77,115 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
         setData('teaching_types', currentTypes);
     };
 
-    const handleDayToggle = (day: string) => {
-        const currentAvailability = [...data.availability];
-        const index = currentAvailability.findIndex((a: any) => a.day.toLowerCase() === day.toLowerCase());
+    const toggleDay = (day: string) => {
+        const dayLower = day.toLowerCase();
+        const isExpanded = expandedDays.includes(dayLower);
 
-        if (index > -1) {
-            // Remove day
-            currentAvailability.splice(index, 1);
+        if (isExpanded) {
+            // Collapse and remove all slots for this day
+            setExpandedDays(expandedDays.filter(d => d !== dayLower));
+            setData('availability', data.availability.filter((a: TimeSlot) => a.day !== dayLower));
         } else {
-            // Check limits for Part-Time
-            if (data.teaching_mode === 'part-time' && currentAvailability.length >= 3) {
-                toast.error('Part-time teachers can only select up to 3 days.');
-                return;
+            // Check part-time limit before adding
+            if (data.teaching_mode === 'part-time') {
+                const uniqueDays = [...new Set(data.availability.map((a: TimeSlot) => a.day))];
+                if (uniqueDays.length >= 3) {
+                    toast.error('Part-time teachers can only select up to 3 days.');
+                    return;
+                }
             }
 
-            // Add day with default times (09:00 - 10:00)
-            currentAvailability.push({
-                day: day.toLowerCase(),
-                start: '09:00',
-                end: '10:00'
-            });
-        }
-
-        setData('availability', currentAvailability);
-    };
-
-    const updateTime = (day: string, field: 'start' | 'end', value: string) => {
-        // Only allow updating start time, end time is auto-calculated
-        if (field === 'end') return;
-
-        const currentAvailability = [...data.availability];
-        const index = currentAvailability.findIndex((a: any) => a.day.toLowerCase() === day.toLowerCase());
-
-        if (index > -1) {
-            currentAvailability[index].start = value;
-
-            // Calculate end time (Start + 1 hour)
-            const timeIndex = TIME_SLOTS.findIndex(t => t.value === value);
-            const nextIndex = (timeIndex + 1) % 24;
-            currentAvailability[index].end = TIME_SLOTS[nextIndex].value;
-
-            setData('availability', currentAvailability);
+            // Expand and add first slot
+            setExpandedDays([...expandedDays, dayLower]);
+            setData('availability', [
+                ...data.availability,
+                { day: dayLower, start: '09:00', end: '10:00' }
+            ]);
         }
     };
 
-    const getDayAvailability = (day: string) => {
-        return data.availability.find((a: any) => a.day.toLowerCase() === day.toLowerCase());
+    const addSlot = (day: string) => {
+        const dayLower = day.toLowerCase();
+        const daySlots = data.availability.filter((a: TimeSlot) => a.day === dayLower);
+
+        if (daySlots.length >= MAX_SLOTS_PER_DAY) {
+            toast.error(`Maximum ${MAX_SLOTS_PER_DAY} time slots per day.`);
+            return;
+        }
+
+        // Find a time that doesn't overlap - start at 09:00 and increment
+        const usedStarts = daySlots.map((s: TimeSlot) => s.start);
+        let startHour = 9;
+        while (usedStarts.includes(`${startHour.toString().padStart(2, '0')}:00`) && startHour < 23) {
+            startHour++;
+        }
+        const newStart = `${startHour.toString().padStart(2, '0')}:00`;
+        const endHour = (startHour + 1) % 24;
+        const newEnd = `${endHour.toString().padStart(2, '0')}:00`;
+
+        setData('availability', [
+            ...data.availability,
+            { day: dayLower, start: newStart, end: newEnd }
+        ]);
+    };
+
+    const removeSlot = (day: string, index: number) => {
+        const dayLower = day.toLowerCase();
+        const daySlots = data.availability.filter((a: TimeSlot) => a.day === dayLower);
+        const otherSlots = data.availability.filter((a: TimeSlot) => a.day !== dayLower);
+
+        // Remove the slot at the given index
+        daySlots.splice(index, 1);
+
+        // If no slots left, collapse the day
+        if (daySlots.length === 0) {
+            setExpandedDays(expandedDays.filter(d => d !== dayLower));
+        }
+
+        setData('availability', [...otherSlots, ...daySlots]);
+    };
+
+    const updateSlotTime = (day: string, slotIndex: number, field: 'start' | 'end', value: string) => {
+        const dayLower = day.toLowerCase();
+        const daySlots = data.availability.filter((a: TimeSlot) => a.day === dayLower);
+        const globalIdx = data.availability.indexOf(daySlots[slotIndex]);
+
+        const updated = data.availability.map((slot: TimeSlot, idx: number) => {
+            if (idx === globalIdx) {
+                if (field === 'start') {
+                    // When start changes, auto-set end to +1 hour
+                    const startHour = parseInt(value.split(':')[0]);
+                    const endHour = (startHour + 1) % 24;
+                    const newEnd = `${endHour.toString().padStart(2, '0')}:00`;
+                    return { ...slot, start: value, end: newEnd };
+                } else {
+                    // When end changes, just update it (will be validated on submit)
+                    return { ...slot, end: value };
+                }
+            }
+            return slot;
+        });
+        setData('availability', updated);
+    };
+
+    // Calculate duration in minutes between start and end time
+    const getSlotDuration = (start: string, end: string): number => {
+        const startMinutes = parseInt(start.split(':')[0]) * 60 + parseInt(start.split(':')[1] || '0');
+        let endMinutes = parseInt(end.split(':')[0]) * 60 + parseInt(end.split(':')[1] || '0');
+        // Handle overnight (e.g., 23:00 to 00:00)
+        if (endMinutes <= startMinutes) endMinutes += 24 * 60;
+        return endMinutes - startMinutes;
+    };
+
+    // Check if a slot has valid duration (1 hour or less, but more than 0)
+    const isSlotDurationValid = (slot: TimeSlot): boolean => {
+        const duration = getSlotDuration(slot.start, slot.end);
+        return duration > 0 && duration <= 60;
+    };
+
+
+    const getDaySlots = (day: string): TimeSlot[] => {
+        return data.availability.filter((a: TimeSlot) => a.day === day.toLowerCase());
     };
 
     const submit = (e: React.FormEvent) => {
@@ -140,11 +202,17 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
         }
 
         if (data.availability.length === 0) {
-            toast.error('Please select at least one day of availability');
+            toast.error('Please add at least one time slot');
             return;
         }
 
-        // Transform teaching_mode back to array for backend compatibility
+        // Check duration for all slots
+        const invalidSlots = data.availability.filter((slot: TimeSlot) => !isSlotDurationValid(slot));
+        if (invalidSlots.length > 0) {
+            toast.error('Each time slot must be exactly 1 hour or less. Please adjust your end times.');
+            return;
+        }
+
         const payload = {
             ...data,
             teaching_modes: [data.teaching_mode]
@@ -162,7 +230,7 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
     };
 
     return (
-       <TeacherLayout hideRightSidebar={true} hideLeftSidebar={true}>
+        <TeacherLayout hideRightSidebar={true} hideLeftSidebar={true}>
             <Head title="Teacher Onboarding - Step 3" />
 
             <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -202,7 +270,7 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
                                 Availability & Schedule
                             </h2>
                             <p className="text-[#6B7280] text-[16px] font-medium mb-6" style={{ fontFamily: 'Nunito' }}>
-                                Your Teaching Expertise
+                                Set your teaching hours
                             </p>
 
                             <div className="grid grid-cols-2 gap-8 mb-8">
@@ -212,7 +280,7 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
                                         Set your Time Zone
                                     </label>
                                     <p className="text-[#6B7280] text-[12px] mb-3" style={{ fontFamily: 'Nunito' }}>
-                                        A correct time zone is essential to coordinate lessons with international students
+                                        Essential for coordinating with international students
                                     </p>
                                     <Select
                                         value={data.timezone}
@@ -238,7 +306,7 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
                                         Teaching Mode
                                     </label>
                                     <p className="text-[#6B7280] text-[12px] mb-3" style={{ fontFamily: 'Nunito' }}>
-                                        Max 6 hrs/day for full-time, 3 hrs/day for part-time
+                                        Full-time: Up to 7 days | Part-time: Max 3 days
                                     </p>
                                     <div className="flex gap-6 mt-4">
                                         <label className="flex items-center gap-2 cursor-pointer">
@@ -292,15 +360,6 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
                                             />
                                             <span className="text-[#6B7280] text-[16px]" style={{ fontFamily: 'Nunito' }}>Online</span>
                                         </label>
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={data.teaching_types.includes('in-person')}
-                                                onChange={() => handleTypeToggle('in-person')}
-                                                className="w-5 h-5 rounded border-[#9E9E9E] text-[#338078] focus:ring-[#338078]"
-                                            />
-                                            <span className="text-[#6B7280] text-[16px]" style={{ fontFamily: 'Nunito' }}>In-Person</span>
-                                        </label>
                                     </div>
                                     {errors.teaching_types && <p className="mt-2 text-sm text-red-600">{errors.teaching_types}</p>}
                                 </div>
@@ -309,55 +368,103 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
                             {/* Availability List */}
                             <div>
                                 <label className="block text-[#170F49] text-[16px] font-medium mb-2" style={{ fontFamily: 'Nunito' }}>
-                                    Select Your Availability
+                                    Select Your Available Days & Time Slots
                                 </label>
                                 <p className="text-[#6B7280] text-[12px] mb-6" style={{ fontFamily: 'Nunito' }}>
-                                    A correct time zone is essential to coordinate lessons with international students
+                                    Add up to {MAX_SLOTS_PER_DAY} time slots per day (1-hour sessions each)
                                 </p>
 
-                                <div className="space-y-6">
+                                <div className="space-y-4">
                                     {DAYS.map((day) => {
-                                        const availability = getDayAvailability(day);
-                                        const isChecked = !!availability;
+                                        const dayLower = day.toLowerCase();
+                                        const isExpanded = expandedDays.includes(dayLower);
+                                        const daySlots = getDaySlots(day);
 
                                         return (
-                                            <div key={day}>
-                                                <label className="flex items-center gap-3 cursor-pointer mb-3">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={isChecked}
-                                                        onChange={() => handleDayToggle(day)}
-                                                        className="w-5 h-5 rounded border-[#9E9E9E] text-[#338078] focus:ring-[#338078]"
-                                                    />
-                                                    <span className="text-[#170F49] text-[16px] font-medium" style={{ fontFamily: 'Nunito' }}>
-                                                        {day}
-                                                    </span>
-                                                </label>
+                                            <div key={day} className="border border-gray-200 rounded-lg overflow-hidden">
+                                                {/* Day Header */}
+                                                <div
+                                                    className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${isExpanded ? 'bg-[#F0FAF9]' : 'bg-white hover:bg-gray-50'}`}
+                                                    onClick={() => toggleDay(day)}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isExpanded}
+                                                            onChange={() => { }}
+                                                            className="w-5 h-5 rounded border-[#9E9E9E] text-[#338078] focus:ring-[#338078]"
+                                                        />
+                                                        <span className="text-[#170F49] text-[16px] font-medium" style={{ fontFamily: 'Nunito' }}>
+                                                            {day}
+                                                        </span>
+                                                    </div>
+                                                    {isExpanded && (
+                                                        <span className="text-[#338078] text-[14px]">
+                                                            {daySlots.length} slot{daySlots.length !== 1 ? 's' : ''}
+                                                        </span>
+                                                    )}
+                                                </div>
 
-                                                {isChecked && (
-                                                    <div className="grid grid-cols-2 gap-4 ml-8">
-                                                        <div>
-                                                            <label className="block text-[#170F49] text-[14px] mb-1" style={{ fontFamily: 'Nunito' }}>From</label>
-                                                            <Select
-                                                                value={availability.start}
-                                                                onValueChange={(val) => updateTime(day, 'start', val)}
+                                                {/* Time Slots */}
+                                                {isExpanded && (
+                                                    <div className="p-4 pt-2 border-t border-gray-100 bg-gray-50">
+                                                        <div className="space-y-3">
+                                                            {daySlots.map((slot, idx) => (
+                                                                <div key={`${day}-${idx}`} className="flex items-center gap-4 bg-white p-3 rounded-lg border border-gray-200">
+                                                                    <div className="flex-1">
+                                                                        <label className="block text-[#6B7280] text-[12px] mb-1">Start Time</label>
+                                                                        <input
+                                                                            type="time"
+                                                                            value={slot.start}
+                                                                            onChange={(e) => updateSlotTime(day, idx, 'start', e.target.value)}
+                                                                            className="w-full h-[40px] px-3 border border-[#9E9E9E] rounded-[5px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#338078] focus:border-transparent"
+                                                                        />
+                                                                    </div>
+                                                                    <div className="flex-1">
+                                                                        <label className="block text-[#6B7280] text-[12px] mb-1">End Time (max 1hr)</label>
+                                                                        <input
+                                                                            type="time"
+                                                                            value={slot.end}
+                                                                            onChange={(e) => updateSlotTime(day, idx, 'end', e.target.value)}
+                                                                            className={`w-full h-[40px] px-3 rounded-[5px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#338078] focus:border-transparent ${!isSlotDurationValid(slot) ? 'border-red-500 border-2' : 'border border-[#9E9E9E]'}`}
+                                                                        />
+                                                                        {!isSlotDurationValid(slot) && (
+                                                                            <p className="text-red-500 text-[11px] mt-1">Max 1 hour allowed</p>
+                                                                        )}
+                                                                    </div>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            removeSlot(day, idx);
+                                                                        }}
+                                                                        className="mt-5 w-8 h-8 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                                                        title="Remove slot"
+                                                                    >
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                                        </svg>
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+
+                                                        {/* Add Slot Button */}
+                                                        {daySlots.length < MAX_SLOTS_PER_DAY && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    addSlot(day);
+                                                                }}
+                                                                className="mt-3 flex items-center gap-2 text-[#338078] hover:text-[#2a6962] text-[14px] font-medium transition-colors"
                                                             >
-                                                                <SelectTrigger className="w-full h-[42px] px-[14px] border border-[#9E9E9E] rounded-[5px] text-[#000000] text-[14px] focus:ring-[#338078]">
-                                                                    <SelectValue placeholder="Start time" />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    {TIME_SLOTS.map((time) => (
-                                                                        <SelectItem key={`start-${time.value}`} value={time.value}>{time.label}</SelectItem>
-                                                                    ))}
-                                                                </SelectContent>
-                                                            </Select>
-                                                        </div>
-                                                        <div>
-                                                            <label className="block text-[#170F49] text-[14px] mb-1" style={{ fontFamily: 'Nunito' }}>To</label>
-                                                            <div className="w-full h-[42px] px-[14px] border border-[#E5E7EB] bg-gray-50 rounded-[5px] text-[#6B7280] text-[14px] flex items-center">
-                                                                {TIME_SLOTS.find(t => t.value === availability.end)?.label || availability.end}
-                                                            </div>
-                                                        </div>
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                                                                </svg>
+                                                                Add Time Slot
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>

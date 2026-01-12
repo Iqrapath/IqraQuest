@@ -54,7 +54,7 @@ export default function BookingShow({ booking }: Props) {
 
     const formatDuration = () => {
         const minutes = booking.duration_minutes;
-    if (minutes >= 60) {
+        if (minutes >= 60) {
             const hours = Math.floor(minutes / 60);
             const remainingMinutes = minutes % 60;
             if (remainingMinutes === 0) {
@@ -105,7 +105,7 @@ export default function BookingShow({ booking }: Props) {
     return (
         <StudentLayout>
             <Head title="Class Details" />
-            
+
             <div className="flex flex-col gap-[clamp(1.5rem,3vw,2rem)]">
                 {/* Page Title */}
                 <h1 className="font-['Poppins'] font-medium text-[clamp(1.25rem,2.5vw,1.5rem)] text-black">
@@ -118,10 +118,10 @@ export default function BookingShow({ booking }: Props) {
                         {/* Subject Image */}
                         <div className="w-[clamp(6rem,12vw,8rem)] h-[clamp(6rem,12vw,8rem)] rounded-xl bg-[#f3f4f6] overflow-hidden flex-shrink-0">
                             {booking.subject.image ? (
-                                <img 
-                                    src={booking.subject.image} 
-                                    alt={booking.subject.name} 
-                                    className="w-full h-full object-cover" 
+                                <img
+                                    src={booking.subject.image}
+                                    alt={booking.subject.name}
+                                    className="w-full h-full object-cover"
                                 />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-[#e8f5e9]">
@@ -166,16 +166,9 @@ export default function BookingShow({ booking }: Props) {
                             {/* Mode Badge */}
                             <div className="flex flex-col xs:flex-row xs:items-center gap-2">
                                 <span className="font-['Poppins'] text-sm text-[#6b7280]">Mode:</span>
-                                <div className="bg-[#f9fafb] border border-[#e5e7eb] rounded-full px-3 sm:px-4 py-1.5 flex items-center gap-2 sm:gap-3 w-fit">
-                                    <div className="flex items-center gap-1 sm:gap-1.5">
-                                        <Icon icon="mdi:video-outline" className="h-4 w-4 text-[#338078]" />
-                                        <span className="font-['Nunito'] text-xs sm:text-sm text-[#338078]">Zoom</span>
-                                    </div>
-                                    <span className="text-[#e5e7eb]">|</span>
-                                    <div className="flex items-center gap-1 sm:gap-1.5">
-                                        <Icon icon="logos:google-meet" className="h-4 w-4" />
-                                        <span className="font-['Nunito'] text-xs sm:text-sm text-[#338078]">Google Meet</span>
-                                    </div>
+                                <div className="bg-[#e4f7f4] border border-[#338078]/20 rounded-full px-4 py-1.5 flex items-center gap-2 w-fit">
+                                    <Icon icon="mdi:video-vintage" className="h-4 w-4 text-[#338078]" />
+                                    <span className="font-['Nunito'] text-sm font-medium text-[#338078]">IqraQuestClass</span>
                                 </div>
                             </div>
                         </div>
@@ -192,10 +185,10 @@ export default function BookingShow({ booking }: Props) {
                         {/* Teacher Avatar */}
                         <div className="w-[clamp(5rem,10vw,6rem)] h-[clamp(5rem,10vw,6rem)] rounded-xl bg-[#f3f4f6] overflow-hidden flex-shrink-0">
                             {booking.teacher.avatar ? (
-                                <img 
-                                    src={booking.teacher.avatar} 
-                                    alt={booking.teacher.name} 
-                                    className="w-full h-full object-cover" 
+                                <img
+                                    src={booking.teacher.avatar}
+                                    alt={booking.teacher.name}
+                                    className="w-full h-full object-cover"
                                 />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-[#e8f5e9]">
@@ -292,7 +285,7 @@ export default function BookingShow({ booking }: Props) {
                             Cancel Booking
                         </Button>
                     )}
-                    <CalendarExport 
+                    <CalendarExport
                         bookingId={booking.id}
                         className="rounded-[56px] border-[#338078] text-[#338078] hover:bg-[#338078] hover:text-white font-['Nunito'] font-semibold text-sm px-6 h-11 w-full sm:w-auto"
                     />

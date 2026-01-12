@@ -43,18 +43,30 @@ class ProcessBookingPaymentJob implements ShouldQueue
             $this->booking->update(['status' => 'awaiting_approval']);
             
             // Send Success Notification to Student
-            $student->notify(new BookingRequestedNotification($this->booking));
+            try {
+                $student->notify((new BookingRequestedNotification($this->booking))->delay(now()->addSeconds(5)));
+            } catch (\Exception $e) {
+                Log::error("Failed to send student booking notification: " . $e->getMessage());
+            }
             
-            // Send Notification to Teacher (Delayed 20s to ensure Student email completes and Mailtrap limit resets)
-            $this->booking->teacher->user->notify((new NewBookingRequestNotification($this->booking))->delay(now()->addSeconds(20)));
+            // Send Notification to Teacher
+            try {
+                 $this->booking->teacher->user->notify((new NewBookingRequestNotification($this->booking))->delay(now()->addSeconds(10)));
+            } catch (\Exception $e) {
+                Log::error("Failed to send teacher booking notification: " . $e->getMessage());
+            }
             
             Log::info("Payment held in escrow. Booking awaiting teacher approval.");
         } else {
-            // Insufficient funds or escrow failed
-            $this->booking->update(['status' => 'cancelled', 'cancellation_reason' => 'Insufficient wallet balance']);
+            // Insufficient funds or escrow failed - defer payment instead of cancelling
+            $this->booking->update(['status' => 'awaiting_payment']);
             
             // Send Failure Notification
-            $student->notify(new \App\Notifications\BookingFailedNotification($this->booking, 'Insufficient wallet balance'));
+            try {
+                $student->notify((new \App\Notifications\BookingFailedNotification($this->booking, 'Insufficient wallet balance. Please top up your wallet to complete this booking.'))->delay(now()->addSeconds(5)));
+            } catch (\Exception $e) {
+                 Log::error("Failed to send student booking failed notification: " . $e->getMessage());
+            }
             
             Log::warning("Payment failed. Insufficient funds.");
         }

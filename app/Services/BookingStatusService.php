@@ -133,6 +133,10 @@ class BookingStatusService
             return 'awaiting_approval';
         }
 
+        if ($booking->status === 'awaiting_payment') {
+            return 'awaiting_payment';
+        }
+
         if ($booking->status === 'disputed') {
             return 'disputed';
         }
@@ -285,12 +289,12 @@ class BookingStatusService
             'teacher' => [
                 'id' => $booking->teacher->id,
                 'name' => $booking->teacher->user->name,
-                'avatar' => $booking->teacher->user->avatar,
+                'avatar' => $booking->teacher->user->avatar_url,
             ],
             'student' => [
                 'id' => $booking->student->id,
                 'name' => $booking->student->name,
-                'avatar' => $booking->student->avatar,
+                'avatar' => $booking->student->avatar_url,
             ],
             'start_time' => $booking->start_time->toIso8601String(),
             'end_time' => $booking->end_time->toIso8601String(),

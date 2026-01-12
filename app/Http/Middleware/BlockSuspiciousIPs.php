@@ -31,21 +31,54 @@ class BlockSuspiciousIPs
      */
     protected function isBlocked(string $ip): bool
     {
-        return Cache::has("blocked_ip:{$ip}");
+        // Check database instead of Cache
+        $block = \App\Models\BlockedIp::where('ip_address', $ip)
+            ->where('is_active', true)
+            ->where(function($query) {
+                $query->whereNull('expires_at')
+                      ->orWhere('expires_at', '>', now());
+            })
+            ->first();
+
+        return (bool) $block;
     }
 
     /**
      * Block an IP address and notify the user
      */
-    public static function blockIP(string $ip, int $minutes = 60, string $reason = 'Suspicious activity detected'): void
+    public static function blockIP(string $ip, int $minutes = 60, string $reason = 'Suspicious activity detected', ?string $email = null): void
     {
-        Cache::put("blocked_ip:{$ip}", true, now()->addMinutes($minutes));
+        // Try to identify the user
+        $user = auth()->user();
+
+        // Fallback 1: Try to find by email if provided
+        if (!$user && $email) {
+            $user = \App\Models\User::where('email', $email)->first();
+        }
+
+        // Fallback 2: Try to find by IP if not currently authenticated
+        if (!$user) {
+            $user = \App\Models\User::where('last_login_ip', $ip)->first();
+        }
         
-        // Try to find and notify the user associated with this IP
-        $user = \App\Models\User::where('last_login_ip', $ip)->first();
+        \App\Models\BlockedIp::updateOrCreate(
+            ['ip_address' => $ip],
+            [
+                'reason' => $reason,
+                'blocked_at' => now(),
+                'expires_at' => now()->addMinutes($minutes),
+                'user_id' => $user?->id,
+                'is_active' => true,
+            ]
+        );
         
         if ($user) {
-            $user->notify(new IpBlockedNotification($ip, $minutes, $reason));
+            try {
+                $user->notify(new IpBlockedNotification($ip, $minutes, $reason));
+            } catch (\Exception $e) {
+                // Log error but don't crash the request if email fails (e.g. SMTP limits)
+                \Illuminate\Support\Facades\Log::error("Failed to send IP blocked notification: " . $e->getMessage());
+            }
         }
     }
 
@@ -54,9 +87,13 @@ class BlockSuspiciousIPs
      */
     public static function unblockIP(string $ip): void
     {
+        // "Soft" unblock by setting is_active to false
+        // This keeps the history of the block
+        \App\Models\BlockedIp::where('ip_address', $ip)->update(['is_active' => false]);
+        
+        // Also clear any cache if it exists (for backward compatibility or fast lookup if we implemented cache later)
         Cache::forget("blocked_ip:{$ip}");
         
-        // Try to find and notify the user associated with this IP
         $user = \App\Models\User::where('last_login_ip', $ip)->first();
         
         if ($user) {
@@ -67,7 +104,7 @@ class BlockSuspiciousIPs
     /**
      * Increment failed attempts for an IP
      */
-    public static function incrementAttempts(string $ip): void
+    public static function incrementAttempts(string $ip, ?string $email = null): void
     {
         $key = "failed_attempts:{$ip}";
         $attempts = Cache::get($key, 0) + 1;
@@ -78,7 +115,7 @@ class BlockSuspiciousIPs
         $maxAttempts = config('security.ip_blocking.max_attempts', 10);
         if ($attempts >= $maxAttempts) {
             $blockDuration = config('security.ip_blocking.block_duration_minutes', 60);
-            self::blockIP($ip, $blockDuration, 'Too many failed attempts');
+            self::blockIP($ip, $blockDuration, 'Too many failed attempts', $email);
         }
     }
 }

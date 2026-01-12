@@ -43,4 +43,5 @@ export const defaultBookingTabs: Tab[] = [
     { key: 'upcoming', label: 'Upcoming Classes' },
     { key: 'ongoing', label: 'Ongoing Class' },
     { key: 'completed', label: 'Completed Classes' },
+    { key: 'cancelled', label: 'Cancelled Classes' },
 ];

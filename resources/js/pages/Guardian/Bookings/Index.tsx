@@ -59,10 +59,10 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
 
     const handleTabChange = (tab: string) => {
         if (tab === activeTab) return;
-        
+
         setActiveTab(tab);
         setIsLoading(true);
-        
+
         router.get(
             '/guardian/bookings',
             { status: tab },
@@ -83,6 +83,8 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
                 return 'Ongoing Class';
             case 'completed':
                 return 'Completed Classes';
+            case 'cancelled':
+                return 'Cancelled Classes';
             default:
                 return 'My Bookings';
         }
@@ -130,7 +132,7 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
 
     const handleConfirmCancel = (reason?: string, cancelSeries?: boolean) => {
         if (!selectedBooking) return;
-        
+
         setIsCancelling(true);
         router.post(
             `/guardian/booking/${selectedBooking.id}/cancel`,
@@ -157,7 +159,7 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
 
     const handleSubmitReview = (rating: number, feedback: string) => {
         if (!selectedBooking) return;
-        
+
         router.post(
             `/guardian/bookings/${selectedBooking.id}/review`,
             { rating, feedback },
@@ -178,7 +180,7 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
 
     const handleUpdateReview = (rating: number, feedback: string) => {
         if (!selectedBooking) return;
-        
+
         router.put(
             `/guardian/bookings/${selectedBooking.id}/review`,
             { rating, feedback },
@@ -235,7 +237,7 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
                                 <BookingCard
                                     key={booking.id}
                                     booking={booking}
-                                    status={activeTab as 'upcoming' | 'ongoing' | 'completed'}
+                                    status={activeTab as 'upcoming' | 'ongoing' | 'completed' | 'cancelled'}
                                     userRole="guardian"
                                     showBorder={index !== bookings.data.length - 1}
                                     onViewDetails={handleViewDetails}
@@ -330,11 +332,10 @@ function Pagination({ links }: { links: PaginationLink[] }) {
                     key={i}
                     onClick={() => link.url && router.get(link.url)}
                     disabled={!link.url}
-                    className={`px-3 py-1 rounded-lg text-sm font-['Nunito'] ${
-                        link.active
+                    className={`px-3 py-1 rounded-lg text-sm font-['Nunito'] ${link.active
                             ? 'bg-[#338078] text-white'
                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
                     dangerouslySetInnerHTML={{ __html: link.label }}
                 />
             ))}

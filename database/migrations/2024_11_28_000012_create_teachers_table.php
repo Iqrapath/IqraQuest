@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('teachers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->unique()->constrained()->onDelete('cascade');
+            $table->integer('onboarding_step')->default(1);
             
             // Approval Workflow
             $table->enum('status', ['pending', 'under_review', 'approved', 'rejected', 'suspended'])->default('pending');

@@ -62,6 +62,8 @@ class HandleInertiaRequests extends Middleware
                 'info' => $request->session()->get('info'),
                 'payment_amount' => $request->session()->get('payment_amount'),
                 'payment_currency' => $request->session()->get('payment_currency'),
+                'booking_status' => $request->session()->get('booking_status'),
+                'booking_id' => $request->session()->get('booking_id'),
             ],
             'notifications' => $request->user() 
                 ? $request->user()->notifications()->latest()->take(10)->get()->map(function ($notification) {

@@ -45,6 +45,7 @@ Route::middleware(['auth', 'verified', 'role:guardian'])
         Route::get('/wallet/credit', [WalletController::class, 'creditWallet'])->name('wallet.credit');
         Route::get('/payment/transactions', [WalletController::class, 'transactions'])->name('wallet.transactions');
         Route::get('/payment/transactions/export', [WalletController::class, 'exportTransactions'])->name('wallet.transactions.export');
+        Route::post('/payment/transactions/email-report', [WalletController::class, 'emailTransactions'])->name('wallet.transactions.email-report');
         
         // Payment Routes (shared with students)
         Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
@@ -83,6 +84,7 @@ Route::middleware(['auth', 'verified', 'role:guardian'])
         Route::get('/bookings/{booking}/details', [\App\Http\Controllers\Student\BookingController::class, 'details'])->name('bookings.details');
         Route::post('/bookings/{booking}/review', [\App\Http\Controllers\Student\BookingController::class, 'submitReview'])->name('bookings.review');
         Route::put('/bookings/{booking}/review', [\App\Http\Controllers\Student\BookingController::class, 'updateReview'])->name('bookings.review.update');
+        Route::post('/bookings/{booking}/pay-now', [\App\Http\Controllers\Student\BookingController::class, 'payNow'])->name('bookings.pay-now');
         Route::get('/bookings/{booking}/summary/pdf', [\App\Http\Controllers\BookingSummaryController::class, 'show'])->name('bookings.summary.pdf');
         
         // Calendar Export Routes

@@ -10,6 +10,7 @@ interface Step3Props {
     // New Props for Recurrence
     isRecurring: boolean;
     occurrences: number;
+    totalCost: { usd: number, ngn: number }; // Added
     // Handlers
     onCurrencyChange: (currency: string) => void;
     onPaymentMethodChange: (method: string) => void;
@@ -24,6 +25,7 @@ export default function Step3Payment({
     paymentMethod,
     isRecurring,
     occurrences,
+    totalCost,
     onCurrencyChange,
     onPaymentMethodChange,
     onBack,
@@ -31,20 +33,9 @@ export default function Step3Payment({
 }: Step3Props) {
     const { convert } = useCurrency();
 
-    // Calculate Rate per Session
-    // Assumption: Teacher hourly_rate is in NGN (Backend/Seeder default)
-    const hourlyRate = teacher.hourly_rate || 0;
-
     // Per Session Cost (NGN)
-    const sessionCostNGN = (hourlyRate / 60) * selectedDuration;
-
-    // Per Session Cost (USD) using Currency Context
+    const sessionCostNGN = (teacher.hourly_rate / 60) * selectedDuration;
     const sessionCostUSD = convert(sessionCostNGN, 'NGN', 'USD');
-
-    // Calculate Total Cost
-    const totalSessions = isRecurring ? occurrences : 1;
-    const totalCostUSD = sessionCostUSD * totalSessions;
-    const totalCostNGN = sessionCostNGN * totalSessions;
 
     return (
         <div className="">
@@ -70,18 +61,16 @@ export default function Step3Payment({
                     <span className="text-base font-normal text-gray-600 ml-2">per session</span>
                 </div>
 
-                {/* Recurring Total Breakdown */}
-                {isRecurring && (
-                    <div className="mt-4 pt-4 border-t border-[#B2DFDB]">
-                        <p className="text-sm text-gray-600 mb-1">Total for {occurrences} weeks:</p>
-                        <div className="text-3xl font-extrabold text-[#004D40]">
-                            {currency === 'USD'
-                                ? `$${totalCostUSD.toFixed(0)}`
-                                : `₦${totalCostNGN.toLocaleString()}`
-                            }
-                        </div>
+                {/* Recurring/Batch Total Breakdown */}
+                <div className="mt-4 pt-4 border-t border-[#B2DFDB]">
+                    <p className="text-sm text-gray-600 mb-1">Final Amount:</p>
+                    <div className="text-3xl font-extrabold text-[#004D40]">
+                        {currency === 'USD'
+                            ? `$${totalCost.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                            : `₦${totalCost.ngn.toLocaleString()}`
+                        }
                     </div>
-                )}
+                </div>
             </div>
 
             {/* Currency Selection */}

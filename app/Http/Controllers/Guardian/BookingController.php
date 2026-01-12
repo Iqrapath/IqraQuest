@@ -28,8 +28,8 @@ class BookingController extends Controller
 
         // Fetch existing bookings to prevent double booking
         $bookedSlots = Booking::where('teacher_id', $teacherId)
-            ->whereIn('status', ['pending', 'confirmed', 'awaiting_approval'])
-            ->where('start_time', '>=', now())
+            ->active()
+            ->where('end_time', '>', now())
             ->get(['start_time', 'end_time'])
             ->map(function ($booking) {
                 return [
@@ -131,40 +131,51 @@ class BookingController extends Controller
         $request->validate([
             'teacher_id' => 'required|exists:teachers,id',
             'subject_id' => 'required|exists:subjects,id',
-            'start_time' => 'required|date|after:now',
+            'sessions' => 'required|array|min:1',
+            'sessions.*.start_time' => 'required|date|after:' . now()->subMinutes(10)->toDateTimeString(),
+            'sessions.*.end_time' => 'required|date|after:sessions.*.start_time',
             'duration' => 'required|integer|in:30,45,60',
             'is_recurring' => 'boolean',
             'recurrence_occurrences' => 'nullable|integer|min:2|max:12',
+            'notes' => 'nullable|string|max:1000',
+            'currency' => 'required|string|in:USD,NGN',
         ]);
 
         $user = $request->user();
         if (!$user) abort(401);
 
+        // $bookingService is already injected
+
         $teacher = Teacher::findOrFail($request->teacher_id);
         
-        $startTime = Carbon::parse($request->start_time);
-        $endTime = $startTime->copy()->addMinutes($request->duration);
-
-        $data = [
-            'subject_id' => $request->subject_id,
-            'start_time' => $startTime,
-            'end_time' => $endTime,
-        ];
-
         try {
-            if ($request->is_recurring && $request->recurrence_occurrences > 1) {
-                $bookingService->createRecurringSeries(
-                    $user, 
-                    $teacher, 
-                    $data, 
-                    'weekly', 
-                    $request->recurrence_occurrences
-                );
-            } else {
-                $bookingService->createBooking($user, $teacher, $data);
-            }
+            $bookings = $bookingService->createBatchBookings(
+                $user, 
+                $teacher, 
+                $request->sessions, 
+                $request->is_recurring ?? false, 
+                $request->recurrence_occurrences ?? 1, 
+                $request->subject_id,
+                $request->notes,
+                $request->currency
+            );
 
-            return back()->with('success', 'Booking confirmed!');
+            $firstBooking = $bookings->first();
+            // Refresh to get the updated status (modified by ProcessBookingPaymentJob)
+            if ($firstBooking) {
+                $firstBooking->refresh();
+            }
+            $status = $firstBooking->status;
+            
+            $message = $status === 'awaiting_payment' 
+                ? 'Booking saved! Please top up your wallet to complete the payment.'
+                : 'Booking confirmed!';
+
+            return back()->with([
+                'success' => $message,
+                'booking_status' => $status,
+                'booking_id' => $firstBooking->id
+            ]);
         } catch (\Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }

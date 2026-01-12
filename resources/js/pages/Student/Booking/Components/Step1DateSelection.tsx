@@ -6,8 +6,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 interface TimeSlot {
     start: string;
     end: string;
-    period: string; // 'morning' | 'afternoon' | 'evening'
+    period: string;
     is_available: boolean;
+    conflict?: string | Date[]; // Added conflict info
 }
 
 interface Step1Props {
@@ -16,26 +17,27 @@ interface Step1Props {
     currentMonth: Date;
     daysArray: number[];
     availableSlots: TimeSlot[];
-    selectedTimeSlot: TimeSlot | null;
+    selectedSessions: any[]; // Changed from selectedTimeSlot
     selectedDuration: number;
     userTimeZone: string;
     isRecurring: boolean;
     occurrences: number;
-    // Handlers
     onMonthChange: (direction: number) => void;
     onDateClick: (day: number) => void;
-    onTimeSlotSelect: (slot: TimeSlot) => void;
+    onTimeSlotToggle: (slot: TimeSlot) => void; // Changed handler
     onDurationChange: (duration: number) => void;
     onRecurrenceToggle: (checked: boolean) => void;
     onOccurrencesChange: (val: number) => void;
     onNext: () => void;
-    // Helpers (passed down or redefined? Better to redefine if simple, or keep pure)
     getAvailabilitySummary: (schedule: any[]) => { days: string, time: string };
     formatTimePill: (time: string | null) => string;
-    // Optional props for reschedule mode
     hideRecurrence?: boolean;
     hideDurationSelector?: boolean;
     nextButtonText?: string;
+    // New Props for Cart Summary
+    totalCost: { usd: number, ngn: number };
+    sessionCount: number;
+    currency: string;
 }
 
 export default function Step1DateSelection({
@@ -44,14 +46,14 @@ export default function Step1DateSelection({
     currentMonth,
     daysArray,
     availableSlots,
-    selectedTimeSlot,
+    selectedSessions,
     selectedDuration,
     userTimeZone,
     isRecurring,
     occurrences,
     onMonthChange,
     onDateClick,
-    onTimeSlotSelect,
+    onTimeSlotToggle,
     onDurationChange,
     onRecurrenceToggle,
     onOccurrencesChange,
@@ -61,104 +63,147 @@ export default function Step1DateSelection({
     hideRecurrence = false,
     hideDurationSelector = false,
     nextButtonText = 'Continue',
+    totalCost,
+    sessionCount,
+    currency
 }: Step1Props) {
 
     return (
-        <div className="">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
             {/* Header */}
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Book a Class</h1>
-            <p className="text-gray-500 mb-8">You're booking a session with <span className="font-medium text-gray-700">{teacher.user.name}</span></p>
-
-            {/* Teacher Profile Section */}
-            <div className="flex flex-col md:flex-row gap-8 items-start mb-12">
-                {/* Left Column: Avatar & Verify Badge */}
-                <div className="flex flex-col items-center gap-3">
-                    <div className="h-40 w-40 rounded-[32px] overflow-hidden border-2 border-white shadow-sm">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Build Your Schedule</h1>
+                    <p className="text-gray-500">Pick any days and times that work for you. You can mix multiple slots!</p>
+                </div>
+                <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="h-10 w-10 rounded-full overflow-hidden border border-gray-100">
                         <img
                             src={teacher.user.avatar ? `/storage/${teacher.user.avatar}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(teacher.user.name)}`}
                             alt={teacher.user.name}
                             className="h-full w-full object-cover"
                         />
                     </div>
-                    <div className="flex items-center gap-1.5 text-gray-500 font-medium text-sm">
-                        <div className="bg-[#2D8E81] rounded-full p-0.5"><Icon icon="mdi:check" className="w-3 h-3 text-white" /></div>
-                        <span>Certified Quran Tutor</span>
-                    </div>
-                </div>
-
-                {/* Right Column: Details */}
-                <div className="flex-1 pt-2">
-                    <h2 className="text-3xl font-primary font-bold text-gray-900 mb-2">{teacher.user.name}</h2>
-
-                    <div className="flex items-center gap-2 text-gray-500 mb-3">
-                        <Icon icon="ph:user" className="w-5 h-5" />
-                        <span className="text-lg">{teacher.city || teacher.location}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2 mb-4">
-                        <div className="flex text-[#FFB800]">
-                            {[1, 2, 3, 4, 5].map(i => (
-                                <Icon key={i} icon="mdi:star" className={i <= Math.round(teacher.average_rating) ? "w-5 h-5" : "w-5 h-5 text-gray-200"} />
-                            ))}
-                        </div>
-                        <span className="text-gray-500 font-medium text-lg">{Number(teacher.average_rating || 0).toFixed(1)}/5 from {teacher.total_reviews} Students</span>
-                    </div>
-
-                    <div className="text-gray-700 text-lg mb-4">
-                        <span className="text-gray-400 font-normal">Subjects Taught: </span>
-                        <span className="font-medium text-gray-800">{teacher.subjects.map((s: any) => s.name).join(', ')}</span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <span className="text-gray-400 text-lg">Availability:</span>
-                        <div className="bg-[#FFF9EA] px-4 py-2 rounded-lg flex items-center gap-4 text-[#2D8E81] text-lg font-medium">
-                            <span>{getAvailabilitySummary(teacher.availability_schedule).days}</span>
-                            <span className="text-gray-300">|</span>
-                            <span>{getAvailabilitySummary(teacher.availability_schedule).time}</span>
-                        </div>
+                    <div>
+                        <p className="text-xs text-gray-400 font-medium leading-none mb-1">Teaching with</p>
+                        <p className="text-sm font-bold text-gray-900 leading-none">{teacher.user.name}</p>
                     </div>
                 </div>
             </div>
 
-            {/* Instructions Alert */}
-            <Alert className="mb-8 border-[#00A991] bg-[#E0F2F1] text-[#004D40]">
-                <Icon icon="mdi:information-outline" className="h-5 w-5 !text-[#00796B]" />
-                <AlertTitle className="text-[#00796B] font-bold">How to Book</AlertTitle>
-                <AlertDescription className="text-[#00695C]">
-                    1. Select a generic date from the calendar on the left.<br />
-                    2. Choose an available time slot from the list on the right.
-                </AlertDescription>
-            </Alert>
-
             <TooltipProvider>
-                <div className="flex flex-col lg:flex-row gap-8 mb-12">
-                    {/* Left Column: Calendar */}
-                    <div className="w-full lg:w-1/2">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-6 font-primary">Select Date</h3>
-                        <div className="bg-white rounded-[24px] p-6 border border-gray-200 shadow-sm">
-                            {/* Month Navigation */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+
+                    {/* LEFT: Calendar & Settings */}
+                    <div className="lg:col-span-5 space-y-6">
+                        {/* Duration & Recurrence Controls */}
+                        <div className="bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm space-y-8">
+                            {/* Duration Selector */}
+                            {!hideDurationSelector && (
+                                <div>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <label className="text-sm font-bold text-gray-900">Session Duration</label>
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Select One</span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        {[30, 45, 60].map(duration => (
+                                            <button
+                                                key={duration}
+                                                onClick={() => onDurationChange(duration)}
+                                                className={`
+                                                flex-1 py-3 rounded-2xl text-sm font-bold transition-all border
+                                                ${selectedDuration === duration
+                                                        ? 'bg-[#358D83] text-white border-[#358D83] shadow-md'
+                                                        : 'bg-gray-50 text-gray-600 border-transparent hover:border-gray-200'}
+                                            `}
+                                            >
+                                                {duration} min
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Recurrence Global Switch */}
+                            {!hideRecurrence && (
+                                <div className="pt-6 border-t border-gray-50">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-2 rounded-xl ${isRecurring ? 'bg-[#358D83]/10 text-[#358D83]' : 'bg-gray-100 text-gray-400'}`}>
+                                                <Icon icon="mdi:calendar-refresh" className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-gray-900">Repeat Weekly</p>
+                                                <p className="text-xs text-gray-400">Apply this pattern to future weeks</p>
+                                            </div>
+                                        </div>
+                                        <div
+                                            onClick={() => onRecurrenceToggle(!isRecurring)}
+                                            className={`
+                                                w-12 h-6 rounded-full p-1 cursor-pointer transition-colors relative
+                                                ${isRecurring ? 'bg-[#358D83]' : 'bg-gray-200'}
+                                            `}
+                                        >
+                                            <div className={`w-4 h-4 bg-white rounded-full transition-transform ${isRecurring ? 'translate-x-6' : 'translate-x-0'}`} />
+                                        </div>
+                                    </div>
+
+                                    {isRecurring && (
+                                        <div className="mt-6 animate-in fade-in slide-in-from-top-4">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <span className="text-xs font-bold text-gray-500 uppercase">Duration: {occurrences} Weeks</span>
+                                                <span className="text-xs font-bold text-[#358D83]">
+                                                    {(() => {
+                                                        if (!selectedDate) return '';
+                                                        const d = new Date(selectedDate);
+                                                        d.setDate(d.getDate() + ((occurrences - 1) * 7));
+                                                        return `Ends ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+                                                    })()}
+                                                </span>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min="2"
+                                                max="12"
+                                                value={occurrences}
+                                                onChange={(e) => onOccurrencesChange(parseInt(e.target.value))}
+                                                className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-[#358D83]"
+                                            />
+                                            <div className="flex justify-between mt-2 text-[10px] text-gray-300 font-bold uppercase">
+                                                <span>2w</span>
+                                                <span>6w</span>
+                                                <span>12w</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Calendar Card */}
+                        <div className="bg-white rounded-[32px] p-6 border border-gray-100 shadow-sm">
                             <div className="flex items-center justify-between mb-6">
-                                <button onClick={() => onMonthChange(-1)} className="p-2 hover:bg-gray-100 rounded-full text-gray-600">
-                                    <Icon icon="mdi:chevron-left" className="w-6 h-6" />
-                                </button>
-                                <h4 className="text-lg font-bold text-gray-900">
-                                    {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
-                                </h4>
-                                <button onClick={() => onMonthChange(1)} className="p-2 hover:bg-gray-100 rounded-full text-gray-600">
-                                    <Icon icon="mdi:chevron-right" className="w-6 h-6" />
-                                </button>
+                                <h4 className="text-lg font-bold text-gray-900">Choose Dates</h4>
+                                <div className="flex items-center gap-2">
+                                    <button onClick={() => onMonthChange(-1)} className="p-2 hover:bg-gray-50 rounded-xl text-gray-400">
+                                        <Icon icon="mdi:chevron-left" className="w-5 h-5" />
+                                    </button>
+                                    <span className="text-sm font-bold text-gray-700 min-w-[120px] text-center">
+                                        {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                                    </span>
+                                    <button onClick={() => onMonthChange(1)} className="p-2 hover:bg-gray-50 rounded-xl text-gray-400">
+                                        <Icon icon="mdi:chevron-right" className="w-5 h-5" />
+                                    </button>
+                                </div>
                             </div>
 
-                            {/* Days Header */}
-                            <div className="grid grid-cols-7 text-center mb-2">
-                                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-                                    <div key={d} className="text-xs font-semibold text-gray-400 py-2">{d}</div>
+                            <div className="grid grid-cols-7 text-center mb-4">
+                                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+                                    <div key={`${d}-${i}`} className="text-[10px] font-bold text-gray-300 py-2 uppercase tracking-widest">{d}</div>
                                 ))}
                             </div>
 
-                            {/* Calendar Grid */}
                             <div className="grid grid-cols-7 gap-1">
-                                {/* Empty cells for start of month offset */}
                                 {(() => {
                                     const startDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
                                     return [...Array(startDay)].map((_, i) => <div key={`empty-${i}`} />);
@@ -168,11 +213,8 @@ export default function Step1DateSelection({
                                     const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
                                     const isSelected = selectedDate?.toDateString() === date.toDateString();
                                     const isToday = new Date().toDateString() === date.toDateString();
-
-                                    // Check availability for this specific day of week (0-6)
                                     const dayOfWeekName = date.toLocaleDateString('en-US', { weekday: 'long' });
 
-                                    // Check if date is in the past
                                     const today = new Date();
                                     today.setHours(0, 0, 0, 0);
                                     const isPastDate = date < today;
@@ -183,40 +225,40 @@ export default function Step1DateSelection({
 
                                     const isAvailableDay = !isPastDate && isWorkingDay;
 
+                                    // Count how many slots selected for this day
+                                    const selectedOnThisDay = selectedSessions.filter(s => s.date.toDateString() === date.toDateString()).length;
+
                                     const DayButton = (
                                         <button
                                             disabled={!isAvailableDay}
                                             onClick={() => onDateClick(day)}
                                             className={`
-                                                    h-10 w-10 mx-auto rounded-full flex items-center justify-center text-sm font-medium transition-all
+                                                    relative h-10 w-10 mx-auto rounded-xl flex items-center justify-center text-sm font-bold transition-all
                                                     ${isSelected
-                                                    ? 'bg-[#00A991] text-white font-bold shadow-md'
+                                                    ? 'bg-[#358D83] text-white shadow-lg'
                                                     : isAvailableDay
-                                                        ? 'text-gray-900 hover:bg-gray-100'
-                                                        : 'text-gray-300 cursor-not-allowed'}
-                                                    ${isToday && !isSelected ? 'border border-[#00A991] text-[#00A991]' : ''}
-                                                    ${!isAvailableDay && !isPastDate ? 'bg-gray-50' : ''} 
+                                                        ? 'text-gray-900 hover:bg-teal-50 hover:text-[#358D83]'
+                                                        : 'text-gray-200 cursor-not-allowed'}
+                                                    ${isToday && !isSelected ? 'border border-[#358D83] text-[#358D83]' : ''}
                                                 `}
                                         >
                                             {day}
+                                            {selectedOnThisDay > 0 && (
+                                                <div className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 bg-orange-500 text-white rounded-full text-[9px] flex items-center justify-center font-black border-2 border-white">
+                                                    {selectedOnThisDay}
+                                                </div>
+                                            )}
                                         </button>
                                     );
 
                                     if (!isAvailableDay) {
-                                        let tooltipText = "";
-                                        if (isPastDate) {
-                                            tooltipText = "Cannot book dates in the past";
-                                        } else if (!isWorkingDay) {
-                                            tooltipText = `Teacher is not available on ${dayOfWeekName}s`;
-                                        }
-
                                         return (
                                             <Tooltip key={day}>
                                                 <TooltipTrigger asChild>
-                                                    <span className="flex justify-center cursor-not-allowed opacity-75">{DayButton}</span>
+                                                    <span className="flex justify-center cursor-not-allowed opacity-40">{DayButton}</span>
                                                 </TooltipTrigger>
                                                 <TooltipContent className="bg-gray-800 text-white border-0 text-xs">
-                                                    <p>{tooltipText}</p>
+                                                    <p>{isPastDate ? "Cannot book past dates" : `Teacher unavailable on ${dayOfWeekName}s`}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         );
@@ -228,147 +270,121 @@ export default function Step1DateSelection({
                         </div>
                     </div>
 
-                    {/* Right Column: Time Slots */}
-                    <div className="w-full lg:w-1/2">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-2xl font-bold text-gray-900 font-primary mb-0">Select Time</h3>
-                            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
-                                <Icon icon="mdi:world" className="w-4 h-4" />
-                                {userTimeZone.replace(/_/g, ' ')}
-                            </div>
-                        </div>
-
-                        {/* Duration Selector */}
-                        {!hideDurationSelector && (
-                            <div className="mb-6">
-                                <label className="text-sm font-semibold text-gray-700 mb-2 block">Session Duration</label>
-                                <div className="flex gap-2">
-                                    {[30, 45, 60].map(duration => (
-                                        <button
-                                            key={duration}
-                                            onClick={() => onDurationChange(duration)}
-                                            className={`
-                                            px-4 py-2 rounded-lg text-sm font-medium transition-all border
-                                            ${selectedDuration === duration
-                                                    ? 'bg-gray-900 text-white border-gray-900'
-                                                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'}
-                                        `}
-                                        >
-                                            {duration} min
-                                        </button>
-                                    ))}
+                    {/* CENTER: Slot Selection */}
+                    <div className="lg:col-span-7">
+                        <div className="bg-white rounded-[32px] p-8 border border-gray-100 shadow-sm min-h-[500px] flex flex-col">
+                            <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-50">
+                                <div>
+                                    <h3 className="text-xl font-bold text-gray-900 mb-1">Select Slots</h3>
+                                    <p className="text-sm text-gray-400">
+                                        Showing {formatTimePill('00:00')} - {formatTimePill('23:59')} in {userTimeZone.replace(/_/g, ' ')}
+                                    </p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-sm font-bold text-[#358D83]">
+                                        {selectedDate?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                                    </p>
+                                    <p className="text-xs text-gray-400">{availableSlots.length} slots available</p>
                                 </div>
                             </div>
-                        )}
-                        
-                        {/* Fixed Duration Display (for reschedule) */}
-                        {hideDurationSelector && (
-                            <div className="mb-6">
-                                <label className="text-sm font-semibold text-gray-700 mb-2 block">Session Duration</label>
-                                <div className="bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 inline-block">
-                                    {selectedDuration} min (fixed)
-                                </div>
-                            </div>
-                        )}
 
-                        {/* Recurrence (Enterprise Feature) - Moved to Step 1 */}
-                        {!hideRecurrence && (
-                            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6 relative overflow-hidden">
-                                <div className="flex items-start gap-4">
-                                    <input
-                                        type="checkbox"
-                                        id="recurring-toggle-step1"
-                                        checked={isRecurring}
-                                        onChange={(e) => onRecurrenceToggle(e.target.checked)}
-                                        className="mt-1 w-5 h-5 text-[#358D83] border-gray-300 rounded focus:ring-[#358D83]"
-                                    />
-                                    <div className="flex-1">
-                                        <label htmlFor="recurring-toggle-step1" className="font-bold text-gray-900 cursor-pointer flex items-center justify-between">
-                                            <span>Repeat Weekly</span>
-                                            {isRecurring && <span className="text-[10px] bg-[#358D83] text-white px-2 py-0.5 rounded-full uppercase tracking-wider">Active</span>}
-                                        </label>
-                                        <p className="text-xs text-gray-500 mt-1">Book this slot for multiple weeks.</p>
+                            {availableSlots.length === 0 ? (
+                                <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+                                    <div className="h-20 w-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                                        <Icon icon="mdi:calendar-remove" className="w-10 h-10 opacity-20" />
                                     </div>
-                                </div>
-
-                                {isRecurring && (
-                                    <div className="mt-4 animate-in fade-in slide-in-from-top-2 border-t border-gray-200 pt-4">
-                                        <label className="text-xs font-semibold text-gray-700 mb-2 block uppercase tracking-wide">
-                                            Duration: {occurrences} Weeks
-                                        </label>
-                                        <div className="flex items-center gap-3">
-                                            <input
-                                                type="range"
-                                                min="2"
-                                                max="12"
-                                                value={occurrences}
-                                                onChange={(e) => onOccurrencesChange(parseInt(e.target.value))}
-                                                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#358D83]"
-                                            />
-                                            <div className="text-sm font-bold text-gray-900 bg-white px-2 py-1 rounded border">
-                                                {occurrences}w
-                                            </div>
-                                        </div>
-                                        <p className="text-xs text-gray-500 mt-2">
-                                            Ends on: {(() => {
-                                                if (!selectedDate) return 'Select a date';
-                                                const d = new Date(selectedDate);
-                                                d.setDate(d.getDate() + ((occurrences - 1) * 7));
-                                                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                                            })()}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        <div className="bg-white rounded-[24px] p-6 border border-gray-200 shadow-sm min-h-[400px]">
-                            {!selectedDate ? (
-                                <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                                    <Icon icon="mdi:calendar-blank-outline" className="w-12 h-12 mb-2 opacity-50" />
-                                    <p>Please select a date first</p>
+                                    <p className="font-bold">No slots available for this date</p>
+                                    <p className="text-sm">Try another duration or date</p>
                                 </div>
                             ) : (
-                                <div className="space-y-6">
-                                    <p className="text-gray-500 font-medium border-b border-gray-100 pb-2">
-                                        Available slots for <span className="text-gray-900 font-bold">{selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
-                                    </p>
+                                <div className="space-y-8">
+                                    {['Morning', 'Afternoon', 'Evening'].map(period => {
+                                        const periodSlots = availableSlots.filter(s => s.period === period.toLowerCase());
+                                        if (periodSlots.length === 0) return null;
+                                        return (
+                                            <div key={period}>
+                                                <div className="flex items-center gap-2 mb-4">
+                                                    <Icon
+                                                        icon={period === 'Morning' ? 'ph:sun-dim-bold' : period === 'Afternoon' ? 'ph:sun-bold' : 'ph:moon-bold'}
+                                                        className="w-4 h-4 text-gray-300"
+                                                    />
+                                                    <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">{period}</h5>
+                                                </div>
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                                    {periodSlots.map((slot, index) => {
+                                                        const isSelectedInCart = selectedSessions.some(s =>
+                                                            s.date.toDateString() === selectedDate?.toDateString() && s.start === slot.start
+                                                        );
 
-                                    {availableSlots.length === 0 ? (
-                                        <div className="text-center py-8 text-gray-500">No available slots for this date.</div>
-                                    ) : (
-                                        <>
-                                            {/* Group by Period */}
-                                            {['Morning', 'Afternoon', 'Evening'].map(period => {
-                                                const periodSlots = availableSlots.filter(s => s.period === period.toLowerCase());
-                                                if (periodSlots.length === 0) return null;
-                                                return (
-                                                    <div key={period}>
-                                                        <h5 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">{period}</h5>
-                                                        <div className="flex flex-wrap gap-3">
-                                                            {periodSlots.map((slot, index) => {
-                                                                const isSelected = selectedTimeSlot?.start === slot.start;
-                                                                return (
-                                                                    <button
-                                                                        key={index}
-                                                                        onClick={() => onTimeSlotSelect(slot)}
-                                                                        className={`
-                                                                        px-4 py-2 rounded-xl text-xs font-semibold border transition-all
-                                                                        ${isSelected
-                                                                                ? 'bg-[#358D83] text-white border-[#358D83] shadow-md'
-                                                                                : 'bg-white text-gray-600 border-gray-200 hover:border-[#358D83] hover:text-[#358D83]'}
-                                                                    `}
-                                                                    >
-                                                                        {formatTimePill(slot.start)} - {formatTimePill(slot.end)}
-                                                                    </button>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </>
-                                    )}
+                                                        // Handle Conflicts (Recurring conflicts or past slots)
+                                                        const isConflict = slot.conflict !== undefined && slot.conflict !== 'selected';
+                                                        const isBooked = slot.conflict === 'booked';
+                                                        const isPast = slot.conflict === 'past';
+
+                                                        const SlotButton = (
+                                                            <button
+                                                                key={index}
+                                                                onClick={() => onTimeSlotToggle(slot)}
+                                                                className={`
+                                                                    relative group px-4 py-4 rounded-2xl text-sm font-bold border transition-all text-left w-full
+                                                                    ${isSelectedInCart
+                                                                        ? 'bg-[#E0F2F1] border-[#358D83] text-[#358D83] shadow-sm'
+                                                                        : (isBooked || isPast)
+                                                                            ? 'bg-gray-50 border-transparent text-gray-300 cursor-not-allowed'
+                                                                            : isConflict
+                                                                                ? 'bg-red-50 border-red-100 text-red-300 cursor-not-allowed'
+                                                                                : 'bg-white border-gray-100 text-gray-600 hover:border-[#358D83] hover:text-[#358D83]'}
+                                                                `}
+                                                            >
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-xs font-bold leading-none mb-1">{formatTimePill(slot.start)}</span>
+                                                                    <span className="text-[10px] opacity-60 font-medium">{formatTimePill(slot.end)}</span>
+                                                                </div>
+
+                                                                {/* Selection Marker */}
+                                                                {isSelectedInCart && (
+                                                                    <div className="absolute top-3 right-3 h-5 w-5 bg-[#358D83] rounded-full flex items-center justify-center">
+                                                                        <Icon icon="mdi:check" className="w-3 h-3 text-white" />
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Conflict Marker */}
+                                                                {isBooked && (
+                                                                    <div className="absolute top-3 right-3 text-gray-400">
+                                                                        <Icon icon="mdi:lock" className="w-4 h-4" />
+                                                                    </div>
+                                                                )}
+                                                            </button>
+                                                        );
+
+                                                        if (isBooked || isPast || (isConflict && !isSelectedInCart)) {
+                                                            let tooltipMsg = "Already booked";
+                                                            if (isPast) tooltipMsg = "This time has passed";
+                                                            else if (Array.isArray(slot.conflict)) {
+                                                                tooltipMsg = `Conflict on ${slot.conflict[0].toLocaleDateString()}${slot.conflict.length > 1 ? ` (+${slot.conflict.length - 1} more)` : ''}`;
+                                                            }
+
+                                                            return (
+                                                                <Tooltip key={index}>
+                                                                    <TooltipTrigger asChild>
+                                                                        <div className="w-full">{SlotButton}</div>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent className="bg-gray-800 text-white border-0 text-xs shadow-xl rounded-xl py-2 px-3">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <Icon icon={isPast ? "mdi:clock-alert" : "mdi:clock-alert"} className={`w-3 h-3 ${isPast ? 'text-amber-400' : 'text-red-400'}`} />
+                                                                            <span>{tooltipMsg}</span>
+                                                                        </div>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            );
+                                                        }
+
+                                                        return SlotButton;
+                                                    })}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
@@ -376,25 +392,55 @@ export default function Step1DateSelection({
                 </div>
             </TooltipProvider>
 
-            {/* Footer Buttons */}
-            <div className="flex justify-end gap-4 mt-16 border-t border-dashed border-gray-200 pt-8">
-                <button
-                    className="px-10 py-3 rounded-full border border-[#358D83] text-[#358D83] font-bold text-lg hover:bg-teal-50 transition-colors"
-                >
-                    Cancel
-                </button>
-                <button
-                    onClick={onNext}
-                    disabled={!selectedDate || !selectedTimeSlot}
-                    className={`
-                        px-10 py-3 rounded-full font-bold text-lg shadow-lg transition-all
-                        ${selectedDate && selectedTimeSlot
-                            ? 'bg-[#358D83] text-white hover:bg-[#2b756d]'
-                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'}
-                    `}
-                >
-                    {nextButtonText}
-                </button>
+            {/* FLOATING CART SUMMARY BAR */}
+            <div className={`
+                fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-4xl bg-white rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 p-2 z-50 transition-all duration-500
+                ${selectedSessions.length > 0 ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}
+            `}>
+                <div className="flex items-center justify-between pl-8 pr-2 py-2">
+                    <div className="flex items-center gap-6">
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Total Schedule</span>
+                            <span className="text-xl font-black text-gray-900 leading-none">
+                                {sessionCount} <span className="text-sm font-bold text-gray-500">Sessions</span>
+                            </span>
+                        </div>
+
+                        <div className="h-8 w-px bg-gray-100" />
+
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Final Cost</span>
+                            <span className="text-xl font-black text-[#358D83] leading-none">
+                                {currency === 'USD' ? '$' : '₦'}{(currency === 'USD' ? totalCost.usd : totalCost.ngn).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        {/* Mini Preview of selected days */}
+                        <div className="hidden md:flex items-center gap-1 mr-4">
+                            {selectedSessions.slice(0, 3).map((s, i) => (
+                                <div key={i} className="h-10 w-10 rounded-full bg-teal-50 border border-teal-100 flex flex-col items-center justify-center text-[#358D83] overflow-hidden">
+                                    <span className="text-[8px] font-black uppercase leading-none">{s.date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                                    <span className="text-[10px] font-bold">{s.start}</span>
+                                </div>
+                            ))}
+                            {selectedSessions.length > 3 && (
+                                <div className="h-10 w-10 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 text-xs font-bold font-primary">
+                                    +{selectedSessions.length - 3}
+                                </div>
+                            )}
+                        </div>
+
+                        <button
+                            onClick={onNext}
+                            className="bg-[#358D83] hover:bg-[#2b756d] text-white px-10 py-4 rounded-[32px] font-black text-sm shadow-lg shadow-teal-900/10 transition-all active:scale-95 flex items-center gap-3"
+                        >
+                            Confirm Selection
+                            <Icon icon="mdi:arrow-right" className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );

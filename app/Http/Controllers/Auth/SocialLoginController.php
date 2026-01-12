@@ -87,6 +87,21 @@ class SocialLoginController extends Controller
 
             Auth::login($user);
 
+            // If teacher hasn't completed onboarding, redirect to the correct step
+            if ($user->isTeacher() && $user->teacher && $user->teacher->onboarding_step < 5) {
+                $step = $user->teacher->onboarding_step;
+                
+                $routeName = match ($step) {
+                    2 => 'teacher.onboarding.step2',
+                    3 => 'teacher.onboarding.step3',
+                    4 => 'teacher.onboarding.step4',
+                    default => 'teacher.onboarding.step1',
+                };
+
+                return redirect()->route($routeName)
+                    ->with('success', 'Welcome back! Please continue your onboarding.');
+            }
+
             return redirect()->intended(route($user->dashboardRoute()));
         }
 

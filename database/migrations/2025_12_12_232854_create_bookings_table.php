@@ -22,6 +22,7 @@ return new class extends Migration
             
             $table->enum('status', [
                 'pending',      // Created but not paid/confirmed
+                'awaiting_payment', // Created but not paid/confirmed
                 'awaiting_approval', // Paid, waiting for teacher
                 'confirmed',    // Paid and scheduled
                 'completed',    // Class finished (auto or manual)

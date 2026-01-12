@@ -67,6 +67,29 @@ class WalletController extends Controller
             'per_page' => 10,
         ]);
 
+        // Enrich transactions with booking details from metadata
+        $bookingIds = collect($transactions->items())->map(function ($transaction) {
+            return $transaction->metadata['booking_id'] ?? null;
+        })->filter()->unique()->values();
+
+        if ($bookingIds->isNotEmpty()) {
+            $bookings = \App\Models\Booking::whereIn('id', $bookingIds)
+                ->with(['teacher.user', 'subject'])
+                ->get()
+                ->keyBy('id');
+
+            foreach ($transactions->items() as $transaction) {
+                $bookingId = $transaction->metadata['booking_id'] ?? null;
+                if ($bookingId && isset($bookings[$bookingId])) {
+                    $booking = $bookings[$bookingId];
+                    $transaction->setAttribute('booking_details', [
+                        'subject' => $booking->subject->name ?? 'N/A',
+                        'teacher_name' => $booking->teacher->user->name ?? 'N/A',
+                    ]);
+                }
+            }
+        }
+
         // Get available gateways
         $gateways = PaymentGatewayFactory::available();
 
@@ -95,12 +118,23 @@ class WalletController extends Controller
                 ->get();
         }
 
+        // Get pending payments (bookings in 'awaiting_payment' status)
+        $upcomingPayments = [];
+        if ($student || $guardian) {
+            $upcomingPayments = \App\Models\Booking::where('user_id', $userId)
+                ->where('status', 'awaiting_payment')
+                ->with(['teacher.user', 'subject'])
+                ->get()
+                ->map(fn($b) => app(\App\Services\BookingStatusService::class)->formatBookingForResponse($b, auth()->user()));
+        }
+
         return Inertia::render($viewPath, [
             'balance' => $balance,
             'currency' => auth()->user()->wallet->currency ?? 'NGN',
             'transactions' => $transactions,
             'paymentMethods' => $paymentMethods,
             'gateways' => $gateways,
+            'upcomingPayments' => $upcomingPayments,
             'paystack_public_key' => config('services.paystack.public_key'),
         ]);
     }
@@ -145,6 +179,29 @@ class WalletController extends Controller
         ];
 
         $transactions = $this->walletService->getTransactionHistory($userId, $filters);
+
+        // Enrich transactions with booking details from metadata
+        $bookingIds = collect($transactions->items())->map(function ($transaction) {
+            return $transaction->metadata['booking_id'] ?? null;
+        })->filter()->unique()->values();
+
+        if ($bookingIds->isNotEmpty()) {
+            $bookings = \App\Models\Booking::whereIn('id', $bookingIds)
+                ->with(['teacher.user', 'subject'])
+                ->get()
+                ->keyBy('id');
+
+            foreach ($transactions->items() as $transaction) {
+                $bookingId = $transaction->metadata['booking_id'] ?? null;
+                if ($bookingId && isset($bookings[$bookingId])) {
+                    $booking = $bookings[$bookingId];
+                    $transaction->setAttribute('booking_details', [
+                        'subject' => $booking->subject->name ?? 'N/A',
+                        'teacher_name' => $booking->teacher->user->name ?? 'N/A',
+                    ]);
+                }
+            }
+        }
 
         // Determine view path based on role
         $viewPath = match($userRole) {
@@ -204,5 +261,44 @@ class WalletController extends Controller
         }
 
         return $csv;
+    }
+
+    /**
+     * Email transaction history report
+     */
+    public function emailTransactions(Request $request)
+    {
+        $user = auth()->user();
+        $userId = $user->id;
+        
+        $filters = [
+            'type' => $request->input('type'),
+            'from_date' => $request->input('from_date'),
+            'to_date' => $request->input('to_date'),
+        ];
+
+        // Fetch all transactions for the report
+        $transactions = $this->walletService->getTransactionHistory($userId, array_merge($filters, [
+            'per_page' => 10000, 
+        ]));
+
+        // Generate CSV content
+        $csv = $this->generateTransactionsCsv($transactions->items());
+
+        \Illuminate\Support\Facades\Log::info('Emailing Transactions. CSV Length: ' . strlen($csv));
+
+        if (empty($csv)) {
+             return back()->with('error', 'Failed to generate report data.');
+        }
+
+        // Send Email with explicit attachment
+        $mail = new \App\Mail\TransactionActivityReport($user, $csv);
+        $mail->attachData($csv, 'activity_report.csv', [
+            'mime' => 'text/csv',
+        ]);
+        
+        \Illuminate\Support\Facades\Mail::to($user->email)->send($mail);
+
+        return back()->with('success', 'Activity report sent to your email successfully.');
     }
 }

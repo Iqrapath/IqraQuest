@@ -1,17 +1,20 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { FileText } from 'lucide-react'; // Using Lucide icon for the PDF report icon
+import { router } from '@inertiajs/react';
+import { toast } from 'sonner';
 
 interface Transaction {
     id: number;
     amount: number;
     status: string;
-    created_at: string; // '2025-03-10T...'
+    created_at: string;
     description: string;
     type: string;
-    // Mock fields mapping
-    subject?: string;
-    name?: string;
+    booking_details?: {
+        subject: string;
+        teacher_name: string;
+    };
 }
 
 interface PaymentHistoryProps {
@@ -21,8 +24,8 @@ interface PaymentHistoryProps {
 }
 
 export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ transactions }) => {
+    const [isEmailing, setIsEmailing] = useState(false);
 
-    // Helper to format date like "10 | March"
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return {
@@ -31,40 +34,60 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ transactions }) 
         };
     };
 
-    // Helper to extract or mock subject/name provided in design if not in DB
     const getDetails = (transaction: Transaction) => {
-        // Since we don't have 'subject' and 'name' in standard transaction table usually,
-        // we might mock them or extract from description/metadata if available.
-        // For matching the Figma design, I'll use placeholders if data is generic.
+        if (transaction.booking_details) {
+            return {
+                subject: transaction.booking_details.subject,
+                name: transaction.booking_details.teacher_name
+            };
+        }
+
+        // Fallback parsing from description if needed, or generic
         return {
-            subject: transaction.subject || 'Tajweed Class',
-            name: transaction.name || 'Ahmed Khalid'
+            subject: transaction.type === 'credit' ? 'Wallet Top-up' : 'Transaction',
+            name: transaction.description || '-'
         };
     };
 
-    // Mock data if transactions is empty for visualization purposes? 
-    // The user said "implement as it is on figma".
-    // I will use real data if available, but for the design fidelity, 
-    // if the list is empty, I might show the design examples? 
-    // No, standard practice is to show empty state if no data. 
-    // But for "Implementing design", I should start with the design's look.
-    // I will map real transactions but style them exactly.
+    const handleEmailReport = () => {
+        setIsEmailing(true);
+        // @ts-ignore
+        router.post('/guardian/payment/transactions/email-report', {}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Report sent to your email');
+                setIsEmailing(false);
+            },
+            onError: () => {
+                toast.error('Failed to send report. Please try again.');
+                setIsEmailing(false);
+            }
+        });
+    };
 
-    // Combining real data with the design structure:
-    const displayTransactions = transactions.data.length > 0 ? transactions.data : [
-        // Fallback mock data to show the design if no real data exists yet
-        { id: 101, created_at: '2025-03-10', description: 'Tajweed Class', amount: 25000, status: 'completed', type: 'debit', subject: 'Tajweed Class', name: 'Ahmed Khalid' },
-        { id: 102, created_at: '2025-03-13', description: 'Hifz Class', amount: 30000, status: 'pending', type: 'debit', subject: 'Hifz Class', name: 'Jamal Aliu' },
-    ];
+    if (transactions.data.length === 0) {
+        return (
+            <div className="bg-white rounded-[30px] p-8 shadow-sm">
+                <h3 className="text-2xl font-medium text-gray-900 mb-8">Payment History</h3>
+                <div className="text-center py-8 text-gray-400 font-light">
+                    No payment history yet.
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white rounded-[30px] p-8 shadow-sm">
             <div className="flex justify-between items-center mb-8">
                 <h3 className="text-2xl font-medium text-gray-900">Payment History</h3>
-                <button className="flex items-center text-[#2D7A70] hover:text-[#24635b] text-sm font-medium transition-colors">
+                <button
+                    onClick={handleEmailReport}
+                    disabled={isEmailing}
+                    className="flex items-center text-[#2D7A70] hover:text-[#24635b] text-sm font-medium transition-colors cursor-pointer disabled:opacity-50"
+                >
                     {/* Red icon in design looks like a PDF/File icon */}
                     <FileText className="w-5 h-5 text-[#FF5252] mr-2" />
-                    <span className="text-[#2D7A70]">Email Activity report</span>
+                    <span className="text-[#2D7A70]">{isEmailing ? 'Sending...' : 'Email Activity report'}</span>
                 </button>
             </div>
 
@@ -80,7 +103,7 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ transactions }) 
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                        {displayTransactions.map((tx: any) => {
+                        {transactions.data.map((tx) => {
                             const { day, month } = formatDate(tx.created_at);
                             const { subject, name } = getDetails(tx);
                             const isCompleted = tx.status.toLowerCase() === 'completed' || tx.status.toLowerCase() === 'success';
@@ -105,8 +128,8 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ transactions }) 
                                     </td>
                                     <td className="py-6 px-4 text-right">
                                         <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium ${isCompleted
-                                                ? 'bg-[#E0F7FA] text-[#006064]' // Cyan-ish for Completed aligned with design
-                                                : 'bg-[#FFF8E1] text-[#FFA000]'  // Yellow for Pending
+                                            ? 'bg-[#E0F7FA] text-[#006064]' // Cyan-ish for Completed aligned with design
+                                            : 'bg-[#FFF8E1] text-[#FFA000]'  // Yellow for Pending
                                             }`}>
                                             {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
                                         </span>

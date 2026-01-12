@@ -59,10 +59,10 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
 
     const handleTabChange = (tab: string) => {
         if (tab === activeTab) return;
-        
+
         setActiveTab(tab);
         setIsLoading(true);
-        
+
         router.get(
             '/student/bookings',
             { status: tab },
@@ -83,6 +83,8 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
                 return 'Ongoing Class';
             case 'completed':
                 return 'Completed Classes';
+            case 'cancelled':
+                return 'Cancelled Classes';
             default:
                 return 'My Bookings';
         }
@@ -133,7 +135,7 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
 
     const handleConfirmCancel = (reason?: string, cancelSeries?: boolean) => {
         if (!selectedBooking) return;
-        
+
         setIsCancelling(true);
         router.post(
             `/student/booking/${selectedBooking.id}/cancel`,
@@ -160,9 +162,9 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
 
     const handleSubmitReview = (rating: number, feedback: string) => {
         if (!selectedBooking) return;
-        
+
         const bookingId = selectedBooking.id;
-        
+
         router.post(
             `/student/bookings/${bookingId}/review`,
             { rating, feedback },
@@ -183,9 +185,9 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
 
     const handleUpdateReview = (rating: number, feedback: string) => {
         if (!selectedBooking) return;
-        
+
         const bookingId = selectedBooking.id;
-        
+
         router.put(
             `/student/bookings/${bookingId}/review`,
             { rating, feedback },
@@ -242,7 +244,7 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
                                 <BookingCard
                                     key={booking.id}
                                     booking={booking}
-                                    status={activeTab as 'upcoming' | 'ongoing' | 'completed'}
+                                    status={activeTab as 'upcoming' | 'ongoing' | 'completed' | 'cancelled'}
                                     userRole="student"
                                     showBorder={index !== bookings.data.length - 1}
                                     onViewDetails={handleViewDetails}
@@ -337,11 +339,10 @@ function Pagination({ links }: { links: PaginationLink[] }) {
                     key={i}
                     onClick={() => link.url && router.get(link.url)}
                     disabled={!link.url}
-                    className={`px-3 py-1 rounded-lg text-sm font-['Nunito'] ${
-                        link.active
-                            ? 'bg-[#338078] text-white'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`px-3 py-1 rounded-lg text-sm font-['Nunito'] ${link.active
+                        ? 'bg-[#338078] text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
                     dangerouslySetInnerHTML={{ __html: link.label }}
                 />
             ))}
@@ -368,6 +369,12 @@ function EmptyState({ status }: { status: string }) {
             title: 'No completed classes yet',
             description: 'Your finished sessions will appear here.',
             action: { label: 'Browse Teachers', href: '/student/teachers' },
+        },
+        cancelled: {
+            icon: 'mdi:close-circle-outline',
+            title: 'No cancelled classes',
+            description: 'Your cancelled sessions will appear here.',
+            action: null,
         },
     };
 

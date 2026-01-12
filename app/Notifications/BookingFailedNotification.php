@@ -8,9 +8,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class BookingFailedNotification extends Notification
+class BookingFailedNotification extends Notification implements ShouldQueue
 {
-    // use Queueable;
+    use Queueable;
 
     protected $booking;
     protected $reason;
@@ -40,15 +40,14 @@ class BookingFailedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-                    ->subject('Booking Failed: Class with ' . $this->booking->teacher->user->name)
-                    ->error() // Uses error styling
+                    ->subject('Payment Pending: Session with ' . $this->booking->teacher->user->name)
                     ->greeting('Salaam ' . $notifiable->name . ',')
-                    ->line('We were unable to confirm your booking for the following session:')
+                    ->line('Your booking has been reserved but requires payment to be confirmed.')
                     ->line('**Teacher:** ' . $this->booking->teacher->user->name)
                     ->line('**Date:** ' . $this->booking->start_time->format('F j, Y, g:i a'))
-                    ->line('**Reason:** ' . $this->reason)
-                    ->line('Please check your wallet balance or try again.')
-                    ->action('Go to Wallet', url('/student/wallet'));
+                    ->line('**Status:** Awaiting Payment')
+                    ->line('Please visit your wallet to complete the payment within 1 hour, or the slot will be released.')
+                    ->action('Pay Now', url('/student/wallet'));
     }
 
     /**
@@ -60,11 +59,11 @@ class BookingFailedNotification extends Notification
     {
         return [
             'booking_id' => $this->booking->id,
-            'title' => 'Booking Failed',
+            'title' => 'Payment Pending',
             'teacher_name' => $this->booking->teacher->user->name,
             'reason' => $this->reason,
-            'message' => 'Booking failed: ' . $this->reason,
-            'type' => 'booking_failed'
+            'message' => 'Booking reserved. Please complete payment to confirm.',
+            'type' => 'booking_payment_pending'
         ];
     }
 }

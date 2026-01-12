@@ -6,23 +6,25 @@ interface BookingSuccessModalProps {
     isOpen: boolean;
     onClose: () => void;
     teacherName: string;
-    date: Date;
-    timeSlot: { start: string; end: string };
+    sessions: any[]; // Changed
+    isRecurring: boolean;
+    occurrences: number;
 }
 
 export const BookingSuccessModal: React.FC<BookingSuccessModalProps> = ({
     isOpen,
     onClose,
     teacherName,
-    date,
-    timeSlot
+    sessions,
+    isRecurring,
+    occurrences
 }) => {
 
-    // Format Date: e.g. "March 20"
-    const formattedDate = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+    if (sessions.length === 0) return null;
 
-    // Format Time: e.g. "5:00 PM"
-    // Assuming timeSlot.start is "17:00:00" or similar
+    const firstSession = sessions[0];
+    const formattedDate = firstSession.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+
     const formatTime = (timeStr: string) => {
         const [h, m] = timeStr.split(':');
         const d = new Date();
@@ -30,10 +32,10 @@ export const BookingSuccessModal: React.FC<BookingSuccessModalProps> = ({
         return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
     };
 
-    const formattedTime = formatTime(timeSlot.start);
-
-    // Full String: March 20, 5:00 PM.
-    const dateString = `${formattedDate}, ${formattedTime}`;
+    const formattedTime = formatTime(firstSession.start);
+    const dateString = sessions.length === 1
+        ? `${formattedDate}, ${formattedTime}`
+        : `${sessions.length} sessions (starting ${formattedDate})`;
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -55,6 +57,11 @@ export const BookingSuccessModal: React.FC<BookingSuccessModalProps> = ({
 
                 <p className="text-gray-600 mb-8 max-w-xs mx-auto leading-relaxed">
                     Your request with <span className="text-[#358D83] font-medium">{teacherName}</span> for <span className="text-[#358D83] font-medium">{dateString}</span> has been sent.
+                    {isRecurring && (
+                        <span className="block mt-1 font-bold text-[#358D83]">
+                            Repeating for {occurrences} weeks.
+                        </span>
+                    )}
                     <br />
                     <span className="text-sm text-gray-500 mt-2 block">Funds are held until the teacher accepts.</span>
                 </p>

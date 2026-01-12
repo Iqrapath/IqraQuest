@@ -18,27 +18,30 @@ class BookingService
     public function createBooking(User $student, Teacher $teacher, array $data, bool $processPayment = true)
     {
         return DB::transaction(function () use ($student, $teacher, $data, $processPayment) {
-            // 0. Reuse: Check if THIS user already has a pending booking for THIS slot
-            // If so, we reuse it instead of blocking ourselves.
+            $startTime = Carbon::parse($data['start_time']);
+            $endTime = Carbon::parse($data['end_time']);
+
+            // 0. Smart Reuse/Deduplicate: Check if THIS user already has an active booking for EXACTLY this slot
+            // We ONLY reuse/update if the existing booking is still PENDING. 
+            // If it's confirmed or awaiting approval, we let the conflict logic catch it later.
             $existingBooking = Booking::where('teacher_id', $teacher->id)
                 ->where('user_id', $student->id)
-                ->where('start_time', $data['start_time'])
-                ->where('status', 'pending')
+                ->where('start_time', $startTime)
+                ->where('status', 'pending') 
                 ->first();
 
             if ($existingBooking) {
-                // Determine duration for price recalc (in case duration changed?)
-                $durationHours = Carbon::parse($data['start_time'])->diffInMinutes(Carbon::parse($data['end_time'])) / 60;
+                $durationHours = $startTime->diffInMinutes($endTime) / 60;
                 $totalPrice = $teacher->hourly_rate * $durationHours;
 
                 $existingBooking->update([
                     'subject_id' => $data['subject_id'],
-                    'end_time' => $data['end_time'],
+                    'end_time' => $endTime,
                     'total_price' => $totalPrice, 
-                    'commission_rate' => config('services.payout.platform_commission_percentage', 15),
+                    'currency' => $data['currency'] ?? ($teacher->preferred_currency ?? 'USD'),
+                    'notes' => $data['notes'] ?? $existingBooking->notes,
                 ]);
 
-                // Dispatch Payment Job if requested
                 if ($processPayment) {
                     ProcessBookingPaymentJob::dispatchSync($existingBooking);
                 }
@@ -47,14 +50,14 @@ class BookingService
             }
 
             // 1. Validate Availability (Double Check)
-            if (!$this->isSlotAvailable($teacher, $data['start_time'], $data['end_time'])) {
+            if (!$this->isSlotAvailable($teacher, $startTime, $endTime)) {
                 // For offers, we might checking against the teacher's own calendar differently, 
                 // but generally they shouldn't double book themselves.
                 throw new Exception("This time slot is no longer available.");
             }
 
             // 2. Calculate Price based on duration
-            $durationHours = Carbon::parse($data['start_time'])->diffInMinutes(Carbon::parse($data['end_time'])) / 60;
+            $durationHours = $startTime->diffInMinutes($endTime) / 60;
             $totalPrice = $teacher->hourly_rate * $durationHours;
 
             // 3. Create Booking Record
@@ -62,14 +65,14 @@ class BookingService
                 'teacher_id' => $teacher->id,
                 'user_id' => $student->id,
                 'subject_id' => $data['subject_id'],
-                'start_time' => $data['start_time'],
-                'end_time' => $data['end_time'],
+                'start_time' => $startTime,
+                'end_time' => $endTime,
                 'status' => 'pending', // Pending until payment
                 'total_price' => $totalPrice,
-                'total_price' => $totalPrice,
-                'currency' => $teacher->preferred_currency ?? 'USD',
+                'currency' => $data['currency'] ?? ($teacher->preferred_currency ?? 'USD'),
                 'commission_rate' => config('services.payout.platform_commission_percentage', 10), // Fetch from settings in real app
                 'parent_booking_id' => $data['parent_booking_id'] ?? null,
+                'notes' => $data['notes'] ?? null,
             ]);
 
             // 4. Dispatch Payment Job only if requested (Student flow)
@@ -98,27 +101,41 @@ class BookingService
 
     /**
      * Check if a slot is available
-     * @param int|null $excludeBookingId Booking ID to exclude from conflict check (for reschedule)
+     * Uses Standard Overlap Algorithm: (StartA < EndB) AND (EndA > StartB)
      */
     public function isSlotAvailable(Teacher $teacher, $start, $end, ?int $excludeBookingId = null)
     {
+        $start = Carbon::parse($start);
+        $end = Carbon::parse($end);
+
         $query = Booking::where('teacher_id', $teacher->id)
-            ->where('status', '!=', 'cancelled');
+            ->whereIn('status', ['pending', 'confirmed', 'awaiting_approval', 'rescheduling', 'awaiting_payment']);
 
         // Exclude specific booking (for reschedule scenarios)
         if ($excludeBookingId) {
             $query->where('id', '!=', $excludeBookingId);
         }
 
-        return !$query->where(function ($q) use ($start, $end) {
-                $q->whereBetween('start_time', [$start, $end])
-                  ->orWhereBetween('end_time', [$start, $end])
-                  ->orWhere(function ($subQ) use ($start, $end) {
-                      $subQ->where('start_time', '<=', $start)
-                           ->where('end_time', '>=', $end);
-                  });
-            })
-            ->exists();
+        $hasConflict = $query->where(function ($q) use ($start, $end) {
+            $q->where('start_time', '<', $end)
+              ->where('end_time', '>', $start);
+        })->exists();
+
+        if ($hasConflict) {
+            \Illuminate\Support\Facades\Log::info("isSlotAvailable CONFLICT: Request Start: $start, End: $end");
+            // Re-run to get the conflicting booking (just for logging)
+            $conflicting = Booking::where('teacher_id', $teacher->id)
+                ->whereIn('status', ['pending', 'confirmed', 'awaiting_approval', 'rescheduling', 'awaiting_payment'])
+                ->where(function ($q) use ($start, $end) {
+                    $q->where('start_time', '<', $end)
+                      ->where('end_time', '>', $start);
+                })->first();
+            if ($conflicting) {
+                \Illuminate\Support\Facades\Log::info("Conflicting Booking ID: " . $conflicting->id . " Start: " . $conflicting->start_time . " End: " . $conflicting->end_time);
+            }
+        }
+
+        return !$hasConflict;
     }
 
     /**
@@ -168,23 +185,61 @@ class BookingService
                     $currentEnd->addMonth();
                 }
 
-                // Check Availability for this future slot
-                if (!$this->isSlotAvailable($teacher, $currentStart, $currentEnd)) {
-                    // For enterprise, we might skip or prompt. For now, strict atomic failure.
-                    throw new Exception("Recurring slot unavailable on " . $currentStart->toFormattedDateString());
-                }
-
                 $childData = $data;
                 $childData['start_time'] = $currentStart->toDateTimeString();
                 $childData['end_time'] = $currentEnd->toDateTimeString();
                 $childData['parent_booking_id'] = $parentBooking->id;
 
-                // Create child booking (auto-process payment if needed, likely grouped invoice in future)
-                $childBooking = $this->createBooking($student, $teacher, $childData, true); // Assuming immediate payment for now
-                $bookings->push($childBooking);
+                try {
+                    // Create child booking. createBooking now handles reuse if the user 
+                    // manually picked a date that our recurrence also covers.
+                    $childBooking = $this->createBooking($student, $teacher, $childData, true);
+                    $bookings->push($childBooking);
+                } catch (Exception $e) {
+                    \Illuminate\Support\Facades\Log::info("Error creating recurring child at $currentStart. Error: " . $e->getMessage());
+                    
+                    if ($e->getMessage() === "This time slot is no longer available.") {
+                         throw new Exception("Recurring slot unavailable on " . $currentStart->toFormattedDateString());
+                    }
+
+                    throw $e; // Re-throw other errors (e.g. Mail/System)
+                }
             }
 
             return $bookings;
+        });
+    }
+
+    /**
+     * Create a batch of bookings, potentially each with its own recurring series.
+     */
+    public function createBatchBookings(User $student, Teacher $teacher, array $sessions, bool $isRecurring = false, int $occurrences = 1, int $subjectId, ?string $notes = null, ?string $currency = 'USD')
+    {
+        return DB::transaction(function () use ($student, $teacher, $sessions, $isRecurring, $occurrences, $subjectId, $notes, $currency) {
+            $allBookings = collect();
+
+            foreach ($sessions as $session) {
+                $startTime = Carbon::parse($session['start_time']);
+                $endTime = Carbon::parse($session['end_time']);
+
+                $data = [
+                    'subject_id' => $subjectId,
+                    'start_time' => $startTime->toDateTimeString(),
+                    'end_time' => $endTime->toDateTimeString(),
+                    'notes' => $notes,
+                    'currency' => $currency,
+                ];
+
+                if ($isRecurring && $occurrences > 1) {
+                    $series = $this->createRecurringSeries($student, $teacher, $data, 'weekly', $occurrences);
+                    $allBookings = $allBookings->concat($series);
+                } else {
+                    $booking = $this->createBooking($student, $teacher, $data);
+                    $allBookings->push($booking);
+                }
+            }
+
+            return $allBookings;
         });
     }
 }

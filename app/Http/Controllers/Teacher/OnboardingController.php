@@ -59,7 +59,10 @@ class OnboardingController extends Controller
             $user->save();
 
             // Update Teacher details
-            $teacher->update($request->only(['country', 'city', 'preferred_language']));
+            $teacher->update(array_merge(
+                $request->only(['country', 'city', 'preferred_language']),
+                ['onboarding_step' => 2]
+            ));
         });
 
         return redirect()
@@ -89,7 +92,10 @@ class OnboardingController extends Controller
         $teacher = auth()->user()->teacher;
         
         DB::transaction(function () use ($teacher, $request) {
-            $teacher->update($request->except('subjects'));
+            $teacher->update(array_merge(
+                $request->except('subjects'),
+                ['onboarding_step' => 3]
+            ));
             
             // Sync subjects
             if ($request->has('subjects')) {
@@ -145,6 +151,7 @@ class OnboardingController extends Controller
                 'timezone' => $request->timezone,
                 'teaching_mode' => $teachingMode,
                 'teaching_type' => $teachingType,
+                'onboarding_step' => 4,
             ]);
 
             // Delete existing availability
@@ -189,6 +196,7 @@ class OnboardingController extends Controller
             // Update teacher hourly rate
             $teacher->update([
                 'hourly_rate' => $request->hourly_rate,
+                'onboarding_step' => 5, // Completed
             ]);
             
             // Prepare payment method data

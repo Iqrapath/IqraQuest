@@ -41,7 +41,7 @@ class LogFailedLogin
         );
 
         // Increment failed attempts for IP blocking
-        BlockSuspiciousIPs::incrementAttempts($ip);
+        BlockSuspiciousIPs::incrementAttempts($ip, $email);
 
         // Calculate remaining attempts before IP block
         $maxAttempts = config('security.ip_blocking.max_attempts', 10);

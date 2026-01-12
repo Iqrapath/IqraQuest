@@ -48,7 +48,8 @@ class EnsureTeacherApproved
         ]);
 
         // If teacher is pending or rejected, redirect to waiting area with message
-        if ($teacher->isPending() || $teacher->isRejected()) {
+        // EXCEPT if they are still in onboarding (step < 5) - let them finish first
+        if (($teacher->isPending() || $teacher->isRejected()) && $teacher->onboarding_step >= 5) {
             $message = $teacher->isPending() 
                 ? 'Your application is under review. You\'ll be notified once approved.'
                 : 'Your application was not approved. Please check the waiting area for details.';
@@ -66,7 +67,8 @@ class EnsureTeacherApproved
         }
 
         // If teacher is not approved, deny access
-        if (!$teacher->isApproved()) {
+        // EXCEPT if they are still in onboarding (step < 5) - let them finish first
+        if (!$teacher->isApproved() && $teacher->onboarding_step >= 5) {
             Log::warning('EnsureTeacherApproved: Teacher not approved, access denied', [
                 'user_id' => $user->id,
                 'teacher_id' => $teacher->id,

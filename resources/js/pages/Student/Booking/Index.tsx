@@ -41,6 +41,7 @@ interface TimeSlot {
     end: string;
     period: string;
     is_available: boolean;
+    conflict?: string | Date[];
 }
 
 interface RebookData {
@@ -67,7 +68,15 @@ export default function BookingIndex({ teacher, booked_slots = [], rebook_data }
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-    const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
+
+    // New Multi-Slot Cart State
+    const [selectedSessions, setSelectedSessions] = useState<Array<{
+        date: Date,
+        start: string,
+        end: string,
+        period: string
+    }>>([]);
+
     const [selectedDuration, setSelectedDuration] = useState(rebook_data?.duration || 60);
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [userTimeZone, setUserTimeZone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
@@ -81,6 +90,15 @@ export default function BookingIndex({ teacher, booked_slots = [], rebook_data }
     const [paymentMethod, setPaymentMethod] = useState('wallet');
 
     // --- Helper Logic ---
+    const parseNaiveTime = (s: string) => {
+        // Robust regex to extract YYYY, MM, DD, HH, mm, ss from ISO strings 
+        // while ignoring the timezone suffix (Z, +00:00, etc.)
+        const match = s.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
+        if (!match) return new Date(s);
+        const [_, y, m, d, h, min, sec] = match.map(Number);
+        return new Date(y, m - 1, d, h, min, sec);
+    };
+
     const getDaysInMonth = (date: Date) => {
         const year = date.getFullYear();
         const month = date.getMonth();
@@ -91,59 +109,120 @@ export default function BookingIndex({ teacher, booked_slots = [], rebook_data }
     const { days } = getDaysInMonth(currentMonth);
     const daysArray = [...Array(days).keys()].map(i => i + 1);
 
-    const getAvailableSlots = (date: Date | null): TimeSlot[] => {
+    /**
+     * Checks if a specific slot (on a specific date) conflicts with:
+     * 1. Existing confirmed/pending bookings from other students (booked_slots)
+     * 2. Already selected slots in the current cart (selectedSessions)
+     */
+    const getSlotConflict = (date: Date, start: string, end: string, checkCart = true) => {
+        const slotStart = new Date(date);
+        const [sH, sM] = start.split(':').map(Number);
+        slotStart.setHours(sH, sM, 0, 0);
+
+        const slotEnd = new Date(date);
+        const [eH, eM] = end.split(':').map(Number);
+        slotEnd.setHours(eH, eM, 0, 0);
+
+        // 1. Check against backend booked_slots
+        const isExternalConflict = booked_slots?.some(booking => {
+            const bStart = parseNaiveTime(booking.start);
+            const bEnd = parseNaiveTime(booking.end);
+            return slotStart < bEnd && slotEnd > bStart;
+        });
+
+        if (isExternalConflict) return 'booked';
+
+        // 2. Check against current selection in cart (to prevent double picking same day/time)
+        if (checkCart) {
+            const isInternalConflict = selectedSessions.some(session => {
+                if (session.date.toDateString() !== date.toDateString()) return false;
+                return session.start === start;
+            });
+            if (isInternalConflict) return 'selected';
+        }
+
+        return null;
+    };
+
+    /**
+     * Checks if a slot is available for ALL occurrences if recurring is enabled.
+     */
+    const validateRecurrence = (date: Date, start: string, end: string, checkCart = true, forceRecurring?: boolean, forceOccurrences?: number) => {
+        const loopCount = (forceRecurring ?? isRecurring) ? (forceOccurrences ?? occurrences) : 1;
+        const conflicts: Date[] = [];
+
+        for (let i = 0; i < loopCount; i++) {
+            const futureDate = new Date(date);
+            futureDate.setDate(date.getDate() + (i * 7));
+
+            if (getSlotConflict(futureDate, start, end, checkCart)) {
+                conflicts.push(futureDate);
+            }
+        }
+
+        return conflicts;
+    };
+
+    const getAvailableSlots = (date: Date | null): (TimeSlot & { conflict?: string | Date[] })[] => {
         if (!date) return [];
 
         const dayOfWeekName = date.toLocaleDateString('en-US', { weekday: 'long' });
-        const isAvailableDay = teacher.availability_schedule.some(s =>
+        const daySchedules = teacher.availability_schedule.filter(s =>
             s.day_of_week.toLowerCase() === dayOfWeekName.toLowerCase() && s.is_available
         );
 
-        if (!isAvailableDay) return [];
+        if (daySchedules.length === 0) return [];
 
-        const daySchedule = teacher.availability_schedule.find(s =>
-            s.day_of_week.toLowerCase() === dayOfWeekName.toLowerCase()
-        );
+        const slots: (TimeSlot & { conflict?: string | Date[] })[] = [];
 
-        if (!daySchedule || !daySchedule.start_time || !daySchedule.end_time) return [];
+        for (const daySchedule of daySchedules) {
+            if (!daySchedule.start_time || !daySchedule.end_time) continue;
 
-        const slots: TimeSlot[] = [];
-        const startTime = new Date(`2000-01-01 ${daySchedule.start_time}`);
-        const endTime = new Date(`2000-01-01 ${daySchedule.end_time}`);
+            const startTime = new Date(`2000-01-01 ${daySchedule.start_time}`);
+            let endTime = new Date(`2000-01-01 ${daySchedule.end_time}`);
 
-        let currentSlotStart = new Date(startTime);
+            // Handle overnight wrap (e.g. 23:00 -> 00:00)
+            if (endTime <= startTime) {
+                endTime.setDate(endTime.getDate() + 1);
+            }
 
-        while (currentSlotStart < endTime) {
-            const currentSlotEnd = new Date(currentSlotStart.getTime() + selectedDuration * 60000);
-            if (currentSlotEnd > endTime) break;
+            let currentSlotStart = new Date(startTime);
 
-            const startStr = currentSlotStart.toTimeString().slice(0, 5);
-            const endStr = currentSlotEnd.toTimeString().slice(0, 5);
+            while (currentSlotStart < endTime) {
+                const currentSlotEnd = new Date(currentSlotStart.getTime() + selectedDuration * 60000);
+                if (currentSlotEnd > endTime) break;
 
-            const hour = currentSlotStart.getHours();
-            let period = 'morning';
-            if (hour >= 12 && hour < 17) period = 'afternoon';
-            if (hour >= 17) period = 'evening';
+                const startStr = currentSlotStart.toTimeString().slice(0, 5);
+                const endStr = currentSlotEnd.toTimeString().slice(0, 5);
 
-            // Double Booking Logic
-            const isBooked = booked_slots?.some(booking => {
-                const bookingStart = new Date(booking.start);
-                const bookingEnd = new Date(booking.end);
-                return currentSlotStart < bookingEnd && currentSlotEnd > bookingStart;
-            });
+                const hour = currentSlotStart.getHours();
+                let period = 'morning';
+                if (hour >= 12 && hour < 17) period = 'afternoon';
+                if (hour >= 17) period = 'evening';
 
-            if (!isBooked) {
+                // Core Conflict Logic
+                const cartConflict = getSlotConflict(date, startStr, endStr, true);
+                const recurrenceConflicts = validateRecurrence(date, startStr, endStr);
+
+                // Check if slot is in the past
+                const now = new Date();
+                const slotStartDateTime = new Date(date);
+                slotStartDateTime.setHours(currentSlotStart.getHours(), currentSlotStart.getMinutes(), 0, 0);
+                const isPast = slotStartDateTime < now;
+
                 slots.push({
                     start: startStr,
                     end: endStr,
                     period: period,
-                    is_available: true
+                    is_available: !cartConflict && recurrenceConflicts.length === 0 && !isPast,
+                    conflict: cartConflict || (recurrenceConflicts.length > 0 ? recurrenceConflicts : (isPast ? 'past' : undefined))
                 });
-            }
 
-            currentSlotStart = new Date(currentSlotEnd);
+                currentSlotStart = new Date(currentSlotEnd);
+            }
         }
 
+        slots.sort((a, b) => a.start.localeCompare(b.start));
         return slots;
     };
 
@@ -163,35 +242,77 @@ export default function BookingIndex({ teacher, booked_slots = [], rebook_data }
         if (activeSchedule.length === 0) return { days: 'Not Available', time: 'Contact for details' };
 
         const days = activeSchedule.map(s => s.day_of_week).filter((v, i, a) => a.indexOf(v) === i);
-        const startTimes = activeSchedule.map(s => s.start_time);
-        const endTimes = activeSchedule.map(s => s.end_time);
-
         const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         days.sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b));
 
         // Basic Summary Logic
         const daySummary = days.length === 7 ? 'Every Day' : (days.length > 2 ? `${days[0]} - ${days[days.length - 1]}` : days.join(', '));
-        const timeSummary = `${formatTimePill(startTimes[0] || '09:00')} - ${formatTimePill(endTimes[0] || '17:00')}`;
+        // Get times from the first available slot as a sample
+        const sample = activeSchedule[0];
+        const timeSummary = `${formatTimePill(sample.start_time)} - ${formatTimePill(sample.end_time)}`;
 
         return { days: daySummary, time: timeSummary };
     };
 
     // Calculate Costs for Logic
     const hourlyRate = teacher.hourly_rate || 0;
-    // Assumption: Teacher hourly_rate is in NGN (e.g. 25000) based on Seeder data
     const sessionCostNGN = (hourlyRate / 60) * selectedDuration;
-
-    // Per Session Cost (USD) using Currency Context
     const sessionCostUSD = convert(sessionCostNGN, 'NGN', 'USD');
 
-    // Total for Logic (Handling recurrence)
-    const totalSessions = isRecurring ? occurrences : 1;
-    const totalCostUSD = sessionCostUSD * totalSessions;
-    const totalCostNGN = sessionCostNGN * totalSessions;
+    // Total counts sessions in cart across all recurring instances
+    const totalSessionsCount = selectedSessions.length * (isRecurring ? occurrences : 1);
+    const totalCostUSD = sessionCostUSD * totalSessionsCount;
+    const totalCostNGN = sessionCostNGN * totalSessionsCount;
 
     const currentTotalCost = currency === 'USD' ? totalCostUSD : totalCostNGN;
 
     // --- Handlers ---
+    const handleSlotToggle = (slot: TimeSlot) => {
+        if (!selectedDate) return;
+
+        // Feedback for unavailable slots
+        if (slot.conflict && slot.conflict !== 'selected') {
+            if (slot.conflict === 'booked') {
+                toast.error("This slot is already booked. Please choose another time.");
+                return;
+            }
+            if (slot.conflict === 'past') {
+                toast.error("This time has already passed for today.");
+                return;
+            }
+            if (Array.isArray(slot.conflict)) {
+                // It's a list of recurring conflict dates
+                const firstConflict = slot.conflict[0];
+                toast.error(`Recurring conflict: This slot is already booked on ${firstConflict.toLocaleDateString()}`);
+                return;
+            }
+        }
+
+        const isAlreadySelected = selectedSessions.some(s =>
+            s.date.toDateString() === selectedDate.toDateString() && s.start === slot.start
+        );
+
+        if (isAlreadySelected) {
+            setSelectedSessions(prev => prev.filter(s =>
+                !(s.date.toDateString() === selectedDate.toDateString() && s.start === slot.start)
+            ));
+        } else {
+            // Check for future conflicts just to be sure (redundant but good safety)
+            const conflicts = validateRecurrence(selectedDate, slot.start, slot.end);
+            if (conflicts.length > 0) {
+                toast.error(`Cannot select this slot. There is a conflict on ${conflicts[0].toLocaleDateString()}`);
+                return;
+            }
+
+            setSelectedSessions(prev => [...prev, {
+                date: new Date(selectedDate),
+                start: slot.start,
+                end: slot.end,
+                period: slot.period
+            }]);
+        }
+    };
+
     const handleMonthChange = (offset: number) => {
         const newMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + offset, 1);
         setCurrentMonth(newMonth);
@@ -200,127 +321,140 @@ export default function BookingIndex({ teacher, booked_slots = [], rebook_data }
     const handleDateClick = (day: number) => {
         const newDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
         setSelectedDate(newDate);
-        setSelectedTimeSlot(null);
     };
 
     const handleDurationChange = (duration: number) => {
         setSelectedDuration(duration);
-        setSelectedTimeSlot(null);
+        // Clear sessions if duration changes as slots might shift?
+        // Actually, it's safer to clear cart to prevent invalid overlaps.
+        if (selectedSessions.length > 0) {
+            toast.info("Changing duration cleared your current selections to prevent overlaps.");
+            setSelectedSessions([]);
+        }
+    };
+
+    const handleRecurrenceChange = (checked: boolean) => {
+        setIsRecurring(checked);
+        // Re-validate everything in the cart
+        if (checked && selectedSessions.length > 0) {
+            toast.info("Re-validating your selected slots for future conflicts...");
+            const validSessions = selectedSessions.filter(s => {
+                const conflicts = validateRecurrence(s.date, s.start, s.end, true, checked, occurrences);
+                return conflicts.length === 0;
+            });
+            if (validSessions.length < selectedSessions.length) {
+                toast.warning(`${selectedSessions.length - validSessions.length} slots were removed due to recurring conflicts.`);
+            }
+            setSelectedSessions(validSessions);
+        }
+    };
+
+    const handleOccurrencesChange = (val: number) => {
+        setOccurrences(val);
+        // Re-validate everything in the cart
+        if (isRecurring && selectedSessions.length > 0) {
+            const validSessions = selectedSessions.filter(s => {
+                const conflicts = validateRecurrence(s.date, s.start, s.end, true, isRecurring, val);
+                return conflicts.length === 0;
+            });
+            if (validSessions.length < selectedSessions.length) {
+                toast.warning(`${selectedSessions.length - validSessions.length} slots were removed due to new conflicts.`);
+            }
+            setSelectedSessions(validSessions);
+        }
     };
 
     const goToNextStep = () => setStep(prev => prev + 1);
     const goToPrevStep = () => setStep(prev => prev - 1);
 
-    const handleStep1Next = async () => {
-        if (!selectedDate || !selectedTimeSlot) {
-            toast.error("Please select a date and time slot.");
+    const handleStep1Next = () => {
+        if (selectedSessions.length === 0) {
+            toast.error("Please select at least one time slot.");
             return;
         }
 
-        setIsProcessing(true); // Reusing processing state or add a new one? Reusing is fine for short check.
+        // Final comprehensive validation sweep before proceeding
+        const invalidSessions = selectedSessions.filter(s => {
+            // Check direct conflicts
+            if (getSlotConflict(s.date, s.start, s.end, false)) return true;
+            // Check recurrence conflicts
+            const conflicts = validateRecurrence(s.date, s.start, s.end, false);
+            return conflicts.length > 0;
+        });
 
-        try {
-            // Construct ISO Start Time similar to final booking
-            const [hours, minutes] = selectedTimeSlot.start.split(':').map(Number);
-            const d = new Date(selectedDate);
-            d.setHours(hours, minutes, 0, 0);
-            const isoStartTime = d.toISOString();
-
-            const response = await axios.post('/student/book/check-availability', {
-                teacher_id: teacher.id,
-                start_time: isoStartTime,
-                duration: selectedDuration
-            });
-
-            if (response.data.available) {
-                setStep(2);
-            } else {
-                toast.error("This time slot is no longer available. Please choose another.");
-                // Optionally refresh slots here?
-                // For now, let user manually pick another.
-                setSelectedTimeSlot(null);
-            }
-        } catch (error) {
-            console.error("Availability Check Error:", error);
-            toast.error("Failed to check availability. Please try again.");
-        } finally {
-            setIsProcessing(false);
+        if (invalidSessions.length > 0) {
+            toast.error(`Some selected slots are no longer available. ${invalidSessions.length} sessions were removed.`);
+            setSelectedSessions(prev => prev.filter(s => !invalidSessions.includes(s)));
+            return;
         }
+
+        setStep(2);
     };
 
-    // Use handleProceedCheck instead of submitting directly
     const handleProceedCheck = () => {
-        if (!selectedDate || !selectedTimeSlot || !selectedSubject) return;
-
-        // If paying with wallet, check balance
-        if (paymentMethod === 'wallet') {
-            // Note: Wallet balance is in NGN (Base).
-            const balance = Number(userWalletBalance);
-            const cost = Number(totalCostNGN.toFixed(2)); // Round to 2 decimals to avoid float issues
-
-            if (balance < cost) {
-                // Double check to ensure we aren't showing insufficient funds for very small differences due to float
-                setIsInsufficientFundsOpen(true);
-                return;
-            }
-        }
+        if (selectedSessions.length === 0 || !selectedSubject) return;
 
         // Show Summary
         setIsBookingSummaryOpen(true);
     };
 
     const handleFinalBooking = () => {
-        if (!selectedDate || !selectedTimeSlot || !selectedSubject) return;
+        if (selectedSessions.length === 0 || !selectedSubject) return;
 
-        // Construct Start/End DateTime
-        // selectedDate is just date (midnight), time is string "HH:MM"
-        const year = selectedDate.getFullYear();
-        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-        const day = String(selectedDate.getDate()).padStart(2, '0');
-        const dateStr = `${year}-${month}-${day}`;
+        setIsProcessing(true);
 
-        // Just sending primitive data to controller, let it parse or send full ISO?
-        // Controller expects 'date', 'start_time', 'end_time' usually.
-        // Let's match typical Laravel request structure.
-
-        // Combine Date and Time and convert to ISO (UTC) to handle timezones correctly
-        // "2024-03-20T17:00:00" -> Date Object -> toISOString()
-        const localDateTimeFunc = () => {
-            const [hours, minutes] = selectedTimeSlot.start.split(':').map(Number);
-            const d = new Date(selectedDate);
-            d.setHours(hours, minutes, 0, 0);
-            return d.toISOString();
+        // Helper to format date for MySQL/Laravel
+        const formatForBackend = (date: Date) => {
+            const pad = (n: number) => String(n).padStart(2, '0');
+            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
         };
-        const isoStartTime = localDateTimeFunc();
+
+        // Construct sessions array for backend
+        const sessions = selectedSessions.map(s => {
+            const startD = new Date(s.date);
+            const [sH, sM] = s.start.split(':').map(Number);
+            startD.setHours(sH, sM, 0, 0);
+
+            const endD = new Date(s.date);
+            const [eH, eM] = s.end.split(':').map(Number);
+            endD.setHours(eH, eM, 0, 0);
+
+            return {
+                date: `${s.date.getFullYear()}-${String(s.date.getMonth() + 1).padStart(2, '0')}-${String(s.date.getDate()).padStart(2, '0')}`,
+                start_time: formatForBackend(startD),
+                end_time: formatForBackend(endD),
+            };
+        });
 
         router.post('/student/book/process', {
             teacher_id: teacher.id,
-            date: dateStr,
-            start_time: isoStartTime, // Sends UTC string e.g., "2024-03-20T22:00:00.000Z"
-            end_time: selectedTimeSlot.end,
+            sessions: sessions, // New bulk format
             subject_id: selectedSubject,
             notes: notes,
             duration: selectedDuration,
-
-            // Payment / Step 3 Data
             currency: currency,
             payment_method: paymentMethod,
-
-            // Recurrence
             is_recurring: isRecurring,
-            occurrences: occurrences
-        }, {
+            recurrence_occurrences: occurrences
+        } as any, {
             preserveScroll: true,
-            onStart: () => setIsProcessing(true),
             onFinish: () => setIsProcessing(false),
-            onSuccess: () => {
+            onSuccess: (page) => {
                 setIsBookingSummaryOpen(false);
-                setIsSuccessModalOpen(true);
+
+                const flash = page.props.flash as any;
+
+                if (flash?.booking_status === 'awaiting_payment') {
+                    toast.warning("Booking saved, payment pending. Please top up!");
+                    setIsInsufficientFundsOpen(true);
+                } else {
+                    setIsSuccessModalOpen(true);
+                }
             },
             onError: (errors) => {
-                // Simple error handling
                 console.error(errors);
-                alert("Failed to submit booking. Please check details.");
+                const firstError = Object.values(errors)[0];
+                toast.error(firstError || "Failed to submit booking.");
             }
         });
     };
@@ -340,7 +474,7 @@ export default function BookingIndex({ teacher, booked_slots = [], rebook_data }
                     <div className="max-w-4xl mx-auto flex items-center gap-3">
                         <Icon icon="mdi:refresh" className="h-5 w-5 text-[#338078]" />
                         <p className="font-['Nunito'] text-sm text-[#338078]">
-                            <span className="font-semibold">Rebooking:</span> Subject and duration have been pre-filled from your previous session. Just pick a new time!
+                            <span className="font-semibold">Rebooking:</span> Subject and duration have been pre-filled. Just pick your new session slots!
                         </p>
                     </div>
                 </div>
@@ -352,29 +486,31 @@ export default function BookingIndex({ teacher, booked_slots = [], rebook_data }
                     selectedDate={selectedDate}
                     currentMonth={currentMonth}
                     daysArray={daysArray}
-                    availableSlots={availableSlots}
-                    selectedTimeSlot={selectedTimeSlot}
+                    availableSlots={availableSlots as any}
+                    selectedSessions={selectedSessions}
                     selectedDuration={selectedDuration}
                     userTimeZone={userTimeZone}
                     isRecurring={isRecurring}
                     occurrences={occurrences}
                     onMonthChange={handleMonthChange}
                     onDateClick={handleDateClick}
-                    onTimeSlotSelect={setSelectedTimeSlot}
+                    onTimeSlotToggle={handleSlotToggle}
                     onDurationChange={handleDurationChange}
-                    onRecurrenceToggle={setIsRecurring}
-                    onOccurrencesChange={setOccurrences}
+                    onRecurrenceToggle={handleRecurrenceChange}
+                    onOccurrencesChange={handleOccurrencesChange}
                     onNext={handleStep1Next}
                     getAvailabilitySummary={getAvailabilitySummary}
                     formatTimePill={formatTimePill}
+                    totalCost={{ usd: totalCostUSD, ngn: totalCostNGN }}
+                    sessionCount={totalSessionsCount}
+                    currency={currency}
                 />
             )}
 
             {step === 2 && (
                 <Step2SessionDetails
                     teacher={teacher}
-                    selectedDate={selectedDate}
-                    selectedTimeSlot={selectedTimeSlot}
+                    selectedSessions={selectedSessions} // Updated prop
                     selectedSubject={selectedSubject}
                     notes={notes}
                     onSubjectSelect={setSelectedSubject}
@@ -397,6 +533,7 @@ export default function BookingIndex({ teacher, booked_slots = [], rebook_data }
                     onPaymentMethodChange={setPaymentMethod}
                     onBack={goToPrevStep}
                     onProceed={handleProceedCheck}
+                    totalCost={{ usd: totalCostUSD, ngn: totalCostNGN }} // Updated
                 />
             )}
 
@@ -405,28 +542,30 @@ export default function BookingIndex({ teacher, booked_slots = [], rebook_data }
                 isOpen={isBookingSummaryOpen}
                 onClose={() => setIsBookingSummaryOpen(false)}
                 teacher={teacher}
-                selectedDate={selectedDate}
-                selectedTimeSlot={selectedTimeSlot}
+                selectedSessions={selectedSessions} // Updated prop
                 selectedSubjectName={selectedSubjectName}
                 totalCost={{ usd: totalCostUSD, ngn: totalCostNGN }}
                 currency={currency}
                 notes={notes}
                 isProcessing={isProcessing}
                 onConfirm={handleFinalBooking}
+                isRecurring={isRecurring}
+                occurrences={occurrences}
             />
 
             <InsufficientFundsModal
                 isOpen={isInsufficientFundsOpen}
                 onClose={() => setIsInsufficientFundsOpen(false)}
-                requiredAmount={totalCostNGN} // Always pass NGN amount for TopUp as Modal is NGN based
+                requiredAmount={totalCostNGN}
             />
-            {selectedDate && selectedTimeSlot && (
+            {selectedSessions.length > 0 && (
                 <BookingSuccessModal
                     isOpen={isSuccessModalOpen}
                     onClose={() => router.visit('/student/dashboard')}
                     teacherName={teacher.user.name}
-                    date={selectedDate}
-                    timeSlot={selectedTimeSlot}
+                    sessions={selectedSessions}
+                    isRecurring={isRecurring}
+                    occurrences={occurrences}
                 />
             )}
         </div>

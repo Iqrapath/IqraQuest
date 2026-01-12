@@ -16,12 +16,14 @@ trait PasswordValidationRules
         return [
             'required',
             'string',
-            Password::min(config('security.password.min_length', 12))
-                ->letters()
-                ->mixedCase()
-                ->numbers()
-                ->symbols()
-                ->uncompromised(config('security.password.compromised_threshold', 0)),
+            // Password::min(config('security.password.min_length', 12))
+            //     ->letters()
+            //     ->mixedCase()
+            //     ->numbers()
+            //     ->symbols()
+            //     ->uncompromised(config('security.password.compromised_threshold', 0)),
+            // Simplified for development: just min 6 chars
+            Password::min(6), 
             'confirmed',
         ];
     }

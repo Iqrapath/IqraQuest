@@ -14,6 +14,7 @@ class Teacher extends Model
 
     protected $fillable = [
         'user_id',
+        'onboarding_step',
         // Approval workflow
         'status',
         'approved_by',

@@ -130,7 +130,7 @@ class Booking extends Model
     // Scopes
     public function scopeActive($query)
     {
-        return $query->whereIn('status', ['pending', 'awaiting_approval', 'confirmed', 'rescheduling']);
+        return $query->whereIn('status', ['pending', 'awaiting_payment', 'awaiting_approval', 'confirmed', 'rescheduling']);
     }
 
     public function scopeUpcoming($query)

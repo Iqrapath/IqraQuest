@@ -4,8 +4,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface Step2Props {
     teacher: any;
-    selectedDate: Date | null;
-    selectedTimeSlot: any;
+    selectedSessions: any[]; // Changed from selectedTimeSlot
     selectedSubject: number | null;
     notes: string;
     // Handlers
@@ -19,8 +18,7 @@ interface Step2Props {
 
 export default function Step2SessionDetails({
     teacher,
-    selectedDate,
-    selectedTimeSlot,
+    selectedSessions,
     selectedSubject,
     notes,
     onSubjectSelect,
@@ -29,6 +27,7 @@ export default function Step2SessionDetails({
     onContinue,
     formatTimePill
 }: Step2Props) {
+    const firstSession = selectedSessions[0];
 
     return (
         <div className="">
@@ -48,12 +47,18 @@ export default function Step2SessionDetails({
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                         <Icon icon="mdi:calendar" className="w-4 h-4 text-[#358D83]" />
                         <span>
-                            {selectedDate?.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                            {selectedSessions.length === 1
+                                ? firstSession.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+                                : `${selectedSessions.length} sessions selected`
+                            }
                         </span>
                         <span className="text-gray-300">|</span>
                         <Icon icon="mdi:clock-outline" className="w-4 h-4 text-[#358D83]" />
                         <span>
-                            {formatTimePill(selectedTimeSlot?.start || '')} - {formatTimePill(selectedTimeSlot?.end || '')}
+                            {selectedSessions.length === 1
+                                ? `${formatTimePill(firstSession.start)} - ${formatTimePill(firstSession.end)}`
+                                : "Multiple times"
+                            }
                         </span>
                     </div>
                 </div>
@@ -66,7 +71,7 @@ export default function Step2SessionDetails({
                     <Alert variant="destructive" className='bg-[#E0F2F1] border-[#358D83] text-[#00695C]'>
                         <Icon icon="mdi:alert-circle" className="h-4 w-4" />
                         <AlertTitle>No Subjects Found</AlertTitle>
-                        <AlertDescription className='text-[#00695C]'>
+                        <AlertDescription>
                             This teacher hasn't listed any subjects yet. You can continue, but please specify your topic in the notes.
                         </AlertDescription>
                     </Alert>

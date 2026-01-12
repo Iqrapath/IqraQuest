@@ -25,6 +25,7 @@ interface TimeSlot {
     end: string;
     period: string;
     is_available: boolean;
+    conflict?: string | Date[];
 }
 
 interface BookingData {
@@ -46,7 +47,7 @@ interface Props {
 export default function Reschedule({ booking, teacher, booked_slots = [] }: Props) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-    const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
+    const [selectedSessions, setSelectedSessions] = useState<{ date: Date; start: string; end: string; period: string }[]>([]); // Added
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [userTimeZone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
     const [reason, setReason] = useState('');
@@ -56,6 +57,13 @@ export default function Reschedule({ booking, teacher, booked_slots = [] }: Prop
     const selectedDuration = booking.duration_minutes;
 
     // --- Helper Logic ---
+    const parseNaiveTime = (s: string) => {
+        const match = s.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
+        if (!match) return new Date(s);
+        const [_, y, m, d, h, min, sec] = match.map(Number);
+        return new Date(y, m - 1, d, h, min, sec);
+    };
+
     const getDaysInMonth = (date: Date) => {
         const year = date.getFullYear();
         const month = date.getMonth();
@@ -70,58 +78,66 @@ export default function Reschedule({ booking, teacher, booked_slots = [] }: Prop
         if (!date) return [];
 
         const dayOfWeekName = date.toLocaleDateString('en-US', { weekday: 'long' });
-        const isAvailableDay = teacher.availability_schedule.some(s =>
+
+        // Get ALL slots for this day (not just one)
+        const daySchedules = teacher.availability_schedule.filter(s =>
             s.day_of_week.toLowerCase() === dayOfWeekName.toLowerCase() && s.is_available
         );
 
-        if (!isAvailableDay) return [];
-
-        const daySchedule = teacher.availability_schedule.find(s =>
-            s.day_of_week.toLowerCase() === dayOfWeekName.toLowerCase()
-        );
-
-        if (!daySchedule || !daySchedule.start_time || !daySchedule.end_time) return [];
+        if (daySchedules.length === 0) return [];
 
         const slots: TimeSlot[] = [];
-        const startTime = new Date(`2000-01-01 ${daySchedule.start_time}`);
-        const endTime = new Date(`2000-01-01 ${daySchedule.end_time}`);
 
-        let currentSlotStart = new Date(startTime);
+        // Iterate through each availability slot for this day
+        for (const daySchedule of daySchedules) {
+            if (!daySchedule.start_time || !daySchedule.end_time) continue;
 
-        while (currentSlotStart < endTime) {
-            const currentSlotEnd = new Date(currentSlotStart.getTime() + selectedDuration * 60000);
-            if (currentSlotEnd > endTime) break;
+            const startTime = new Date(`2000-01-01 ${daySchedule.start_time}`);
+            const endTime = new Date(`2000-01-01 ${daySchedule.end_time}`);
 
-            const startStr = currentSlotStart.toTimeString().slice(0, 5);
-            const endStr = currentSlotEnd.toTimeString().slice(0, 5);
+            let currentSlotStart = new Date(startTime);
 
-            const hour = currentSlotStart.getHours();
-            let period = 'morning';
-            if (hour >= 12 && hour < 17) period = 'afternoon';
-            if (hour >= 17) period = 'evening';
+            while (currentSlotStart < endTime) {
+                const currentSlotEnd = new Date(currentSlotStart.getTime() + selectedDuration * 60000);
+                if (currentSlotEnd > endTime) break;
 
-            // Check if slot is booked
-            const slotDateTime = new Date(date);
-            slotDateTime.setHours(currentSlotStart.getHours(), currentSlotStart.getMinutes(), 0, 0);
-            const slotEndDateTime = new Date(slotDateTime.getTime() + selectedDuration * 60000);
+                const startStr = currentSlotStart.toTimeString().slice(0, 5);
+                const endStr = currentSlotEnd.toTimeString().slice(0, 5);
 
-            const isBooked = booked_slots?.some(b => {
-                const bookingStart = new Date(b.start);
-                const bookingEnd = new Date(b.end);
-                return slotDateTime < bookingEnd && slotEndDateTime > bookingStart;
-            });
+                const hour = currentSlotStart.getHours();
+                let period = 'morning';
+                if (hour >= 12 && hour < 17) period = 'afternoon';
+                if (hour >= 17) period = 'evening';
 
-            if (!isBooked) {
+                // Check if slot is booked
+                const slotDateTime = new Date(date);
+                slotDateTime.setHours(currentSlotStart.getHours(), currentSlotStart.getMinutes(), 0, 0);
+                const slotEndDateTime = new Date(slotDateTime.getTime() + selectedDuration * 60000);
+
+                const isBooked = booked_slots?.some(b => {
+                    const bookingStart = parseNaiveTime(b.start);
+                    const bookingEnd = parseNaiveTime(b.end);
+                    return slotDateTime < bookingEnd && slotEndDateTime > bookingStart;
+                });
+
+                // Check if slot is in the past
+                const now = new Date();
+                const isPast = slotDateTime < now;
+
                 slots.push({
                     start: startStr,
                     end: endStr,
                     period: period,
-                    is_available: true
+                    is_available: !isBooked && !isPast,
+                    conflict: isBooked ? 'booked' : (isPast ? 'past' : undefined)
                 });
-            }
 
-            currentSlotStart = new Date(currentSlotEnd);
+                currentSlotStart = new Date(currentSlotEnd);
+            }
         }
+
+        // Sort slots by start time
+        slots.sort((a, b) => a.start.localeCompare(b.start));
 
         return slots;
     };
@@ -160,42 +176,68 @@ export default function Reschedule({ booking, teacher, booked_slots = [] }: Prop
         setCurrentMonth(newMonth);
     };
 
+    const handleTimeSlotToggle = (slot: any) => {
+        if (slot.conflict) {
+            if (slot.conflict === 'booked') toast.error("This slot is already booked. Please choose another time.");
+            if (slot.conflict === 'past') toast.error("This time has already passed for today.");
+            return;
+        }
+
+        // Single slot selection for reschedule
+        if (!selectedDate) return;
+        setSelectedSessions([{
+            date: new Date(selectedDate),
+            start: slot.start,
+            end: slot.end,
+            period: slot.period,
+            conflict: slot.conflict // Carry over conflict status if any
+        } as any]);
+    };
+
     const handleDateClick = (day: number) => {
         const newDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
         setSelectedDate(newDate);
-        setSelectedTimeSlot(null);
     };
 
     const handleSubmitReschedule = async () => {
-        if (!selectedDate || !selectedTimeSlot) {
+        if (selectedSessions.length === 0) {
             toast.error("Please select a new date and time slot.");
+            return;
+        }
+
+        const selectedTimeSlot = selectedSessions[0];
+
+        // Safety Gate: Lockout if conflict exists
+        if ((selectedTimeSlot as any).conflict) {
+            toast.error("The selected slot is no longer available.");
             return;
         }
 
         setIsProcessing(true);
 
         try {
-            // Construct ISO Start Time
+            // Construct Standard Start Time
+            const pad = (n: number) => String(n).padStart(2, '0');
             const [hours, minutes] = selectedTimeSlot.start.split(':').map(Number);
-            const d = new Date(selectedDate);
+            const d = new Date(selectedDate!);
             d.setHours(hours, minutes, 0, 0);
-            const isoStartTime = d.toISOString();
+            const formattedStartTime = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
             // First check availability
             const checkResponse = await axios.post(`/guardian/booking/${booking.id}/reschedule/check-availability`, {
-                start_time: isoStartTime,
+                start_time: formattedStartTime,
             });
 
             if (!checkResponse.data.available) {
                 toast.error("This time slot is no longer available. Please choose another.");
-                setSelectedTimeSlot(null);
+                setSelectedSessions([]);
                 setIsProcessing(false);
                 return;
             }
 
             // Submit reschedule request
             router.post(`/guardian/booking/${booking.id}/reschedule`, {
-                new_start_time: isoStartTime,
+                new_start_time: formattedStartTime,
                 reason: reason || undefined,
             }, {
                 preserveScroll: true,
@@ -253,18 +295,21 @@ export default function Reschedule({ booking, teacher, booked_slots = [] }: Prop
                 selectedDate={selectedDate}
                 currentMonth={currentMonth}
                 daysArray={daysArray}
-                availableSlots={availableSlots}
-                selectedTimeSlot={selectedTimeSlot}
+                availableSlots={availableSlots as any}
+                selectedSessions={selectedSessions}
                 selectedDuration={selectedDuration}
                 userTimeZone={userTimeZone}
                 isRecurring={false}
                 occurrences={1}
+                totalCost={{ usd: 0, ngn: 0 }} // Reschedule usually doesn't show cost here
+                sessionCount={1}
+                currency="USD"
                 onMonthChange={handleMonthChange}
                 onDateClick={handleDateClick}
-                onTimeSlotSelect={setSelectedTimeSlot}
-                onDurationChange={() => {}}
-                onRecurrenceToggle={() => {}}
-                onOccurrencesChange={() => {}}
+                onTimeSlotToggle={handleTimeSlotToggle}
+                onDurationChange={() => { }}
+                onRecurrenceToggle={() => { }}
+                onOccurrencesChange={() => { }}
                 onNext={() => setShowReasonInput(true)}
                 getAvailabilitySummary={getAvailabilitySummary}
                 formatTimePill={formatTimePill}
@@ -288,18 +333,18 @@ export default function Reschedule({ booking, teacher, booked_slots = [] }: Prop
                                 <div className="flex items-center gap-2">
                                     <Icon icon="mdi:calendar" className="h-4 w-4 text-[#166534]" />
                                     <span className="font-['Nunito'] text-sm text-[#181818]">
-                                        {selectedDate?.toLocaleDateString('en-US', { 
-                                            weekday: 'long', 
-                                            day: 'numeric', 
-                                            month: 'long', 
-                                            year: 'numeric' 
+                                        {selectedDate?.toLocaleDateString('en-US', {
+                                            weekday: 'long',
+                                            day: 'numeric',
+                                            month: 'long',
+                                            year: 'numeric'
                                         })}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Icon icon="mdi:clock-outline" className="h-4 w-4 text-[#166534]" />
                                     <span className="font-['Nunito'] text-sm text-[#181818]">
-                                        {formatTimePill(selectedTimeSlot?.start || '')} - {formatTimePill(selectedTimeSlot?.end || '')}
+                                        {formatTimePill(selectedSessions[0]?.start || '')} - {formatTimePill(selectedSessions[0]?.end || '')}
                                     </span>
                                 </div>
                             </div>
@@ -324,7 +369,7 @@ export default function Reschedule({ booking, teacher, booked_slots = [] }: Prop
                         <div className="bg-[#f0f9ff] border border-[#bae6fd] rounded-xl p-3 mb-4 flex items-start gap-2">
                             <Icon icon="mdi:information-outline" className="h-5 w-5 text-[#0284c7] flex-shrink-0 mt-0.5" />
                             <p className="font-['Nunito'] text-xs text-[#075985]">
-                                Your reschedule request will be sent to the teacher for approval. 
+                                Your reschedule request will be sent to the teacher for approval.
                                 The original booking remains active until the teacher accepts.
                             </p>
                         </div>
