@@ -17,13 +17,13 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminSettingSeeder::class,
             AdminSeeder::class,
-            GuardianSeeder::class,
-            StudentSeeder::class,
-            TeacherDemoSeeder::class,
+            //GuardianSeeder::class,
+          //  StudentSeeder::class,
+         //   TeacherDemoSeeder::class,
             SubjectSeeder::class,
             // TeacherSeeder::class, // Bulk seeder if needed
-            PayoutSeeder::class,
-            PlanFeatureSeeder::class,
+          //  PayoutSeeder::class,
+         //   PlanFeatureSeeder::class,
         ]);
     }
 }
