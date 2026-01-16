@@ -41,7 +41,7 @@ export function BookingTabs({ tabs, activeTab, onTabChange, disabled }: BookingT
 
 export const defaultBookingTabs: Tab[] = [
     { key: 'upcoming', label: 'Upcoming Classes' },
-    { key: 'ongoing', label: 'Ongoing Class' },
+    { key: 'ongoing', label: 'Ongoing Classes' },
     { key: 'completed', label: 'Completed Classes' },
     { key: 'cancelled', label: 'Cancelled Classes' },
 ];

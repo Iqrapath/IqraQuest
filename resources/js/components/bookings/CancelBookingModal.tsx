@@ -27,7 +27,7 @@ interface CancelBookingModalProps {
     teacherName: string;
     dateTime: string;
     isLoading?: boolean;
-    userRole?: 'student' | 'guardian';
+    userRole?: 'student' | 'guardian' | 'teacher';
 }
 
 export function CancelBookingModal({
@@ -233,38 +233,35 @@ export function CancelBookingModal({
                             {/* Policy Notice */}
                             {policyMessage && (
                                 <div
-                                    className={`rounded-xl p-3 mb-4 flex items-start gap-2 ${
-                                        policyMessage.type === 'success'
+                                    className={`rounded-xl p-3 mb-4 flex items-start gap-2 ${policyMessage.type === 'success'
                                             ? 'bg-[#f0fdf4] border border-[#bbf7d0]'
                                             : policyMessage.type === 'warning'
-                                              ? 'bg-[#fff9e9] border border-[#fde68a]'
-                                              : policyMessage.type === 'error'
-                                                ? 'bg-[#fef2f2] border border-[#fecaca]'
-                                                : 'bg-[#f0f9ff] border border-[#bae6fd]'
-                                    }`}
+                                                ? 'bg-[#fff9e9] border border-[#fde68a]'
+                                                : policyMessage.type === 'error'
+                                                    ? 'bg-[#fef2f2] border border-[#fecaca]'
+                                                    : 'bg-[#f0f9ff] border border-[#bae6fd]'
+                                        }`}
                                 >
                                     <Icon
                                         icon="mdi:information-outline"
-                                        className={`h-5 w-5 flex-shrink-0 mt-0.5 ${
-                                            policyMessage.type === 'success'
+                                        className={`h-5 w-5 flex-shrink-0 mt-0.5 ${policyMessage.type === 'success'
                                                 ? 'text-[#166534]'
                                                 : policyMessage.type === 'warning'
-                                                  ? 'text-[#d97706]'
-                                                  : policyMessage.type === 'error'
-                                                    ? 'text-[#dc2626]'
-                                                    : 'text-[#0284c7]'
-                                        }`}
+                                                    ? 'text-[#d97706]'
+                                                    : policyMessage.type === 'error'
+                                                        ? 'text-[#dc2626]'
+                                                        : 'text-[#0284c7]'
+                                            }`}
                                     />
                                     <p
-                                        className={`font-['Nunito'] text-xs text-left ${
-                                            policyMessage.type === 'success'
+                                        className={`font-['Nunito'] text-xs text-left ${policyMessage.type === 'success'
                                                 ? 'text-[#166534]'
                                                 : policyMessage.type === 'warning'
-                                                  ? 'text-[#92400e]'
-                                                  : policyMessage.type === 'error'
-                                                    ? 'text-[#991b1b]'
-                                                    : 'text-[#075985]'
-                                        }`}
+                                                    ? 'text-[#92400e]'
+                                                    : policyMessage.type === 'error'
+                                                        ? 'text-[#991b1b]'
+                                                        : 'text-[#075985]'
+                                            }`}
                                     >
                                         {policyMessage.message}
                                     </p>

@@ -313,6 +313,7 @@ class BookingStatusService
             'has_review' => $existingReview !== null,
             'review' => $existingReview,
             'meeting_link' => $booking->meeting_link,
+            'parent_booking_id' => $booking->parent_booking_id,
             'created_at' => $booking->created_at->toIso8601String(),
         ];
     }

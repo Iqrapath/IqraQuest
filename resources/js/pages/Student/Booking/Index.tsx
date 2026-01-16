@@ -91,12 +91,9 @@ export default function BookingIndex({ teacher, booked_slots = [], rebook_data }
 
     // --- Helper Logic ---
     const parseNaiveTime = (s: string) => {
-        // Robust regex to extract YYYY, MM, DD, HH, mm, ss from ISO strings 
-        // while ignoring the timezone suffix (Z, +00:00, etc.)
-        const match = s.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
-        if (!match) return new Date(s);
-        const [_, y, m, d, h, min, sec] = match.map(Number);
-        return new Date(y, m - 1, d, h, min, sec);
+        // We now use new Date() directly to respect ISO 8601 timezone indicators (like 'Z')
+        // providing correct UTC-to-Local conversion for backend booked_slots.
+        return new Date(s);
     };
 
     const getDaysInMonth = (date: Date) => {
@@ -204,11 +201,12 @@ export default function BookingIndex({ teacher, booked_slots = [], rebook_data }
                 const cartConflict = getSlotConflict(date, startStr, endStr, true);
                 const recurrenceConflicts = validateRecurrence(date, startStr, endStr);
 
-                // Check if slot is in the past
+                // Check if slot is in the past (with a 30-min buffer for processing time)
                 const now = new Date();
+                const bufferTime = 30 * 60000; // 30 minutes
                 const slotStartDateTime = new Date(date);
                 slotStartDateTime.setHours(currentSlotStart.getHours(), currentSlotStart.getMinutes(), 0, 0);
-                const isPast = slotStartDateTime < now;
+                const isPast = slotStartDateTime.getTime() < (now.getTime() + bufferTime);
 
                 slots.push({
                     start: startStr,
@@ -403,10 +401,9 @@ export default function BookingIndex({ teacher, booked_slots = [], rebook_data }
 
         setIsProcessing(true);
 
-        // Helper to format date for MySQL/Laravel
+        // Helper to format date for MySQL/Laravel (Using ISO to preserve timezone)
         const formatForBackend = (date: Date) => {
-            const pad = (n: number) => String(n).padStart(2, '0');
-            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+            return date.toISOString();
         };
 
         // Construct sessions array for backend
@@ -529,6 +526,8 @@ export default function BookingIndex({ teacher, booked_slots = [], rebook_data }
                     paymentMethod={paymentMethod}
                     isRecurring={isRecurring}
                     occurrences={occurrences}
+                    slotsCount={selectedSessions.length} // Added
+                    sessionCount={totalSessionsCount} // Added
                     onCurrencyChange={(c) => setCurrency(c as any)}
                     onPaymentMethodChange={setPaymentMethod}
                     onBack={goToPrevStep}

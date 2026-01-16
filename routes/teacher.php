@@ -56,12 +56,20 @@ Route::middleware(['auth', 'verified', 'role:teacher'])
             Route::post('/profile/avatar', [\App\Http\Controllers\Teacher\ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
             Route::post('/profile/video', [\App\Http\Controllers\Teacher\ProfileController::class, 'uploadVideo'])->name('profile.video.upload');
 
-            // Booking Requests Management
+            // Booking Management
+            Route::get('/bookings', [\App\Http\Controllers\Teacher\BookingController::class, 'myBookings'])->name('bookings.index');
             Route::get('/requests', [\App\Http\Controllers\Teacher\BookingController::class, 'index'])->name('requests.index');
+            Route::post('/requests/bulk-accept', [\App\Http\Controllers\Teacher\BookingController::class, 'bulkAccept'])->name('requests.bulk-accept');
+            Route::post('/requests/bulk-reject', [\App\Http\Controllers\Teacher\BookingController::class, 'bulkReject'])->name('requests.bulk-reject');
             Route::post('/requests/{booking}/accept', [\App\Http\Controllers\Teacher\BookingController::class, 'accept'])->name('requests.accept');
             Route::post('/requests/{booking}/reject', [\App\Http\Controllers\Teacher\BookingController::class, 'reject'])->name('requests.reject');
             Route::post('/requests/{booking}/reschedule/accept', [\App\Http\Controllers\Teacher\BookingController::class, 'acceptReschedule'])->name('requests.reschedule.accept');
             Route::post('/requests/{booking}/reschedule/reject', [\App\Http\Controllers\Teacher\BookingController::class, 'rejectReschedule'])->name('requests.reschedule.reject');
+            
+            // Booking Cancellation
+            Route::get('/booking/{booking}/cancellation-details', [\App\Http\Controllers\Teacher\BookingController::class, 'getCancellationDetails']);
+            Route::post('/booking/{booking}/cancel', [\App\Http\Controllers\Teacher\BookingController::class, 'cancel']);
+            Route::get('/bookings/{booking}/summary/pdf', [\App\Http\Controllers\BookingSummaryController::class, 'show'])->name('bookings.summary.pdf');
 
             // Schedule & Availability Management
             Route::get('/schedule', [\App\Http\Controllers\Teacher\ScheduleController::class, 'index'])->name('schedule.index');

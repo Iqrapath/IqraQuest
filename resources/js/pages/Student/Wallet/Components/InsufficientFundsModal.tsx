@@ -151,39 +151,49 @@ export const InsufficientFundsModal: React.FC<InsufficientFundsModalProps> = ({
     return (
         <>
             <Dialog open={isOpen} onOpenChange={onClose}>
-                <DialogContent className="w-[90vw] sm:w-full sm:max-w-[440px] bg-white border-none shadow-xl rounded-[24px] p-8 flex flex-col items-center justify-center text-center">
+                <DialogContent className="w-[95vw] sm:w-full sm:max-w-[480px] bg-[#F8FEFD] border border-[#E0F2F1] shadow-[0_20px_50px_rgba(0,77,64,0.1)] rounded-[2.5rem] p-8 md:p-10 flex flex-col items-center text-center overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+                        <Icon icon="ph:wallet-bold" className="w-32 h-32 text-[#004D40]" />
+                    </div>
+
                     <DialogTitle className="sr-only">Insufficient Funds</DialogTitle>
                     <DialogDescription className="sr-only">
                         Your wallet balance is insufficient for this transaction. Please add funds to proceed.
                     </DialogDescription>
-                    {/* Alert Icon */}
-                    <div className="w-16 h-16 rounded-full border-2 border-[#FF3B30] flex items-center justify-center mb-6 relative">
-                        <span className="text-[#FF3B30] text-3xl font-light">!</span>
+
+                    {/* Alert Icon - Keeping Red as requested */}
+                    <div className="w-20 h-20 rounded-3xl bg-red-50 border-2 border-red-100 flex items-center justify-center mb-8 relative group transition-transform hover:scale-110">
+                        <div className="absolute inset-0 bg-red-500/5 rounded-3xl blur-xl group-hover:blur-2xl transition-all" />
+                        <Icon icon="ph:warning-circle-bold" className="w-10 h-10 text-[#FF3B30] relative z-10" />
                     </div>
 
                     {/* Title */}
-                    <h2 className="text-2xl text-[#111928] font-medium mb-3">
-                        Oops! Insufficient Funds
-                    </h2>
+                    <div className="space-y-2 mb-6">
+                        <h2 className="text-2xl md:text-3xl font-black text-[#004D40] tracking-tight">
+                            Low Wallet Balance
+                        </h2>
+                        <div className="h-1 w-12 bg-[#358D83] rounded-full mx-auto opacity-30" />
+                    </div>
 
                     {/* Description */}
-                    <p className="text-[#6B7280] text-base leading-relaxed mb-8 max-w-[320px]">
-                        You do not have enough funds to complete this booking. We've saved it for you—once you top up, you can pay for it directly in your wallet.
+                    <p className="text-[#358D83] text-sm md:text-base font-medium leading-relaxed mb-10 max-w-[340px] opacity-80">
+                        We've saved your booking selection, but your current balance is insufficient. Top up now to secure your chosen slots before they're gone!
                     </p>
 
-                    {/* Buttons */}
-                    <div className="flex items-center gap-4 w-full">
+                    {/* Buttons - Stack on small screens */}
+                    <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
                         <button
                             onClick={handleFundClick}
-                            className="flex-1 py-3 px-6 rounded-full bg-[#39847A] text-white font-medium hover:bg-[#2d6b63] transition-all shadow-lg shadow-[#2D7A70]/20 whitespace-nowrap"
+                            className="flex-1 w-full sm:flex-1 py-4 px-8 rounded-2xl bg-[#358D83] text-white font-black text-xs md:text-sm uppercase tracking-widest hover:bg-[#2b756d] transition-all shadow-xl shadow-[#358D83]/20 flex items-center justify-center gap-3 active:scale-95"
                         >
-                            Fund Account
+                            {/* <Icon icon="ph:plus-circle-bold" className="w-5 h-5" /> */}
+                            <span>Top Up Now</span>
                         </button>
                         <button
                             onClick={onClose}
-                            className="flex-1 py-3 px-6 rounded-full border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all"
+                            className="sm:flex-1 py-4 px-8 rounded-2xl border-2 border-[#E0F2F1] text-[#004D40] font-black text-xs md:text-sm uppercase tracking-widest hover:bg-[#E0F2F1]/30 transition-all flex items-center justify-center gap-3 active:scale-95"
                         >
-                            Cancel
+                            <span>Later</span>
                         </button>
                     </div>
 

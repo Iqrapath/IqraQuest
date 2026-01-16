@@ -23,8 +23,11 @@ class BookingSummaryController extends Controller
     {
         $user = $request->user();
 
-        // Verify ownership
-        if ($booking->user_id !== $user->id) {
+        // Verify ownership (allow both student and teacher)
+        $isStudent = $booking->user_id === $user->id;
+        $isTeacher = $booking->teacher_id === ($user->teacher->id ?? null);
+
+        if (!$isStudent && !$isTeacher) {
             abort(403, 'You do not have access to this booking.');
         }
 

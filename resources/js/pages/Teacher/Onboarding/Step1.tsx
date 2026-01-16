@@ -108,31 +108,31 @@ export default function Step1({ teacher }: Props) {
         <TeacherLayout hideRightSidebar={true} hideLeftSidebar={true}>
             <Head title="Teacher Onboarding - Step 1" />
 
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-[730px] w-full bg-white rounded-lg shadow-sm p-10">
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-[730px] w-full bg-white rounded-lg shadow-sm p-6 sm:p-10">
                     {/* Progress Bar */}
-                    <div className="flex items-center justify-between mb-8">
-                        <div className="flex items-center">
+                    <div className="flex items-center justify-between mb-8 overflow-x-auto pb-2 scrollbar-hide">
+                        <div className="flex items-center flex-shrink-0">
                             <div className="flex items-center justify-center w-[34px] h-[34px] rounded-full bg-[#338078] text-white font-medium text-[16px]" style={{ fontFamily: 'DM Sans' }}>
                                 1
                             </div>
-                            <div className="w-[98px] h-[6px] bg-[#EFF0F6] rounded-full ml-[18px] relative">
-                                <div className="absolute left-0 top-0 w-[49px] h-[6px] bg-[#338078] rounded-full"></div>
+                            <div className="w-[40px] sm:w-[98px] h-[6px] bg-[#EFF0F6] rounded-full ml-2 sm:ml-[18px] relative">
+                                <div className="absolute left-0 top-0 w-[20px] sm:w-[49px] h-[6px] bg-[#338078] rounded-full"></div>
                             </div>
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex items-center flex-shrink-0 ml-2 sm:ml-0">
                             <div className="flex items-center justify-center w-[34px] h-[34px] rounded-full bg-[#EFF0F6] text-[#6B7280] font-normal text-[16px]" style={{ fontFamily: 'DM Sans' }}>
                                 2
                             </div>
-                            <div className="w-[98px] h-[6px] bg-[#EFF0F6] rounded-full ml-[18px]"></div>
+                            <div className="w-[40px] sm:w-[98px] h-[6px] bg-[#EFF0F6] rounded-full ml-2 sm:ml-[18px]"></div>
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex items-center flex-shrink-0 ml-2 sm:ml-0">
                             <div className="flex items-center justify-center w-[34px] h-[34px] rounded-full bg-[#EFF0F6] text-[#6B7280] font-normal text-[16px]" style={{ fontFamily: 'DM Sans' }}>
                                 3
                             </div>
-                            <div className="w-[98px] h-[6px] bg-[#EFF0F6] rounded-full ml-[18px]"></div>
+                            <div className="w-[40px] sm:w-[98px] h-[6px] bg-[#EFF0F6] rounded-full ml-2 sm:ml-[18px]"></div>
                         </div>
-                        <div className="flex items-center justify-center w-[34px] h-[34px] rounded-full bg-[#EFF0F6] text-[#6B7280] font-normal text-[16px]" style={{ fontFamily: 'DM Sans' }}>
+                        <div className="flex items-center justify-center flex-shrink-0 w-[34px] h-[34px] rounded-full bg-[#EFF0F6] text-[#6B7280] font-normal text-[16px] ml-2 sm:ml-0" style={{ fontFamily: 'DM Sans' }}>
                             4
                         </div>
                     </div>
@@ -151,7 +151,7 @@ export default function Step1({ teacher }: Props) {
 
                             <div className="space-y-7">
                                 {/* Name and Phone Row */}
-                                <div className="grid grid-cols-2 gap-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                                     {/* Name Field */}
                                     <div>
                                         <label htmlFor="name" className="block text-[#170F49] text-[16px] font-medium mb-4" style={{ fontFamily: 'Nunito' }}>
@@ -190,7 +190,7 @@ export default function Step1({ teacher }: Props) {
                                 </div>
 
                                 {/* Country and City Row */}
-                                <div className="grid grid-cols-2 gap-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                                     {/* Country Field - Combobox */}
                                     <div>
                                         <label htmlFor="country" className="block text-[#170F49] text-[16px] font-medium mb-4" style={{ fontFamily: 'Nunito' }}>
@@ -210,7 +210,7 @@ export default function Step1({ teacher }: Props) {
                                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                 </button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-[307px] p-0" align="start">
+                                            <PopoverContent className="w-[calc(100vw-3rem)] sm:w-[307px] p-0" align="start">
                                                 <Command>
                                                     <CommandInput
                                                         placeholder="Search country..."
@@ -264,7 +264,7 @@ export default function Step1({ teacher }: Props) {
                                                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                     </button>
                                                 </PopoverTrigger>
-                                                <PopoverContent className="w-[307px] p-0" align="start">
+                                                <PopoverContent className="w-[calc(100vw-3rem)] sm:w-[307px] p-0" align="start">
                                                     <Command>
                                                         <CommandInput
                                                             placeholder="Search city..."
@@ -342,9 +342,9 @@ export default function Step1({ teacher }: Props) {
                                 Choose a photo that will help learners get to know you
                             </p>
 
-                            <div className="flex items-center gap-1">
+                            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-1">
                                 {/* Upload Box */}
-                                <div className="w-[105px] h-[93px] border border-dashed border-[rgba(0,0,0,0.3)] rounded-[8px] bg-gray-200 flex flex-col items-center justify-center px-[21px] py-[26px]">
+                                <div className="w-full sm:w-[105px] h-[150px] sm:h-[93px] border border-dashed border-[rgba(0,0,0,0.3)] rounded-[8px] bg-gray-200 flex flex-col items-center justify-center px-[21px] py-[26px]">
                                     {avatarPreview ? (
                                         <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover rounded" />
                                     ) : user.avatar ? (
@@ -381,7 +381,7 @@ export default function Step1({ teacher }: Props) {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="bg-[#338078] text-white px-6 py-3 rounded-[56px] text-[16px] font-medium hover:bg-[#2a6962] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                className="w-full sm:w-auto bg-[#338078] text-white px-6 py-3 rounded-[56px] text-[16px] font-medium hover:bg-[#2a6962] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                 style={{ fontFamily: 'Nunito' }}
                             >
                                 {processing ? 'Saving...' : 'Save and Continue'}

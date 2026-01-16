@@ -44,6 +44,7 @@ Route::middleware(['auth', 'verified', 'role:student'])
         Route::get('/bookings/{booking}/details', [\App\Http\Controllers\Student\BookingController::class, 'details'])->name('bookings.details');
         Route::post('/bookings/{booking}/review', [\App\Http\Controllers\Student\BookingController::class, 'submitReview'])->name('bookings.review');
         Route::put('/bookings/{booking}/review', [\App\Http\Controllers\Student\BookingController::class, 'updateReview'])->name('bookings.review.update');
+        Route::post('/bookings/bulk-pay', [\App\Http\Controllers\Student\BookingController::class, 'bulkPay'])->name('bookings.bulk-pay');
         Route::post('/bookings/{booking}/pay-now', [\App\Http\Controllers\Student\BookingController::class, 'payNow'])->name('bookings.pay-now');
         Route::get('/bookings/{booking}/summary/pdf', [\App\Http\Controllers\BookingSummaryController::class, 'show'])->name('bookings.summary.pdf');
         

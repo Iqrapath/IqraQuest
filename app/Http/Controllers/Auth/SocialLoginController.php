@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use App\Models\Teacher;
 use App\Models\Student;
 use App\Models\Guardian;
@@ -216,6 +217,9 @@ class SocialLoginController extends Controller
             'email_verified_at' => now(),
             'avatar' => $avatar,
         ]);
+
+        // Dispatch Registered event to trigger welcome email
+        event(new Registered($user));
 
         // Create profile based on role
         if ($user->role === UserRole::TEACHER) {

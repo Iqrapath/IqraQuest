@@ -233,33 +233,24 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
         <TeacherLayout hideRightSidebar={true} hideLeftSidebar={true}>
             <Head title="Teacher Onboarding - Step 3" />
 
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-[730px] w-full bg-white rounded-lg shadow-sm p-10">
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-[730px] w-full bg-white rounded-lg shadow-sm p-6 sm:p-10">
                     {/* Progress Bar */}
-                    <div className="flex items-center justify-between mb-8">
-                        <div className="flex items-center">
-                            <div className="flex items-center justify-center w-[34px] h-[34px] rounded-full bg-[#338078] text-white font-medium text-[16px]" style={{ fontFamily: 'DM Sans' }}>
-                                1
-                            </div>
-                            <div className="w-[98px] h-[6px] bg-[#338078] rounded-full ml-[18px]"></div>
-                        </div>
-                        <div className="flex items-center">
-                            <div className="flex items-center justify-center w-[34px] h-[34px] rounded-full bg-[#338078] text-white font-medium text-[16px]" style={{ fontFamily: 'DM Sans' }}>
-                                2
-                            </div>
-                            <div className="w-[98px] h-[6px] bg-[#338078] rounded-full ml-[18px]"></div>
-                        </div>
-                        <div className="flex items-center">
-                            <div className="flex items-center justify-center w-[34px] h-[34px] rounded-full bg-[#338078] text-white font-medium text-[16px]" style={{ fontFamily: 'DM Sans' }}>
-                                3
-                            </div>
-                            <div className="w-[98px] h-[6px] bg-[#EFF0F6] rounded-full ml-[18px] relative">
-                                <div className="absolute left-0 top-0 w-[49px] h-[6px] bg-[#338078] rounded-full"></div>
-                            </div>
-                        </div>
-                        <div className="flex items-center justify-center w-[34px] h-[34px] rounded-full bg-[#EFF0F6] text-[#6B7280] font-normal text-[16px]" style={{ fontFamily: 'DM Sans' }}>
-                            4
-                        </div>
+                    <div className="flex items-center justify-between mb-8 overflow-x-auto pb-4 scrollbar-hide -mx-2 px-2">
+                        {[1, 2, 3, 4].map((step) => (
+                            <React.Fragment key={step}>
+                                <div className="flex items-center flex-shrink-0">
+                                    <div className={`flex items-center justify-center w-[30px] sm:w-[34px] h-[30px] sm:h-[34px] rounded-full font-medium text-[14px] sm:text-[16px] ${step <= 3 ? 'bg-[#338078] text-white' : 'bg-[#EFF0F6] text-[#6B7280]'}`} style={{ fontFamily: 'DM Sans' }}>
+                                        {step}
+                                    </div>
+                                    {step < 4 && (
+                                        <div className={`w-[20px] xs:w-[40px] sm:w-[98px] h-[6px] rounded-full ml-1 sm:ml-[18px] relative ${step < 3 ? 'bg-[#338078]' : 'bg-[#EFF0F6]'}`}>
+                                            {step === 3 && <div className="absolute left-0 top-0 w-[50%] h-[6px] bg-[#338078] rounded-full"></div>}
+                                        </div>
+                                    )}
+                                </div>
+                            </React.Fragment>
+                        ))}
                     </div>
 
                     <div className="border-b border-gray-200 mb-8"></div>
@@ -273,7 +264,7 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
                                 Set your teaching hours
                             </p>
 
-                            <div className="grid grid-cols-2 gap-8 mb-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-8 mb-10">
                                 {/* Timezone */}
                                 <div>
                                     <label className="block text-[#170F49] text-[16px] font-medium mb-2" style={{ fontFamily: 'Nunito' }}>
@@ -308,7 +299,7 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
                                     <p className="text-[#6B7280] text-[12px] mb-3" style={{ fontFamily: 'Nunito' }}>
                                         Full-time: Up to 7 days | Part-time: Max 3 days
                                     </p>
-                                    <div className="flex gap-6 mt-4">
+                                    <div className="flex flex-col xs:flex-row gap-4 xs:gap-6 mt-4">
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${data.teaching_mode === 'full-time' ? 'border-[#338078]' : 'border-[#9E9E9E]'}`}>
                                                 {data.teaching_mode === 'full-time' && <div className="w-3 h-3 rounded-full bg-[#338078]" />}
@@ -343,14 +334,14 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
                                 </div>
 
                                 {/* Teaching Type */}
-                                <div className="col-span-2">
+                                <div className="col-span-1 md:col-span-2">
                                     <label className="block text-[#170F49] text-[16px] font-medium mb-2" style={{ fontFamily: 'Nunito' }}>
                                         Teaching Type
                                     </label>
                                     <p className="text-[#6B7280] text-[12px] mb-3" style={{ fontFamily: 'Nunito' }}>
                                         Select how you want to teach
                                     </p>
-                                    <div className="flex gap-6 mt-4">
+                                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mt-4">
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
                                                 type="checkbox"
@@ -410,8 +401,8 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
                                                     <div className="p-4 pt-2 border-t border-gray-100 bg-gray-50">
                                                         <div className="space-y-3">
                                                             {daySlots.map((slot, idx) => (
-                                                                <div key={`${day}-${idx}`} className="flex items-center gap-4 bg-white p-3 rounded-lg border border-gray-200">
-                                                                    <div className="flex-1">
+                                                                <div key={`${day}-${idx}`} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white p-3 rounded-lg border border-gray-200 relative">
+                                                                    <div className="w-full sm:flex-1">
                                                                         <label className="block text-[#6B7280] text-[12px] mb-1">Start Time</label>
                                                                         <input
                                                                             type="time"
@@ -420,7 +411,7 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
                                                                             className="w-full h-[40px] px-3 border border-[#9E9E9E] rounded-[5px] text-[14px] focus:outline-none focus:ring-2 focus:ring-[#338078] focus:border-transparent"
                                                                         />
                                                                     </div>
-                                                                    <div className="flex-1">
+                                                                    <div className="w-full sm:flex-1">
                                                                         <label className="block text-[#6B7280] text-[12px] mb-1">End Time (max 1hr)</label>
                                                                         <input
                                                                             type="time"
@@ -438,7 +429,7 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
                                                                             e.stopPropagation();
                                                                             removeSlot(day, idx);
                                                                         }}
-                                                                        className="mt-5 w-8 h-8 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                                                        className="absolute top-3 right-3 sm:relative sm:top-0 sm:right-0 mt-0 sm:mt-5 w-8 h-8 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-full transition-colors"
                                                                         title="Remove slot"
                                                                     >
                                                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -476,11 +467,11 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex justify-between pt-6">
+                        <div className="flex flex-col-reverse sm:flex-row justify-between gap-4 pt-6">
                             <button
                                 type="button"
                                 onClick={goBack}
-                                className="text-[#338078] px-6 py-3 rounded-[56px] text-[16px] font-medium hover:bg-gray-100 transition-colors"
+                                className="w-full sm:w-auto text-[#338078] px-6 py-3 rounded-[56px] text-[16px] font-medium hover:bg-gray-100 transition-colors"
                                 style={{ fontFamily: 'Nunito' }}
                             >
                                 Back
@@ -488,7 +479,7 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="bg-[#338078] text-white px-6 py-3 rounded-[56px] text-[16px] font-medium hover:bg-[#2a6962] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                className="w-full sm:w-auto bg-[#338078] text-white px-6 py-3 rounded-[56px] text-[16px] font-medium hover:bg-[#2a6962] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                 style={{ fontFamily: 'Nunito' }}
                             >
                                 {processing ? 'Saving...' : 'Save and Continue'}

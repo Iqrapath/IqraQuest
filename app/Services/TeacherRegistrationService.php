@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Notifications\WelcomeTeacherNotification;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -31,9 +32,8 @@ class TeacherRegistrationService
                 'onboarding_step' => 1,
             ]);
 
-            // Send email verification notification
-            // This will be logged to storage/logs/laravel.log in development
-            $user->sendEmailVerificationNotification();
+            // Dispatch Registered event to trigger welcome email
+            event(new Registered($user));
 
             return $user;
         });

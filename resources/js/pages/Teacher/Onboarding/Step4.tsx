@@ -143,29 +143,29 @@ export default function Step4({ teacher }: Props) {
         <TeacherLayout hideRightSidebar={true} hideLeftSidebar={true}>
             <Head title="Teacher Onboarding - Step 4" />
 
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-[730px] w-full bg-white rounded-lg shadow-sm p-10">
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-[730px] w-full bg-white rounded-lg shadow-sm p-6 sm:p-10">
                     {/* Progress Bar */}
-                    <div className="flex items-center justify-between mb-8">
-                        <div className="flex items-center">
+                    <div className="flex items-center justify-between mb-8 overflow-x-auto pb-2 scrollbar-hide">
+                        <div className="flex items-center flex-shrink-0">
                             <div className="flex items-center justify-center w-[34px] h-[34px] rounded-full bg-[#338078] text-white font-medium text-[16px]" style={{ fontFamily: 'DM Sans' }}>
                                 1
                             </div>
-                            <div className="w-[98px] h-[6px] bg-[#338078] rounded-full ml-[18px]"></div>
+                            <div className="w-[40px] sm:w-[98px] h-[6px] bg-[#338078] rounded-full ml-2 sm:ml-[18px]"></div>
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex items-center flex-shrink-0 ml-2 sm:ml-0">
                             <div className="flex items-center justify-center w-[34px] h-[34px] rounded-full bg-[#338078] text-white font-medium text-[16px]" style={{ fontFamily: 'DM Sans' }}>
                                 2
                             </div>
-                            <div className="w-[98px] h-[6px] bg-[#338078] rounded-full ml-[18px]"></div>
+                            <div className="w-[40px] sm:w-[98px] h-[6px] bg-[#338078] rounded-full ml-2 sm:ml-[18px]"></div>
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex items-center flex-shrink-0 ml-2 sm:ml-0">
                             <div className="flex items-center justify-center w-[34px] h-[34px] rounded-full bg-[#338078] text-white font-medium text-[16px]" style={{ fontFamily: 'DM Sans' }}>
                                 3
                             </div>
-                            <div className="w-[98px] h-[6px] bg-[#338078] rounded-full ml-[18px]"></div>
+                            <div className="w-[40px] sm:w-[98px] h-[6px] bg-[#338078] rounded-full ml-2 sm:ml-[18px]"></div>
                         </div>
-                        <div className="flex items-center justify-center w-[34px] h-[34px] rounded-full bg-[#338078] text-white font-medium text-[16px]" style={{ fontFamily: 'DM Sans' }}>
+                        <div className="flex items-center justify-center flex-shrink-0 w-[34px] h-[34px] rounded-full bg-[#338078] text-white font-medium text-[16px] ml-2 sm:ml-0" style={{ fontFamily: 'DM Sans' }}>
                             4
                         </div>
                     </div>
@@ -186,7 +186,7 @@ export default function Step4({ teacher }: Props) {
                                 <label className="block text-[#170F49] text-[16px] font-medium mb-4" style={{ fontFamily: 'Nunito' }}>
                                     Preferred Currency
                                 </label>
-                                <div className="flex gap-8">
+                                <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
                                     <label className="flex items-center gap-3 cursor-pointer">
                                         <div className={`w-5 h-5 rounded border flex items-center justify-center ${currency === 'NGN' ? 'border-[#338078] bg-[#338078]' : 'border-[#9E9E9E]'}`}>
                                             {currency === 'NGN' && (
@@ -298,7 +298,7 @@ export default function Step4({ teacher }: Props) {
                                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-[400px] p-0">
+                                            <PopoverContent className="w-[calc(100vw-3rem)] sm:w-[400px] p-0">
                                                 <Command>
                                                     <CommandInput placeholder="Search bank..." />
                                                     <CommandList>
@@ -413,11 +413,11 @@ export default function Step4({ teacher }: Props) {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex justify-between pt-6">
+                        <div className="flex flex-col-reverse sm:flex-row justify-between gap-4 pt-6">
                             <button
                                 type="button"
                                 onClick={goBack}
-                                className="text-[#338078] px-6 py-3 rounded-[56px] text-[16px] font-medium hover:bg-gray-100 transition-colors"
+                                className="w-full sm:w-auto text-[#338078] px-6 py-3 rounded-[56px] text-[16px] font-medium hover:bg-gray-100 transition-colors"
                                 style={{ fontFamily: 'Nunito' }}
                             >
                                 Back
@@ -425,7 +425,7 @@ export default function Step4({ teacher }: Props) {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="bg-[#338078] text-white px-6 py-3 rounded-[56px] text-[16px] font-medium hover:bg-[#2a6962] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                className="w-full sm:w-auto bg-[#338078] text-white px-6 py-3 rounded-[56px] text-[16px] font-medium hover:bg-[#2a6962] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                 style={{ fontFamily: 'Nunito' }}
                             >
                                 {processing ? 'Completing...' : 'Complete Registration'}

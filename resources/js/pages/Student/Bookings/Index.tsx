@@ -78,9 +78,9 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
     const getTabTitle = () => {
         switch (activeTab) {
             case 'upcoming':
-                return 'Upcoming Class';
+                return 'Upcoming Classes';
             case 'ongoing':
-                return 'Ongoing Class';
+                return 'Ongoing Classes';
             case 'completed':
                 return 'Completed Classes';
             case 'cancelled':

@@ -31,8 +31,8 @@ class RegisterController extends Controller
         // Validate and create the user using the existing Fortify action
         $user = $creator->create($request->all());
 
-        // Send email verification notification (uses override in User model)
-        $user->sendEmailVerificationNotification();
+        // Dispatch Registered event to trigger welcome email and verification
+        event(new Registered($user));
 
         // Log the user in so they can access the OTP verification page
         auth()->login($user);

@@ -352,6 +352,46 @@ class BookingController extends Controller
     }
 
     /**
+     * Process payment for multiple bookings at once (e.g. a recurring series)
+     */
+    public function bulkPay(Request $request)
+    {
+        $request->validate([
+            'booking_ids' => 'required|array|min:1',
+            'booking_ids.*' => 'exists:bookings,id'
+        ]);
+
+        $user = $request->user();
+        $bookingIds = $request->booking_ids;
+        
+        // Fetch all bookings and verify ownership/status
+        $bookings = Booking::whereIn('id', $bookingIds)
+            ->where('user_id', $user->id)
+            ->where('status', 'awaiting_payment')
+            ->get();
+
+        if ($bookings->isEmpty()) {
+            return back()->withErrors(['error' => 'No valid bookings found to pay.']);
+        }
+
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($bookings) {
+                foreach ($bookings as $booking) {
+                    \App\Jobs\ProcessBookingPaymentJob::dispatchSync($booking);
+                    
+                    if ($booking->fresh()->status === 'awaiting_payment') {
+                        throw new \Exception("Insufficient wallet balance to pay for all selected sessions. Please top up and try again.");
+                    }
+                }
+            });
+
+            return back()->with('success', 'Payment successful for ' . $bookings->count() . ' sessions!');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
      * Submit a review for a completed booking
      */
     public function submitReview(Request $request, Booking $booking)

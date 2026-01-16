@@ -163,13 +163,13 @@ class BookingService
      * @param string $recurrenceType 'weekly' or 'monthly'
      * @param int $occurrences Number of total sessions (including the first one)
      */
-    public function createRecurringSeries(User $student, Teacher $teacher, array $data, $recurrenceType = 'weekly', $occurrences = 4)
+    public function createRecurringSeries(User $student, Teacher $teacher, array $data, $recurrenceType = 'weekly', $occurrences = 4, bool $processPayment = true)
     {
-        return DB::transaction(function () use ($student, $teacher, $data, $recurrenceType, $occurrences) {
+        return DB::transaction(function () use ($student, $teacher, $data, $recurrenceType, $occurrences, $processPayment) {
             $bookings = collect();
             
             // 1. Create the first (parent) booking
-            $parentBooking = $this->createBooking($student, $teacher, $data);
+            $parentBooking = $this->createBooking($student, $teacher, $data, $processPayment);
             $bookings->push($parentBooking);
             
             // 2. Loop for subsequent bookings
@@ -193,7 +193,7 @@ class BookingService
                 try {
                     // Create child booking. createBooking now handles reuse if the user 
                     // manually picked a date that our recurrence also covers.
-                    $childBooking = $this->createBooking($student, $teacher, $childData, true);
+                    $childBooking = $this->createBooking($student, $teacher, $childData, $processPayment);
                     $bookings->push($childBooking);
                 } catch (Exception $e) {
                     \Illuminate\Support\Facades\Log::info("Error creating recurring child at $currentStart. Error: " . $e->getMessage());
@@ -217,6 +217,19 @@ class BookingService
     {
         return DB::transaction(function () use ($student, $teacher, $sessions, $isRecurring, $occurrences, $subjectId, $notes, $currency) {
             $allBookings = collect();
+            $walletService = app(WalletService::class);
+
+            // 1. Calculate Total Estimated Price for all sessions
+            $totalSessionsCount = count($sessions) * ($isRecurring ? $occurrences : 1);
+            
+            // Get duration from first session to estimate price
+            $firstSession = $sessions[0];
+            $durationMinutes = Carbon::parse($firstSession['start_time'])->diffInMinutes(Carbon::parse($firstSession['end_time']));
+            $pricePerSession = ($teacher->hourly_rate / 60) * $durationMinutes;
+            $batchTotalPrice = $pricePerSession * $totalSessionsCount;
+
+            // 2. Check if the wallet can cover the ENTIRE batch
+            $canPayFull = $walletService->canDebit($student->id, $batchTotalPrice);
 
             foreach ($sessions as $session) {
                 $startTime = Carbon::parse($session['start_time']);
@@ -231,11 +244,19 @@ class BookingService
                 ];
 
                 if ($isRecurring && $occurrences > 1) {
-                    $series = $this->createRecurringSeries($student, $teacher, $data, 'weekly', $occurrences);
+                    $series = $this->createRecurringSeries($student, $teacher, $data, 'weekly', $occurrences, $canPayFull);
                     $allBookings = $allBookings->concat($series);
                 } else {
-                    $booking = $this->createBooking($student, $teacher, $data);
+                    $booking = $this->createBooking($student, $teacher, $data, $canPayFull);
                     $allBookings->push($booking);
+                }
+            }
+
+            // 3. If we couldn't pay full, all bookings are currently 'pending' (ProcessBookingPaymentJob was skipped)
+            // We need to mark them all as 'awaiting_payment' so they show up in the wallet.
+            if (!$canPayFull) {
+                foreach ($allBookings as $b) {
+                    $b->update(['status' => 'awaiting_payment']);
                 }
             }
 

@@ -42,6 +42,7 @@ export default function TeacherLeftSidebar({ onLogoutClick }: TeacherLeftSidebar
 
     const menuItems = [
         { name: 'Dashboard', icon: 'mage:dashboard', route: '/teacher/dashboard' },
+        { name: 'Bookings', icon: 'material-symbols:calendar-month-outline', route: '/teacher/bookings' },
         { name: 'Schedule', icon: 'material-symbols:event-available-outline', route: '/teacher/schedule', badge: dueSessionsCount, badgeColor: '#3498db' },
         { name: 'Requests', icon: 'tabler:message-user', route: '/teacher/requests', badge: pendingRequestsCount },
         { name: 'Earnings', icon: 'stash:wallet', route: '/teacher/earnings' },

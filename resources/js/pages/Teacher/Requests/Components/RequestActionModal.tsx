@@ -10,6 +10,7 @@ interface RequestActionModalProps {
     onConfirm: () => void;
     type: 'accept' | 'decline';
     isProcessing?: boolean;
+    isSeries?: boolean;
 }
 
 export const RequestActionModal: React.FC<RequestActionModalProps> = ({
@@ -17,7 +18,8 @@ export const RequestActionModal: React.FC<RequestActionModalProps> = ({
     onClose,
     onConfirm,
     type,
-    isProcessing = false
+    isProcessing = false,
+    isSeries = false
 }) => {
     const isAccept = type === 'accept';
 
@@ -46,7 +48,7 @@ export const RequestActionModal: React.FC<RequestActionModalProps> = ({
 
                 {/* Title */}
                 <h2 className="mb-8 text-xl font-semibold text-gray-900 px-4">
-                    Are you sure you want to {isAccept ? 'accept' : 'decline'} this request?
+                    Are you sure you want to {isAccept ? 'accept' : 'decline'} this {isSeries ? 'series' : 'request'}?
                 </h2>
 
                 {/* Buttons */}

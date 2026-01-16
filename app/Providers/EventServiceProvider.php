@@ -41,6 +41,7 @@ class EventServiceProvider extends ServiceProvider
         ],
         \Illuminate\Auth\Events\Registered::class => [
             \App\Listeners\SendSingleEmailVerification::class,
+            \App\Listeners\SendWelcomeEmail::class,
         ],
     ];
 
