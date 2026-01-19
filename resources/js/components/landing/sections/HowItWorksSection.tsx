@@ -1,32 +1,36 @@
 import { Icon } from '@iconify/react';
+import { usePage } from '@inertiajs/react';
 
 export default function HowItWorksSection() {
+    const { translations } = usePage<any>().props;
+    const __ = (key: string) => (translations && translations[key]) ? translations[key] : key;
+
     const steps = [
         {
             number: '01',
-            title: 'Sign Up',
-            description: 'Create your free account in minutes.',
+            title: __('Sign Up'),
+            description: __('Create your free account in minutes.'),
             marginTop: 'mt-[115.04px]',
             marginLeft: 'ml-[172px]',
         },
         {
             number: '02',
-            title: 'Find a Teacher',
-            description: 'Browse our certified tutors & choose the best fit.',
+            title: __('Find a Teacher'),
+            description: __('Browse our certified tutors & choose the best fit.'),
             marginTop: 'mt-[185.04px]',
             marginLeft: 'ml-[450.13px]',
         },
         {
             number: '03',
-            title: 'Book a Class',
-            description: 'Select a time that suits you.',
+            title: __('Book a Class'),
+            description: __('Select a time that suits you.'),
             marginTop: 'mt-[115.04px]',
             marginLeft: 'ml-[747.93px]',
         },
         {
             number: '04',
-            title: 'Start Learning',
-            description: 'Enjoy interactive Quran lessons online.',
+            title: __('Start Learning'),
+            description: __('Enjoy interactive Quran lessons online.'),
             marginTop: 'mt-[185.04px]',
             marginLeft: 'ml-[997.36px]',
         },
@@ -38,11 +42,11 @@ export default function HowItWorksSection() {
             <div className="flex w-[clamp(calc(100%-2rem),76.11vw,1096px)] max-w-[1096px] items-center justify-center gap-[clamp(2rem,2.92vw,2.625rem)] px-[clamp(1rem,2vw,0px)]">
                 <div className="w-[270px]">
                     <p className="bg-gradient-to-l from-[#0a1a18] to-[#338078] bg-clip-text font-['Nunito'] text-[clamp(2rem,3.33vw,3rem)] font-bold leading-normal text-transparent">
-                        How <br /> it Works
+                        {__('How')} <br /> {__('it Works')}
                     </p>
                 </div>
                 <p className="w-[788px] font-['Nunito'] text-[clamp(1rem,1.39vw,1.25rem)] font-normal leading-[clamp(1.5rem,2.08vw,1.875rem)] text-gray-700">
-                    Finding the perfect Quran tutor has never been easier. Our platform is designed to match students with certified and experienced teachers, ensuring a personalized and effective learning experience.
+                    {__('Finding the perfect Quran tutor has never been easier. Our platform is designed to match students with certified and experienced teachers, ensuring a personalized and effective learning experience.')}
                 </p>
             </div>
 
@@ -76,7 +80,7 @@ export default function HowItWorksSection() {
             <div className="relative hidden h-[583px] w-full bg-gradient-to-tr from-[#FFFBF9] via-[#EFFDFB] to-[#E4FFFC] lg:block">
                 {/* Steps */}
                 {steps.map((step, index) => (
-                    <div 
+                    <div
                         key={index}
                         className={`absolute flex flex-col items-center gap-[clamp(1.5rem,2.73vw,2.458rem)] ${step.marginTop} ${step.marginLeft}`}
                     >
@@ -92,8 +96,8 @@ export default function HowItWorksSection() {
                         {/* Content */}
                         <div className="flex items-start gap-[clamp(0.375rem,0.68vw,0.614rem)]">
                             <div className="flex size-[clamp(2.5rem,3.81vw,3.433rem)] shrink-0 items-center justify-center">
-                                <Icon 
-                                    icon="codicon:arrow-small-right" 
+                                <Icon
+                                    icon="codicon:arrow-small-right"
                                     className="h-full w-full text-[#317b74]"
                                 />
                             </div>
@@ -111,23 +115,23 @@ export default function HowItWorksSection() {
 
                 {/* Connecting Arrows */}
                 <div className="absolute left-[371.5px] top-[221.97px] h-[57.526px] w-[118px]">
-                    <img 
-                        src="/images/Vector 12.png" 
-                        alt="" 
+                    <img
+                        src="/images/Vector 12.png"
+                        alt=""
                         className="block size-full max-w-none"
                     />
                 </div>
                 <div className="absolute left-[658.5px] top-[224.97px] h-[57.526px] w-[118px] scale-y-[-100%]">
-                    <img 
-                        src="/images/Vector 12.png" 
-                        alt="" 
+                    <img
+                        src="/images/Vector 12.png"
+                        alt=""
                         className="block size-full max-w-none"
                     />
                 </div>
                 <div className="absolute left-[938.5px] top-[224.97px] h-[57.526px] w-[118px]">
-                    <img 
-                        src="/images/Vector 12.png" 
-                        alt="" 
+                    <img
+                        src="/images/Vector 12.png"
+                        alt=""
                         className="block size-full max-w-none"
                     />
                 </div>

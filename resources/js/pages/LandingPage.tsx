@@ -1,7 +1,6 @@
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import Navbar from '@/components/landing/Navbar';
 import Footer from '@/components/landing/Footer';
-// import HeroContainer from '@/components/landing/sections/HeroContainer';
 import HeroSection from '@/components/landing/sections/HeroSection';
 import FeaturesBar from '@/components/landing/sections/FeaturesBar';
 import HowItWorksSection from '@/components/landing/sections/HowItWorksSection';
@@ -19,16 +18,19 @@ interface Props {
 }
 
 export default function LandingPage({ teachers }: Props) {
+    const { translations } = usePage<any>().props;
+    const __ = (key: string) => (translations && translations[key]) ? translations[key] : key;
+
     return (
         <>
-            <Head title="IqraQuest - Connect with Expert Quran Teachers">
+            <Head title={__("IqraQuest - Connect with Expert Quran Teachers")}>
                 <meta
                     name="description"
-                    content="Find expert Quran tutors for kids and adults. Learn at your own pace, anytime, anywhere with certified teachers."
+                    content={__("Find expert Quran tutors for kids and adults. Learn at your own pace, anytime, anywhere with certified teachers.")}
                 />
-                <meta name="keywords" content="Quran teacher, online Quran classes, Quran tutor, learn Quran online, Islamic education" />
-                <meta property="og:title" content="IqraQuest - Connect with Expert Quran Teachers" />
-                <meta property="og:description" content="Find expert Quran tutors for kids and adults. Learn at your own pace, anytime, anywhere." />
+                <meta name="keywords" content={__("Quran teacher, online Quran classes, Quran tutor, learn Quran online, Islamic education")} />
+                <meta property="og:title" content={__("IqraQuest - Connect with Expert Quran Teachers")} />
+                <meta property="og:description" content={__("Find expert Quran tutors for kids and adults. Learn at your own pace, anytime, anywhere.")} />
                 <meta property="og:type" content="website" />
                 <meta property="og:image" content="/images/og-image.png" />
                 <meta name="twitter:card" content="summary_large_image" />

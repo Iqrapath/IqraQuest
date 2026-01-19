@@ -1,8 +1,12 @@
 import { Icon } from '@iconify/react';
+import { usePage } from '@inertiajs/react';
 import TwentyFourSevenIcon from '@/components/icons/TwentyFourSevenIcon';
 import QuranBookIcon from '@/components/icons/QuranBookIcon';
 
 export default function FeaturesBar() {
+    const { translations } = usePage<any>().props;
+    const __ = (key: string) => (translations && translations[key]) ? translations[key] : key;
+
     return (
         <div className="w-full max-w-[1100px] px-4 lg:px-0">
             {/* Background with gradient */}
@@ -25,10 +29,10 @@ export default function FeaturesBar() {
                         </div>
                         <div className="flex flex-col gap-[clamp(0.25rem,0.42vw,0.375rem)]">
                             <p className="font-['Nunito'] text-[clamp(1rem,1.39vw,1.25rem)] font-bold leading-normal text-white">
-                                Verified Tutors
+                                {__("Verified Tutors")}
                             </p>
                             <p className="w-[clamp(12rem,18.44vw,16.593rem)] font-['Nunito'] text-[clamp(0.625rem,0.84vw,0.756rem)] font-normal leading-normal text-white">
-                                Learn from certified and experienced Quran teachers.
+                                {__("Learn from certified and experienced Quran teachers.")}
                             </p>
                         </div>
                     </div>
@@ -43,10 +47,10 @@ export default function FeaturesBar() {
                         </div>
                         <div className="flex flex-col gap-[clamp(0.25rem,0.54vw,0.486rem)]">
                             <p className="font-['Nunito'] text-[clamp(1rem,1.39vw,1.25rem)] font-bold leading-normal text-white">
-                                24/7 Availability
+                                {__("24/7 Availability")}
                             </p>
                             <p className="w-[clamp(11rem,14.11vw,12.701rem)] font-['Nunito'] text-[clamp(0.625rem,0.84vw,0.756rem)] font-normal leading-normal text-white">
-                                Schedule lessons at your convenience, anytime, anywhere.
+                                {__("Schedule lessons at your convenience, anytime, anywhere.")}
                             </p>
                         </div>
                     </div>
@@ -61,10 +65,10 @@ export default function FeaturesBar() {
                         </div>
                         <div className="flex flex-col gap-[clamp(0.25rem,0.42vw,0.375rem)]">
                             <p className="font-['Nunito'] text-[clamp(1rem,1.39vw,1.25rem)] font-bold leading-normal text-white">
-                                Tajweed, Hifz & More
+                                {__("Tajweed, Hifz & More")}
                             </p>
                             <p className="w-[clamp(11rem,14.38vw,12.938rem)] font-['Nunito'] text-[clamp(0.625rem,0.84vw,0.756rem)] font-normal leading-normal text-white">
-                                Master Quran recitation, memorization, and Islamic studies.
+                                {__("Master Quran recitation, memorization, and Islamic studies.")}
                             </p>
                         </div>
                     </div>

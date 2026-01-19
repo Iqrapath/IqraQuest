@@ -1,10 +1,13 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 
 export default function BecomeTeacherSection() {
+    const { translations } = usePage<any>().props;
+    const __ = (key: string) => (translations && translations[key]) ? translations[key] : key;
+
     const benefits = [
-        'Discover new students',
-        'Expand your Business',
-        'Receive payments securely',
+        __('Discover new students'),
+        __('Expand your Business'),
+        __('Receive payments securely'),
     ];
 
     return (
@@ -16,9 +19,9 @@ export default function BecomeTeacherSection() {
             <div className="relative mx-auto flex max-w-[1314px] flex-col items-center gap-[clamp(2rem,4vw,3rem)] lg:flex-row lg:gap-[clamp(2rem,3.54vw,3.188rem)]">
                 {/* Image */}
                 <div className="h-[clamp(300px,50vw,578px)] w-full shrink-0 lg:h-[578px] lg:w-[722px]">
-                    <img 
-                        src="/images/young-arab-man-works-diligently-his-desk-browsing-internet-his-digital-laptop-engrossed-online-webpage-he-takes-notes-researches-embodying-professionalism-efficiency 2.png" 
-                        alt="Become a teacher" 
+                    <img
+                        src="/images/young-arab-man-works-diligently-his-desk-browsing-internet-his-digital-laptop-engrossed-online-webpage-he-takes-notes-researches-embodying-professionalism-efficiency 2.png"
+                        alt={__("Become a teacher")}
                         className="h-full w-full object-cover"
                     />
                 </div>
@@ -29,17 +32,17 @@ export default function BecomeTeacherSection() {
                         {/* Text Content */}
                         <div className="flex flex-col gap-[clamp(0.5rem,0.83vw,0.75rem)] leading-normal">
                             <p className="max-w-[402px] bg-gradient-to-l from-[#f3e5c3] to-[#ffffff] bg-clip-text font-['Nunito'] text-[clamp(2rem,3.33vw,3rem)] font-bold text-transparent">
-                                Become a Iqrapath Teacher
+                                {__("Become a Iqrapath Teacher")}
                             </p>
                             <p className="font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-normal leading-normal text-gray-300">
-                                Earn money by sharing your expertise with students. Sign up today and start teaching online with IqraPath!
+                                {__("Earn money by sharing your expertise with students. Sign up today and start teaching online with IqraPath!")}
                             </p>
                         </div>
 
                         {/* Benefits Tags */}
                         <div className="relative flex flex-col gap-[clamp(0.75rem,1.11vw,1rem)]">
                             {benefits.map((benefit, index) => (
-                                <div 
+                                <div
                                     key={index}
                                     className="flex w-fit items-center gap-[clamp(0.375rem,0.63vw,0.563rem)] rounded-md bg-[#508c87] px-[clamp(0.75rem,1.11vw,1rem)] py-[clamp(0.375rem,0.56vw,0.5rem)]"
                                     style={{
@@ -56,11 +59,11 @@ export default function BecomeTeacherSection() {
                     </div>
 
                     {/* CTA Button */}
-                    <Link 
+                    <Link
                         href="/register/teacher"
                         className="w-fit rounded-[clamp(1.5rem,3.89vw,3.5rem)] bg-white px-[clamp(1rem,1.67vw,1.5rem)] py-[clamp(0.5rem,0.83vw,0.75rem)] font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium capitalize text-[#338078] transition-all hover:bg-gray-100 hover:shadow-lg"
                     >
-                        Become a Teacher
+                        {__("Become a Teacher")}
                     </Link>
                 </div>
             </div>

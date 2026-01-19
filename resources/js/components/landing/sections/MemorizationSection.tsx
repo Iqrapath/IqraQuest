@@ -1,16 +1,19 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 
 export default function MemorizationSection() {
+    const { translations } = usePage<any>().props;
+    const __ = (key: string) => (translations && translations[key]) ? translations[key] : key;
+
     const handleComingSoon = (e: React.MouseEvent) => {
         e.preventDefault();
-        toast.info("Coming Soon! Our subscription and memorization plans are currently being finalized.");
+        toast.info(__("Coming Soon! Our subscription and memorization plans are currently being finalized."));
     };
     const features = [
-        { number: '01', text: "Learn at your child's pace" },
-        { number: '03', text: 'Earn a certificate upon completion' },
-        { number: '02', text: 'Certified Quran teachers' },
-        { number: '04', text: 'Progress tracking & parent updates' },
+        { number: '01', text: __("Learn at your child's pace") },
+        { number: '03', text: __("Earn a certificate upon completion") },
+        { number: '02', text: __("Certified Quran teachers") },
+        { number: '04', text: __("Progress tracking & parent updates") },
     ];
 
     return (
@@ -21,10 +24,10 @@ export default function MemorizationSection() {
                     {/* Section Header */}
                     <div className="mb-[clamp(2rem,2.99vw,2.688rem)] flex flex-col gap-[clamp(0.75rem,1.11vw,1rem)]">
                         <p className="bg-gradient-to-l from-[#0a1a18] to-[#338078] bg-clip-text font-['Nunito'] text-[clamp(2rem,3.33vw,3rem)] font-bold leading-normal text-transparent">
-                            Want your kids to be an Hafiz in 6months
+                            {__("Want your kids to be an Hafiz in 6months")}
                         </p>
                         <p className="max-w-[788px] font-['Nunito'] text-[clamp(1rem,1.39vw,1.25rem)] font-normal leading-[1.5] text-gray-700">
-                            Full Quran, Half Quran, or Juz' Amma – Tailored Learning for Every Student.
+                            {__("Full Quran, Half Quran, or Juz' Amma – Tailored Learning for Every Student.")}
                         </p>
                     </div>
 
@@ -75,7 +78,7 @@ export default function MemorizationSection() {
                     <div className="relative h-[clamp(250px,50vw,500px)] w-[clamp(250px,50vw,500px)] shrink-0 lg:h-[clamp(300px,34.72vw,500px)] lg:w-[clamp(300px,34.72vw,500px)]">
                         <img
                             src="/images/ebaf7f01-a7c5-4f07-884a-ae8b40b94685-removebg-preview.png"
-                            alt="Student memorizing Quran"
+                            alt={__("Student memorizing Quran")}
                             className="size-full object-cover"
                         />
                     </div>
@@ -84,10 +87,10 @@ export default function MemorizationSection() {
                     <div className="flex w-full flex-col gap-[clamp(1.5rem,3vw,2rem)] lg:w-[clamp(400px,43.61vw,628px)] lg:gap-[clamp(2rem,3.61vw,3.25rem)] lg:px-[clamp(0.5rem,0.83vw,0.75rem)]">
                         <div className="flex flex-col gap-[clamp(0.5rem,0.83vw,0.75rem)] leading-normal">
                             <p className="max-w-[638px] bg-gradient-to-l from-[#338078] to-[rgba(20,20,20,0.7)] bg-clip-text font-['Nunito'] text-[clamp(2rem,3.33vw,3rem)] font-bold text-transparent">
-                                Enroll in Our Quran Memorization Plans Today!
+                                {__("Enroll in Our Quran Memorization Plans Today!")}
                             </p>
                             <p className="max-w-[614px] font-['Nunito'] text-[clamp(1rem,1.67vw,1.5rem)] font-normal text-gray-600">
-                                Full Quran, Half Quran, or Juz' Amma – Tailored Learning for Every Student.
+                                {__("Full Quran, Half Quran, or Juz' Amma – Tailored Learning for Every Student.")}
                             </p>
                         </div>
 
@@ -98,12 +101,12 @@ export default function MemorizationSection() {
                                 onClick={handleComingSoon}
                                 className="rounded-full bg-[#338078] px-[20px] py-[10px] text-center font-['Nunito'] text-[clamp(1rem,1.67vw,1.5rem)] font-semibold capitalize text-white transition-all hover:bg-[#2a6b64] hover:shadow-lg"
                             >
-                                View Memorization Plans
+                                {__("View Memorization Plans")}
                             </Link>
                             <div className="flex flex-col items-center gap-[clamp(0.5rem,1vw,0.75rem)] lg:flex-row lg:gap-0">
                                 <div className="px-[clamp(1rem,1.67vw,1.5rem)] py-[clamp(0.5rem,0.83vw,0.75rem)]">
                                     <p className="font-['Nunito'] text-[clamp(0.75rem,1.18vw,1.063rem)] font-semibold leading-normal text-[#338078]">
-                                        Not sure?
+                                        {__("Not sure?")}
                                     </p>
                                 </div>
                                 <Link
@@ -111,7 +114,7 @@ export default function MemorizationSection() {
                                     onClick={handleComingSoon}
                                     className="rounded-full border-[1.5px] border-solid border-[#338078] px-[20px] py-[8px] text-center font-['Nunito'] text-[clamp(1rem,1.67vw,1.5rem)] font-semibold capitalize text-[#338078] transition-all hover:bg-[#338078] hover:text-white"
                                 >
-                                    Match Me
+                                    {__("Match Me")}
                                 </Link>
                             </div>
                         </div>

@@ -20,33 +20,34 @@ interface AdminHeaderProps {
 
 export default function AdminHeader({ onMenuToggle, showMenuButton = true }: AdminHeaderProps = {}) {
     const page = usePage<any>();
-    const { auth } = page.props;
+    const { auth, translations } = page.props;
     const user = auth.user;
     const getInitials = useInitials();
 
+    // Translation helper
+    const __ = (key: string) => (translations && translations[key]) ? translations[key] : key;
+
     // Get page title from shared props or fallback to component path
     const getPageTitle = () => {
-        // console.log('page.props.pageTitle:', page.props.pageTitle);
-        // console.log('page.component:', page.component);
-
         // First, check if pageTitle is explicitly set in props
         if (page.props.pageTitle) {
-            return page.props.pageTitle;
+            return __(page.props.pageTitle);
         }
 
         // Fallback: Extract from component path
         const component = page.component || '';
         const parts = component.split('/').filter(Boolean);
 
-        if (parts.length === 0) return 'Dashboard';
+        if (parts.length === 0) return __('Dashboard');
 
         // If last part is "Index", use the second-to-last part
         const lastPart = parts[parts.length - 1];
+        let title = lastPart;
         if (lastPart === 'Index' && parts.length > 1) {
-            return parts[parts.length - 2];
+            title = parts[parts.length - 2];
         }
 
-        return lastPart;
+        return __(title);
     };
 
     return (
@@ -145,7 +146,7 @@ export default function AdminHeader({ onMenuToggle, showMenuButton = true }: Adm
                                             className="font-['Nunito'] font-light leading-[1.2] text-gray-500"
                                             style={{ fontSize: 'clamp(12px, 1vw, 16px)' }}
                                         >
-                                            Admin
+                                            {__('Admin')}
                                         </p>
                                         <Icon
                                             icon="nrk:arrow-dropdown"

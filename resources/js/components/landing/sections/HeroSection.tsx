@@ -1,13 +1,16 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 
 export default function HeroSection() {
+    const { translations } = usePage<any>().props;
+    const __ = (key: string) => (translations && translations[key]) ? translations[key] : key;
+
     return (
         <div className="isolate relative flex flex-col items-center gap-[clamp(1.5rem,2.22vw,2rem)] px-[clamp(1rem,2vw,2rem)] pt-[clamp(3rem,6vw,6rem)]">
             {/* Background Image */}
             <div className="absolute inset-0 -z-10 h-full w-full">
                 <img
                     src="/images/hero-bg.png"
-                    alt="Hero Background"
+                    alt={__("Hero Background")}
                     className="h-full w-full object-cover"
                 />
             </div>
@@ -17,7 +20,7 @@ export default function HeroSection() {
                     {/* First line with gradient text */}
                     <div className="flex w-full flex-wrap items-end justify-center gap-[clamp(0.5rem,0.83vw,0.75rem)]">
                         <p className="text-center font-['Nunito'] text-[clamp(1.5rem,3.33vw,3rem)] font-bold leading-[1.5] text-[#0f1017]">
-                            Connect with
+                            {__("Connect with")}
                         </p>
                         <div className="relative inline-grid place-items-start">
                             {/* Underline decoration */}
@@ -35,20 +38,20 @@ export default function HeroSection() {
                                 <p
                                     className="bg-gradient-to-r from-[#338078] to-[#666666] bg-clip-text text-center font-['Nunito'] text-[clamp(1.5rem,3.33vw,3rem)] font-bold leading-[1.5] text-transparent"
                                 >
-                                    Expert Quran Teachers
+                                    {__("Expert Quran Teachers")}
                                 </p>
                             </div>
                         </div>
                     </div>
                     {/* Second line */}
                     <p className="w-full text-center font-['Nunito'] text-[clamp(1.5rem,3.33vw,3rem)] font-bold leading-[1.5] text-[#0f1017]">
-                        Anytime, Anywhere!
+                        {__("Anytime, Anywhere!")}
                     </p>
                 </div>
 
                 {/* Subtitle */}
                 <p className="w-full max-w-[clamp(20rem,44.1vw,39.688rem)] text-center font-['Nunito'] text-[clamp(0.875rem,1.39vw,1.25rem)] font-medium leading-[1.5] text-gray-700">
-                    Find expert Quran tutors for kids and adults. Learn at your own pace, anytime, anywhere.
+                    {__("Find expert Quran tutors for kids and adults. Learn at your own pace, anytime, anywhere.")}
                 </p>
             </div>
 
@@ -58,13 +61,13 @@ export default function HeroSection() {
                     href="/register"
                     className="rounded-[clamp(1.5rem,3.89vw,3.5rem)] bg-[#338078] px-[clamp(1rem,1.67vw,1.5rem)] py-[clamp(0.5rem,0.83vw,0.75rem)] font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium capitalize text-white transition-all duration-300 hover:bg-[#2a6b64] hover:shadow-lg"
                 >
-                    Find a Teacher
+                    {__("Find a Teacher")}
                 </Link>
                 <Link
                     href="/register/teacher"
                     className="rounded-[clamp(1.5rem,3.89vw,3.5rem)] border-[1.5px] border-solid border-[#338078] px-[clamp(1rem,1.67vw,1.5rem)] py-[clamp(0.5rem,0.83vw,0.75rem)] font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium capitalize text-[#338078] transition-all duration-300 hover:bg-[#338078] hover:text-white"
                 >
-                    Become a Teacher
+                    {__("Become a Teacher")}
                 </Link>
             </div>
 
@@ -72,7 +75,7 @@ export default function HeroSection() {
             <div className="relative -z-10 md:-mt-20">
                 <img
                     src="/images/young-arab-man-works-diligently-his-desk-browsing-internet-his-digital-laptop-engrossed-online-webpage-he-takes-notes-researches-embodying-professionalism-efficiency 2.png"
-                    alt="Student learning Quran online"
+                    alt={__("Student learning Quran online")}
                     draggable="false"
                     className="pointer-events-none h-auto w-full select-none object-cover object-center"
                 />

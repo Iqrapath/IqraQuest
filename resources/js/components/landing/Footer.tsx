@@ -4,12 +4,15 @@ import { toast } from 'sonner';
 
 export default function Footer() {
     const { props } = usePage<any>();
-    const { site_logo, site_name } = props;
+    const { site_logo, site_name, translations } = props;
+
+    // Translation helper
+    const __ = (key: string) => (translations && translations[key]) ? translations[key] : key;
 
     const handleBlogClick = (e: React.MouseEvent) => {
         e.preventDefault();
-        toast.info('Blog feature coming soon! 📚', {
-            description: 'We are working hard to bring you high-quality Quranic articles and insights.',
+        toast.info(__('Blog feature coming soon! 📚'), {
+            description: __('We are working hard to bring you high-quality Quranic articles and insights.'),
             position: 'top-center',
         });
     };
@@ -64,9 +67,8 @@ export default function Footer() {
                                 )} */}
                             </Link>
 
-                            {/* Description */}
                             <p className="font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-semibold leading-[clamp(1rem,1.67vw,1.5rem)] tracking-[0.2px] text-[#d9d9d9]">
-                                Empowering Quranic learning globally with top-rated teachers and a modern platform.
+                                {__("Empowering Quranic learning globally with top-rated teachers and a modern platform.")}
                             </p>
 
                             {/* Social Media Icons */}
@@ -122,38 +124,38 @@ export default function Footer() {
                         {/* Column 2: Quick Links */}
                         <div className="flex flex-col gap-[clamp(0.75rem,1.39vw,1.25rem)] lg:w-[241px]">
                             <h3 className="whitespace-pre text-nowrap font-['Nunito'] text-[clamp(1rem,1.67vw,1.5rem)] font-semibold leading-[clamp(1.25rem,2.22vw,2rem)] tracking-[0.1px] text-[#f3e5c3]">
-                                Quick Links:
+                                {__("Quick Links:")}
                             </h3>
                             <nav className="flex flex-col items-start gap-[clamp(0.375rem,0.69vw,0.625rem)]">
                                 <Link
                                     href="/"
                                     className="whitespace-pre text-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-semibold leading-[clamp(1rem,1.67vw,1.5rem)] tracking-[0.2px] text-[#d9d9d9] transition-colors hover:text-white"
                                 >
-                                    Home
+                                    {__("Home")}
                                 </Link>
                                 <Link
                                     href="/find-teacher"
                                     className="whitespace-pre text-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-semibold leading-[clamp(1rem,1.67vw,1.5rem)] tracking-[0.2px] text-[#d9d9d9] transition-colors hover:text-white"
                                 >
-                                    Find a Teacher
+                                    {__("Find a Teacher")}
                                 </Link>
                                 <Link
                                     href="/how-it-works"
                                     className="whitespace-pre text-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-semibold leading-[clamp(1rem,1.67vw,1.5rem)] tracking-[0.2px] text-[#d9d9d9] transition-colors hover:text-white"
                                 >
-                                    How It Works
+                                    {__("How It Works")}
                                 </Link>
                                 <button
                                     onClick={handleBlogClick}
                                     className="whitespace-pre text-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-semibold leading-[clamp(1rem,1.67vw,1.5rem)] tracking-[0.2px] text-[#d9d9d9] transition-colors hover:text-white bg-transparent border-none p-0 cursor-pointer"
                                 >
-                                    Blog
+                                    {__("Blog")}
                                 </button>
                                 <Link
                                     href="/about-us"
                                     className="whitespace-pre text-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-semibold leading-[clamp(1rem,1.67vw,1.5rem)] tracking-[0.2px] text-[#d9d9d9] transition-colors hover:text-white"
                                 >
-                                    About Us
+                                    {__("About Us")}
                                 </Link>
                             </nav>
                         </div>
@@ -161,14 +163,14 @@ export default function Footer() {
                         {/* Column 3: Features */}
                         <div className="flex flex-col gap-[clamp(0.75rem,1.39vw,1.25rem)] lg:w-[240px]">
                             <h3 className="whitespace-pre text-nowrap font-['Nunito'] text-[clamp(1rem,1.67vw,1.5rem)] font-semibold leading-[clamp(1.25rem,2.22vw,2rem)] tracking-[0.1px] text-[#f3e5c3]">
-                                Features
+                                {__("Features")}
                             </h3>
                             <nav className="flex flex-col gap-[clamp(0.375rem,0.69vw,0.625rem)]">
                                 <Link
                                     href="/find-teacher"
                                     className="whitespace-pre text-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-semibold leading-[clamp(1rem,1.67vw,1.5rem)] tracking-[0.2px] text-[#d9d9d9] transition-colors hover:text-white"
                                 >
-                                    Top-Rated Quran Teachers
+                                    {__("Top-Rated Quran Teachers")}
                                 </Link>
                             </nav>
                         </div>
@@ -176,29 +178,29 @@ export default function Footer() {
                         {/* Column 4: Contact Us */}
                         <div className="flex flex-col gap-[clamp(1.5rem,2.78vw,2.5rem)]">
                             <h3 className="whitespace-pre text-nowrap font-['Nunito'] text-[clamp(1rem,1.67vw,1.5rem)] font-semibold leading-[clamp(1.25rem,2.22vw,2rem)] tracking-[0.1px] text-[#f3e5c3]">
-                                Contacts us
+                                {__("Contact Us")}
                             </h3>
 
                             <div className="flex flex-col gap-[clamp(1rem,1.67vw,1.5rem)]">
                                 {/* Email */}
                                 <a
-                                    href={`mailto:${usePage<any>().props.settings?.general?.support_email || "support@iqraquest.com"}`}
+                                    href={`mailto:${usePage<any>().props.settings?.general?.support_email}`}
                                     className="flex items-center gap-[clamp(0.25rem,0.42vw,0.375rem)] transition-colors hover:text-white"
                                 >
                                     <Icon icon="mdi:email-outline" className="h-[clamp(0.875rem,1.39vw,1.25rem)] w-[clamp(0.875rem,1.39vw,1.25rem)] shrink-0 text-[#d9d9d9]" />
                                     <span className="whitespace-pre text-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-semibold leading-[clamp(0.875rem,1.39vw,1.25rem)] text-[#d9d9d9]">
-                                        {usePage<any>().props.settings?.general?.support_email || "support@iqraquest.com"}
+                                        {usePage<any>().props.settings?.general?.support_email}
                                     </span>
                                 </a>
 
                                 {/* Phone */}
                                 <a
-                                    href={`tel:${usePage<any>().props.settings?.general?.contact_number || "+2347069731575"}`}
+                                    href={`tel:${usePage<any>().props.settings?.general?.contact_number}`}
                                     className="flex items-center gap-[clamp(0.25rem,0.42vw,0.375rem)] transition-colors hover:text-white"
                                 >
                                     <Icon icon="mdi:phone-outline" className="h-[clamp(0.875rem,1.39vw,1.25rem)] w-[clamp(0.875rem,1.39vw,1.25rem)] shrink-0 text-[#d9d9d9]" />
                                     <span className="whitespace-pre text-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-semibold leading-[clamp(0.875rem,1.39vw,1.25rem)] text-[#d9d9d9]">
-                                        {usePage<any>().props.settings?.general?.contact_number || "+234 706 973 1575"}
+                                        {usePage<any>().props.settings?.general?.contact_number}
                                     </span>
                                 </a>
 
@@ -206,7 +208,7 @@ export default function Footer() {
                                 <div className="flex items-start gap-[clamp(0.25rem,0.56vw,0.5rem)]">
                                     <Icon icon="mdi:map-marker-outline" className="mt-[clamp(0.125rem,0.4vw,0.356rem)] h-[clamp(0.875rem,1.39vw,1.25rem)] w-[clamp(0.875rem,1.39vw,1.25rem)] shrink-0 text-[#d9d9d9]" />
                                     <span className="font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-semibold leading-[clamp(0.875rem,1.39vw,1.25rem)] text-[#d9d9d9]">
-                                        {usePage<any>().props.settings?.general?.office_address || "Iqrapath Headquarters, Lagos, Nigeria"}
+                                        {usePage<any>().props.settings?.general?.office_address}
                                     </span>
                                 </div>
                             </div>
@@ -214,19 +216,18 @@ export default function Footer() {
                     </div>
                 </div>
 
-                {/* Bottom Section - Copyright */}
                 <div className="flex flex-col items-center justify-center gap-[clamp(1rem,22.15vw,20rem)] border-t border-white/10 pb-[clamp(2rem,3.89vw,3.5rem)] pt-[clamp(1.5rem,2.22vw,2rem)] lg:flex-row lg:justify-between">
                     <p className="whitespace-pre text-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-normal leading-[clamp(1.25rem,2.08vw,1.875rem)] text-[#d9d9d9]">
-                        © {new Date().getFullYear()} {site_name || "IqraQuest"}. All rights reserved.
+                        © {new Date().getFullYear()} {site_name}. {__("All rights reserved.")}
                     </p>
                     <p className="text-center font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-normal leading-[clamp(1.25rem,2.08vw,1.875rem)] text-[#d9d9d9] lg:text-right">
-                        <span>All Rights Reserved | </span>
+                        <span>{__("All Rights Reserved | ")}</span>
                         <Link href="#terms" className="text-[#fad4b4] underline decoration-solid transition-colors hover:text-white">
-                            Terms and Conditions
+                            {__("Terms and Conditions")}
                         </Link>
                         <span> | </span>
                         <Link href="#privacy" className="text-[#fad4b4] underline decoration-solid transition-colors hover:text-white">
-                            Privacy Policy
+                            {__("Privacy Policy")}
                         </Link>
                     </p>
                 </div>

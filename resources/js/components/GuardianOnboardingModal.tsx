@@ -40,6 +40,14 @@ export default function GuardianOnboardingModal({ isOpen, onComplete, onSkip, in
     }, [isOpen, initialStep]);
     const [subjects, setSubjects] = useState<Subject[]>([]);
     const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
+    const [showPasswords, setShowPasswords] = useState<{ [key: number]: boolean }>({});
+
+    const togglePasswordVisibility = (index: number) => {
+        setShowPasswords(prev => ({
+            ...prev,
+            [index]: !prev[index]
+        }));
+    };
 
     const { data, setData, post, processing, errors } = useForm({
         // Step 1: Guardian Info
@@ -138,7 +146,26 @@ export default function GuardianOnboardingModal({ isOpen, onComplete, onSkip, in
                 router.visit('/guardian/dashboard');
             },
             onError: (err) => {
-                toast.error('Please check all fields.');
+                const errorFields = Object.keys(err).map(key => {
+                    // Handle array notation (children.0.name)
+                    if (key.includes('.')) {
+                        const parts = key.split('.');
+                        if (parts[0] === 'children' && parts.length >= 3) {
+                            const index = parseInt(parts[1]) + 1;
+                            const field = parts[2].charAt(0).toUpperCase() + parts[2].slice(1);
+                            return `Child ${index} ${field}`;
+                        }
+                    }
+                    // Handle top level fields
+                    return key.charAt(0).toUpperCase() + key.slice(1);
+                });
+
+                const uniqueFields = [...new Set(errorFields)];
+                const message = uniqueFields.length > 0
+                    ? `Please check the following fields: ${uniqueFields.join(', ')}`
+                    : 'Please check all fields and try again.';
+
+                toast.error(message);
             }
         });
     };
@@ -196,6 +223,7 @@ export default function GuardianOnboardingModal({ isOpen, onComplete, onSkip, in
                                         <label className="text-sm font-semibold text-[#1a1d56]">Phone Number</label>
                                         <Input
                                             placeholder="+234..."
+                                            type="tel"
                                             value={data.phone}
                                             onChange={e => setData('phone', e.target.value)}
                                             className="rounded-xl border-gray-200 h-11 bg-gray-50/50"
@@ -319,13 +347,28 @@ export default function GuardianOnboardingModal({ isOpen, onComplete, onSkip, in
                                             </div>
                                             <div className="space-y-1.5">
                                                 <label className="text-sm font-semibold text-[#1a1d56]">Password</label>
-                                                <Input
-                                                    type="password"
-                                                    placeholder="Set password"
-                                                    value={child.password}
-                                                    onChange={e => updateChild(index, 'password', e.target.value)}
-                                                    className="rounded-xl border-gray-200 h-11 bg-white"
-                                                />
+                                                <div className="relative">
+                                                    <Input
+                                                        type={showPasswords[index] ? 'text' : 'password'}
+                                                        placeholder="Set password"
+                                                        value={child.password}
+                                                        onChange={e => updateChild(index, 'password', e.target.value)}
+                                                        className="rounded-xl border-gray-200 h-11 bg-white pr-10"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            togglePasswordVisibility(index);
+                                                        }}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-10 cursor-pointer"
+                                                    >
+                                                        <Icon
+                                                            icon={showPasswords[index] ? 'solar:eye-bold' : 'solar:eye-closed-bold'}
+                                                            className="w-5 h-5"
+                                                        />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
 

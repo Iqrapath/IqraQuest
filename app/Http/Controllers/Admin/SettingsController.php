@@ -66,10 +66,10 @@ class SettingsController extends Controller
         $settings = array_filter($validated, fn($key) => $key !== 'logo', ARRAY_FILTER_USE_KEY);
 
         foreach ($settings as $key => $value) {
-            $group = in_array($key, ['site_name', 'support_email', 'office_address', 'contact_number', 'whatsapp_number']) 
-                ? 'general' 
+            $group = in_array($key, ['site_name', 'support_email', 'office_address', 'contact_number', 'whatsapp_number'])
+                ? 'general'
                 : 'localization';
-            
+
             SystemSetting::set($key, $value, $group);
         }
 
@@ -98,7 +98,7 @@ class SettingsController extends Controller
     public function saveRole(Request $request)
     {
         $id = $request->input('id');
-        
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => ['required', 'string', 'max:255', Rule::unique('roles', 'slug')->ignore($id)],

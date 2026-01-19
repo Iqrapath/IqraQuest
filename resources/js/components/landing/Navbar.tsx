@@ -20,7 +20,10 @@ const getInitials = (name: string) => {
 
 export default function Navbar() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const { auth } = usePage<SharedData>().props;
+    const { auth, translations } = usePage<any>().props;
+
+    // Translation helper
+    const __ = (key: string) => (translations && translations[key]) ? translations[key] : key;
 
     const toggleMobileMenu = () => {
         setMobileMenuOpen(!mobileMenuOpen);
@@ -28,8 +31,8 @@ export default function Navbar() {
 
     const handleBlogClick = (e: React.MouseEvent) => {
         e.preventDefault();
-        toast.info('Blog feature coming soon! 📚', {
-            description: 'We are working hard to bring you high-quality Quranic articles and insights.',
+        toast.info(__('Blog feature coming soon! 📚'), {
+            description: __("We are working hard to bring you high-quality Quranic articles and insights."),
             position: 'top-center',
         });
     };
@@ -60,31 +63,31 @@ export default function Navbar() {
                 <div className="hidden shrink-0 items-center gap-[clamp(1.5rem,3vw,3rem)] lg:flex">
                     <Link href="/" className="group relative py-2">
                         <span className={`whitespace-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium transition-colors ${isActive('/') ? 'text-[#2a6b64]' : 'text-[#317b74] group-hover:text-[#2a6b64]'}`}>
-                            Home
+                            {__('Home')}
                         </span>
                         <span className={`absolute bottom-0 left-0 h-[2px] bg-[#317b74] transition-all duration-300 ${isActive('/') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
                     </Link>
                     <Link href="/find-teacher" className="group relative py-2">
                         <span className={`whitespace-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium transition-colors ${isActive('/find-teacher') ? 'text-[#2a6b64]' : 'text-[#317b74] group-hover:text-[#2a6b64]'}`}>
-                            Find a Teacher
+                            {__('Find a Teacher')}
                         </span>
                         <span className={`absolute bottom-0 left-0 h-[2px] bg-[#317b74] transition-all duration-300 ${isActive('/find-teacher') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
                     </Link>
                     <Link href="/how-it-works" className="group relative py-2">
                         <span className={`whitespace-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium transition-colors ${isActive('/how-it-works') ? 'text-[#2a6b64]' : 'text-[#317b74] group-hover:text-[#2a6b64]'}`}>
-                            How It Works
+                            {__('How It Works')}
                         </span>
                         <span className={`absolute bottom-0 left-0 h-[2px] bg-[#317b74] transition-all duration-300 ${isActive('/how-it-works') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
                     </Link>
                     <button onClick={handleBlogClick} className="group relative py-2 cursor-pointer bg-transparent border-none">
                         <span className="whitespace-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium text-[#317b74] transition-colors group-hover:text-[#2a6b64]">
-                            Blog
+                            {__('Blog')}
                         </span>
                         <span className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#317b74] transition-all duration-300 group-hover:w-full"></span>
                     </button>
                     <Link href="/about-us" className="group relative py-2">
                         <span className={`whitespace-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium transition-colors ${isActive('/about-us') ? 'text-[#2a6b64]' : 'text-[#317b74] group-hover:text-[#2a6b64]'}`}>
-                            About Us
+                            {__('About Us')}
                         </span>
                         <span className={`absolute bottom-0 left-0 h-[2px] bg-[#317b74] transition-all duration-300 ${isActive('/about-us') ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
                     </Link>
@@ -209,28 +212,28 @@ export default function Navbar() {
                             onClick={toggleMobileMenu}
                             className={`border-b border-[#317b74]/10 py-4 font-['Nunito'] text-base font-semibold transition-colors ${isActive('/') ? 'text-[#2a6b64]' : 'text-[#317b74] hover:text-[#2a6b64]'}`}
                         >
-                            Home
+                            {__('Home')}
                         </Link>
                         <Link
                             href="/find-teacher"
                             onClick={toggleMobileMenu}
                             className={`border-b border-[#317b74]/10 py-4 font-['Nunito'] text-base font-medium transition-colors ${isActive('/find-teacher') ? 'text-[#2a6b64]' : 'text-[#317b74] hover:text-[#2a6b64]'}`}
                         >
-                            Find a Teacher
+                            {__('Find a Teacher')}
                         </Link>
                         <Link
                             href="/about-us"
                             onClick={toggleMobileMenu}
                             className={`border-b border-[#317b74]/10 py-4 font-['Nunito'] text-base font-medium transition-colors ${isActive('/about-us') ? 'text-[#2a6b64]' : 'text-[#317b74] hover:text-[#2a6b64]'}`}
                         >
-                            About Us
+                            {__('About Us')}
                         </Link>
                         <Link
                             href="/how-it-works"
                             onClick={toggleMobileMenu}
                             className={`border-b border-[#317b74]/10 py-4 font-['Nunito'] text-base font-medium transition-colors ${isActive('/how-it-works') ? 'text-[#2a6b64]' : 'text-[#317b74] hover:text-[#2a6b64]'}`}
                         >
-                            How It Works
+                            {__('How It Works')}
                         </Link>
                         <button
                             onClick={(e) => {
@@ -239,7 +242,7 @@ export default function Navbar() {
                             }}
                             className="border-b border-[#317b74]/10 py-4 font-['Nunito'] text-base text-left font-medium text-[#317b74] transition-colors hover:text-[#2a6b64] cursor-pointer bg-transparent border-none"
                         >
-                            Blog
+                            {__('Blog')}
                         </button>
 
                         {/* Mobile Sign In Button */}
@@ -249,7 +252,7 @@ export default function Navbar() {
                                 onClick={toggleMobileMenu}
                                 className="block rounded-[2rem] bg-[#338078] px-6 py-3 text-center font-['Nunito'] text-base font-medium text-white transition-all hover:bg-[#2a6b64] hover:shadow-lg"
                             >
-                                Sign In
+                                {__('Sign In')}
                             </Link>
                         </div>
                     </nav>

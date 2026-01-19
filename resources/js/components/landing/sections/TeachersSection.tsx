@@ -14,21 +14,96 @@ interface TeacherCardProps {
     onViewProfile: (id: number) => void;
 }
 
+
+interface TeachersSectionProps {
+    teachers?: {
+        id: number;
+        name: string;
+        specialty: string;
+        rating: string;
+        reviews: number;
+        experience: string;
+        image: string | null;
+    }[];
+}
+
+export default function TeachersSection({ teachers = [] }: TeachersSectionProps) {
+    const { translations } = usePage<any>().props;
+    const __ = (key: string) => (translations && translations[key]) ? translations[key] : key;
+
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(null);
+
+    const handleViewProfile = (id: number) => {
+        setSelectedTeacherId(id);
+        setIsProfileModalOpen(true);
+    };
+
+    return (
+        <div className="relative flex w-full flex-col items-center gap-[clamp(2.5rem,4.17vw,3.75rem)] overflow-hidden px-[clamp(2rem,4.38vw,4rem)] py-[clamp(3rem,5.56vw,5rem)] mb-20">
+            {/* Rectangle 203 Background Image */}
+            <div className="absolute inset-0 z-0">
+                <img
+                    src="/images/Rectangle 203.png"
+                    alt={__("Section Background")}
+                    className="h-full w-full object-cover"
+                />
+            </div>
+
+            {/* Background Decorative Calligraphy */}
+            <div className="pointer-events-none absolute inset-0 z-[1] overflow-hidden opacity-100 pt-30">
+                <img
+                    src="/images/Arabic_Calligraphy_Asy_Syifa-removebg-preview 1.png"
+                    alt={__("Decorative Calligraphy")}
+                    className="relative "
+                />
+            </div>
+
+            {/* Section Title */}
+            <p className=" z-10 bg-gradient-to-r from-[#338078] to-[#0a1a18] bg-clip-text text-center font-['Nunito'] text-[clamp(2rem,3.33vw,3rem)] font-bold leading-normal text-transparent pb-6">
+                {__("Meet Our Certified")} <span className="text-[#338078]">{__("Quran Teachers")}</span>
+            </p>
+
+            {/* Teachers Grid */}
+            {teachers && teachers.length > 0 ? (
+                <div className=" z-10 flex flex-wrap items-start justify-center gap-[clamp(2rem,4.58vw,4.125rem)] pb-20">
+                    {teachers.map((teacher, index) => (
+                        <TeacherCard key={index} {...teacher} onViewProfile={handleViewProfile} />
+                    ))}
+                </div>
+            ) : (
+                <div className="z-10 flex flex-col items-center justify-center py-12 text-center bg-white/50 backdrop-blur-sm rounded-[30px] px-8 border border-[#338078]/10 w-full max-w-4xl shadow-sm">
+                    <div className="bg-[#338078]/10 p-6 rounded-full mb-6">
+                        <Icon icon="hugeicons:teacher" className="h-12 w-12 text-[#338078]" />
+                    </div>
+                    <h3 className="font-['Nunito'] text-[24px] font-bold text-[#101928] mb-2">{__("More Teachers Coming Soon!")}</h3>
+                    <p className="font-['Nunito'] text-[16px] text-[#667085] max-w-md">
+                        {__("Our master tutors are currently being verified to ensure the highest quality of Quranic education for you.")}
+                    </p>
+                </div>
+            )}
+
+            {/* Teacher Profile Modal */}
+            {selectedTeacherId && (
+                <TeacherProfileModal
+                    isOpen={isProfileModalOpen}
+                    onClose={() => setIsProfileModalOpen(false)}
+                    teacherId={selectedTeacherId}
+                />
+            )}
+        </div>
+    );
+}
+
 function TeacherCard({ id, name, specialty, rating, reviews, experience, image, onViewProfile }: TeacherCardProps) {
-    const { auth } = usePage<any>().props;
+    const { auth, translations } = usePage<any>().props;
+    const __ = (key: string) => (translations && translations[key]) ? translations[key] : key;
     const user = auth?.user;
 
     const getBookingUrl = () => {
         if (!user) return `/book/${id}`;
         if (user.role === 'student') return `/student/book/${id}`;
         if (user.role === 'guardian') return `/guardian/book/${id}`;
-        return '/login';
-    };
-
-    const getProfileUrl = () => {
-        if (!user) return '/login';
-        if (user.role === 'student') return `/student/teachers/${id}`;
-        if (user.role === 'guardian') return `/guardian/teachers/${id}`;
         return '/login';
     };
 
@@ -66,7 +141,7 @@ function TeacherCard({ id, name, specialty, rating, reviews, experience, image, 
                         </p>
                         <div className="overflow-hidden rounded-[clamp(1rem,1.68vw,1.514rem)] px-[clamp(0.25rem,0.38vw,0.346rem)] py-[clamp(0.125rem,0.19vw,0.173rem)]">
                             <p className="font-['Nunito'] text-[clamp(0.5rem,0.77vw,0.691rem)] font-normal leading-normal text-black text-center truncate">
-                                {specialty}
+                                {__(specialty)}
                             </p>
                         </div>
                     </div>
@@ -96,7 +171,7 @@ function TeacherCard({ id, name, specialty, rating, reviews, experience, image, 
                                 </p>
                             </div>
                             <p className="shrink-0 font-['Nunito'] text-[clamp(0.45rem,0.58vw,0.519rem)] font-normal leading-normal text-[#222222]">
-                                {experience}
+                                {__(experience)}
                             </p>
                         </div>
 
@@ -106,95 +181,18 @@ function TeacherCard({ id, name, specialty, rating, reviews, experience, image, 
                                 onClick={() => onViewProfile(id)}
                                 className="flex shrink-0 items-center justify-center rounded-[clamp(1.5rem,3.89vw,3.5rem)] px-[clamp(0.75rem,1.15vw,1.038rem)] py-[clamp(0.375rem,0.58vw,0.519rem)] font-['Nunito'] text-[clamp(0.5rem,0.77vw,0.691rem)] font-medium capitalize text-[#338078] transition-colors hover:bg-white/30 cursor-pointer"
                             >
-                                View profile
+                                {__("View profile")}
                             </button>
                             <Link
                                 href={getBookingUrl()}
                                 className="flex shrink-0 items-center justify-center rounded-[clamp(1.5rem,3.89vw,3.5rem)] bg-[#338078] px-[clamp(0.75rem,1.15vw,1.038rem)] py-[clamp(0.375rem,0.58vw,0.519rem)] font-['Nunito'] text-[clamp(0.5rem,0.77vw,0.691rem)] font-medium capitalize text-white transition-all hover:bg-[#2a6b64] hover:shadow-lg"
                             >
-                                Book Now
+                                {__("Book Now")}
                             </Link>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    );
-}
-
-interface TeachersSectionProps {
-    teachers?: {
-        id: number;
-        name: string;
-        specialty: string;
-        rating: string;
-        reviews: number;
-        experience: string;
-        image: string | null;
-    }[];
-}
-
-export default function TeachersSection({ teachers = [] }: TeachersSectionProps) {
-    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-    const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(null);
-
-    const handleViewProfile = (id: number) => {
-        setSelectedTeacherId(id);
-        setIsProfileModalOpen(true);
-    };
-
-    return (
-        <div className="relative flex w-full flex-col items-center gap-[clamp(2.5rem,4.17vw,3.75rem)] overflow-hidden px-[clamp(2rem,4.38vw,4rem)] py-[clamp(3rem,5.56vw,5rem)] mb-20">
-            {/* Rectangle 203 Background Image */}
-            <div className="absolute inset-0 z-0">
-                <img
-                    src="/images/Rectangle 203.png"
-                    alt=""
-                    className="h-full w-full object-cover"
-                />
-            </div>
-
-            {/* Background Decorative Calligraphy */}
-            <div className="pointer-events-none absolute inset-0 z-[1] overflow-hidden opacity-100 pt-30">
-                <img
-                    src="/images/Arabic_Calligraphy_Asy_Syifa-removebg-preview 1.png"
-                    alt=""
-                    className="relative "
-                />
-            </div>
-
-            {/* Section Title */}
-            <p className=" z-10 bg-gradient-to-r from-[#338078] to-[#0a1a18] bg-clip-text text-center font-['Nunito'] text-[clamp(2rem,3.33vw,3rem)] font-bold leading-normal text-transparent pb-6">
-                Meet Our Certified <span className="text-[#338078]">Quran Teachers</span>
-            </p>
-
-            {/* Teachers Grid */}
-            {teachers && teachers.length > 0 ? (
-                <div className=" z-10 flex flex-wrap items-start justify-center gap-[clamp(2rem,4.58vw,4.125rem)] pb-20">
-                    {teachers.map((teacher, index) => (
-                        <TeacherCard key={index} {...teacher} onViewProfile={handleViewProfile} />
-                    ))}
-                </div>
-            ) : (
-                <div className="z-10 flex flex-col items-center justify-center py-12 text-center bg-white/50 backdrop-blur-sm rounded-[30px] px-8 border border-[#338078]/10 w-full max-w-4xl shadow-sm">
-                    <div className="bg-[#338078]/10 p-6 rounded-full mb-6">
-                        <Icon icon="hugeicons:teacher" className="h-12 w-12 text-[#338078]" />
-                    </div>
-                    <h3 className="font-['Nunito'] text-[24px] font-bold text-[#101928] mb-2">More Teachers Coming Soon!</h3>
-                    <p className="font-['Nunito'] text-[16px] text-[#667085] max-w-md">
-                        Our master tutors are currently being verified to ensure the highest quality of Quranic education for you.
-                    </p>
-                </div>
-            )}
-
-            {/* Teacher Profile Modal */}
-            {selectedTeacherId && (
-                <TeacherProfileModal
-                    isOpen={isProfileModalOpen}
-                    onClose={() => setIsProfileModalOpen(false)}
-                    teacherId={selectedTeacherId}
-                />
-            )}
         </div>
     );
 }

@@ -41,10 +41,27 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'site_name' => $siteName = \App\Models\SystemSetting::get('site_name', config('app.name')),
-            'site_logo' => \App\Models\SystemSetting::get('site_logo') 
-                ? asset('storage/' . \App\Models\SystemSetting::get('site_logo')) 
+            'site_logo' => \App\Models\SystemSetting::get('site_logo')
+                ? asset('storage/' . \App\Models\SystemSetting::get('site_logo'))
                 : null,
             'name' => $siteName,
+            'settings' => [
+                'general' => [
+                    'support_email' => \App\Models\SystemSetting::get('support_email'),
+                    'office_address' => \App\Models\SystemSetting::get('office_address'),
+                    'contact_number' => \App\Models\SystemSetting::get('contact_number'),
+                    'whatsapp_number' => \App\Models\SystemSetting::get('whatsapp_number'),
+                ],
+            ],
+            'locale' => app()->getLocale(),
+            'translations' => array_merge(
+                \Illuminate\Support\Facades\File::exists(lang_path('en.json'))
+                ? json_decode(\Illuminate\Support\Facades\File::get(lang_path('en.json')), true)
+                : [],
+                \Illuminate\Support\Facades\File::exists(lang_path(app()->getLocale() . '.json'))
+                ? json_decode(\Illuminate\Support\Facades\File::get(lang_path(app()->getLocale() . '.json')), true)
+                : []
+            ),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
@@ -65,7 +82,7 @@ class HandleInertiaRequests extends Middleware
                 'booking_status' => $request->session()->get('booking_status'),
                 'booking_id' => $request->session()->get('booking_id'),
             ],
-            'notifications' => $request->user() 
+            'notifications' => $request->user()
                 ? $request->user()->notifications()->latest()->take(10)->get()->map(function ($notification) {
                     return [
                         'id' => $notification->id,
@@ -76,17 +93,17 @@ class HandleInertiaRequests extends Middleware
                     ];
                 })->values()->toArray()
                 : [],
-            'unreadNotificationsCount' => $request->user() 
+            'unreadNotificationsCount' => $request->user()
                 ? $request->user()->unreadNotifications()->count()
                 : 0,
             'unreadMessagesCount' => $request->user()
                 ? \App\Models\Message::whereHas('conversation', function ($q) use ($request) {
                     $q->where('user_one_id', $request->user()->id)
-                      ->orWhere('user_two_id', $request->user()->id);
+                        ->orWhere('user_two_id', $request->user()->id);
                 })
-                ->where('sender_id', '!=', $request->user()->id)
-                ->whereNull('read_at')
-                ->count()
+                    ->where('sender_id', '!=', $request->user()->id)
+                    ->whereNull('read_at')
+                    ->count()
                 : 0,
             'pendingRequestsCount' => ($request->user() && $request->user()->isTeacher() && $request->user()->teacher)
                 ? \App\Models\Booking::where('teacher_id', $request->user()->teacher->id)
@@ -120,7 +137,7 @@ class HandleInertiaRequests extends Middleware
             'pendingPayoutsCount' => ($request->user() && $request->user()->isAdmin())
                 ? \App\Models\Payout::where('status', 'pending')->count()
                 : 0,
-            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
 }

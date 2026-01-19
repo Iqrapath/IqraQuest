@@ -2,6 +2,13 @@ import React from 'react';
 import { Icon } from '@iconify/react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { CalendarExport } from '@/components/ui/calendar-export';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 export interface BookingData {
     id: number;
@@ -111,41 +118,80 @@ export const TeacherBookingCard: React.FC<TeacherBookingCardProps> = ({
                 </div>
 
                 <div className="flex gap-2">
-                    {isOngoing && (
-                        <button
-                            onClick={() => onJoinClass(booking)}
-                            className="px-6 py-2 rounded-full bg-[#358D83] text-white font-bold text-sm hover:bg-[#2b756d] transition-colors shadow-lg shadow-teal-900/10 flex items-center gap-2"
-                        >
-                            <Icon icon="ph:video-camera-bold" className="w-4 h-4" />
-                            Join
-                        </button>
-                    )}
-
-                    {isUpcoming && (
-                        <>
+                    <TooltipProvider delayDuration={0}>
+                        {isOngoing && (
                             <button
-                                onClick={() => onMessageLearner(booking)}
-                                className="px-4 py-2 rounded-full border border-[#358D83] text-[#358D83] font-bold text-sm hover:bg-teal-50 transition-colors"
+                                onClick={() => onJoinClass(booking)}
+                                className="px-6 py-2 rounded-full bg-[#358D83] text-white font-bold text-sm hover:bg-[#2b756d] transition-colors shadow-lg shadow-teal-900/10 flex items-center gap-2"
                             >
-                                Message
+                                <Icon icon="ph:video-camera-bold" className="w-4 h-4" />
+                                Join
                             </button>
-                            <button
-                                onClick={() => onCancel(booking)}
-                                className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 transition-colors"
-                            >
-                                <Icon icon="ph:x-bold" className="w-4 h-4" />
-                            </button>
-                        </>
-                    )}
+                        )}
 
-                    {(isCompleted || isCancelled) && (
-                        <button
-                            onClick={() => onViewSummary(booking)}
-                            className="px-4 py-2 rounded-full border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50 transition-colors"
-                        >
-                            Summary
-                        </button>
-                    )}
+                        {isUpcoming && (
+                            <>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="inline-block">
+                                            <CalendarExport
+                                                bookingId={booking.id}
+                                                className="w-10 h-10 p-0 rounded-full border-gray-200 justify-center [&>span]:hidden cursor-pointer"
+                                                variant="outline"
+                                            />
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Add to Calendar</p>
+                                    </TooltipContent>
+                                </Tooltip>
+
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <button
+                                            onClick={() => onMessageLearner(booking)}
+                                            className="w-10 h-10 flex items-center justify-center rounded-full border-2 border-b-4 border-[#358D83] text-[#358D83] hover:bg-teal-50 transition-colors cursor-pointer"
+                                        >
+                                            <Icon icon="ant-design:message-twotone" className="w-5 h-5" />
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Message Student</p>
+                                    </TooltipContent>
+                                </Tooltip>
+
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <button
+                                            onClick={() => onCancel(booking)}
+                                            className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 transition-colors cursor-pointer"
+                                        >
+                                            <Icon icon="ph:x-bold" className="w-4 h-4" />
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Cancel Class</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </>
+                        )}
+
+                        {(isCompleted || isCancelled) && (
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        onClick={() => onViewSummary(booking)}
+                                        className="px-4 py-2 rounded-full border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50 transition-colors"
+                                    >
+                                        Summary
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>View Session Details</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        )}
+                    </TooltipProvider>
                 </div>
             </div>
         </div>

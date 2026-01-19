@@ -9,8 +9,11 @@ interface AdminLeftSidebarProps {
 
 export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProps = {}) {
     const { url, props } = usePage<any>();
-    const { auth, site_logo, site_name, unreadMessagesCount, unreadNotificationsCount, pendingTeacherApplicationsCount, pendingPayoutsCount } = props;
+    const { auth, site_logo, site_name, unreadMessagesCount, unreadNotificationsCount, pendingTeacherApplicationsCount, pendingPayoutsCount, translations } = props;
     const userId = auth?.user?.id;
+
+    // Translation helper
+    const __ = (key: string) => (translations && translations[key]) ? translations[key] : key;
 
     useEffect(() => {
         if (!userId) return;
@@ -34,35 +37,35 @@ export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProp
     }, [userId]);
 
     const mainMenuItems = [
-        { name: 'Dashboard', icon: 'solar:widget-5-outline', route: '/admin/dashboard' },
-        { name: 'Teacher Management', icon: 'hugeicons:teacher', route: '/admin/teachers' },
-        { name: 'Parent Management', icon: 'ri:parent-line', route: '/admin/students' },
-        { name: 'Booking Management', icon: 'solar:calendar-outline', route: '/admin/bookings' },
-        { name: 'Verification Requests', icon: 'uil:comment-verify', route: '/admin/verifications', badge: pendingTeacherApplicationsCount },
-        { name: 'Subscription Plans', icon: 'eos-icons:subscriptions-created-outlined', route: '#', comingSoon: true },
-        { name: 'Guardian Management', icon: 'fluent:guardian-28-regular', route: '#', comingSoon: true },
-        { name: 'Payment Management', icon: 'streamline-plump:wallet', route: '/admin/payments', badge: pendingPayoutsCount },
+        { name: __('Dashboard'), icon: 'solar:widget-5-outline', route: '/admin/dashboard' },
+        { name: __('Teacher Management'), icon: 'hugeicons:teacher', route: '/admin/teachers' },
+        { name: __('Parent Management'), icon: 'ri:parent-line', route: '/admin/students' },
+        { name: __('Booking Management'), icon: 'solar:calendar-outline', route: '/admin/bookings' },
+        { name: __('Verification Requests'), icon: 'uil:comment-verify', route: '/admin/verifications', badge: pendingTeacherApplicationsCount },
+        { name: __('Subscription Plans'), icon: 'eos-icons:subscriptions-created-outlined', route: '#', comingSoon: true },
+        { name: __('Guardian Management'), icon: 'fluent:guardian-28-regular', route: '#', comingSoon: true },
+        { name: __('Payment Management'), icon: 'streamline-plump:wallet', route: '/admin/payments', badge: pendingPayoutsCount },
     ];
 
     const cmsItems = [
-        { name: 'CMS', icon: 'simple-icons:payloadcms', route: '#', comingSoon: true },
-        { name: 'Admin Controls', icon: 'carbon:network-admin-control', route: '#', comingSoon: true },
-        { name: 'Referrals System', icon: 'carbon:review', route: '#', comingSoon: true },
+        { name: __('CMS'), icon: 'simple-icons:payloadcms', route: '#', comingSoon: true },
+        { name: __('Admin Controls'), icon: 'carbon:network-admin-control', route: '#', comingSoon: true },
+        { name: __('Referrals System'), icon: 'carbon:review', route: '#', comingSoon: true },
     ];
 
     const settingsItems = [
-        { name: 'Settings & Security', icon: 'solar:settings-outline', route: '#', comingSoon: true },
-        { name: 'Notification System', icon: 'solar:bell-outline', route: '/admin/notifications', badge: unreadNotificationsCount },
-        { name: 'Messages', icon: 'mdi:message-text-outline', route: '/admin/messages', badge: unreadMessagesCount },
-        { name: 'Feedback & Support', icon: 'fluent:person-support-20-regular', route: '#', comingSoon: true },
+        { name: __('Settings & Security'), icon: 'solar:settings-outline', route: '/admin/settings' },
+        { name: __('Notification System'), icon: 'solar:bell-outline', route: '/admin/notifications', badge: unreadNotificationsCount },
+        { name: __('Messages'), icon: 'mdi:message-text-outline', route: '/admin/messages', badge: unreadMessagesCount },
+        { name: __('Feedback & Support'), icon: 'fluent:person-support-20-regular', route: '#', comingSoon: true },
     ];
 
     const isActive = (route: string) => route !== '#' && url.startsWith(route);
 
     const handleComingSoonClick = (e: React.MouseEvent, itemName: string) => {
         e.preventDefault();
-        toast.info(`${itemName} is coming soon!`, {
-            description: 'We\'re working hard to bring you this feature. Stay tuned!',
+        toast.info(`${itemName} ${__('is coming soon!')}`, {
+            description: __("We're working hard to bring you this feature. Stay tuned!"),
             icon: '🚧',
         });
     };

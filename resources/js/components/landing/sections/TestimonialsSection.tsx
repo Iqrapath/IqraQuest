@@ -1,4 +1,5 @@
 import { Icon } from '@iconify/react';
+import { usePage } from '@inertiajs/react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -14,11 +15,10 @@ interface TestimonialCardProps {
 function TestimonialCard({ quote, name, role, image, rating, isActive }: TestimonialCardProps) {
     return (
         <div
-            className={`relative min-w-[clamp(300px,26.6vw,383px)] transition-all duration-500 ${
-                isActive
+            className={`relative min-w-[clamp(300px,26.6vw,383px)] transition-all duration-500 ${isActive
                     ? 'z-20 scale-[1.2] opacity-100'
                     : 'z-10 scale-100 opacity-60 blur-[2px]'
-            }`}
+                }`}
         >
             {/* Card Background */}
             <div className="relative h-[clamp(240px,22.57vw,325px)] rounded-[clamp(1rem,2vw,1.5rem)] border border-[#ededed] bg-white p-[clamp(1.5rem,2.08vw,1.875rem)] shadow-lg">
@@ -36,9 +36,8 @@ function TestimonialCard({ quote, name, role, image, rating, isActive }: Testimo
                         <Icon
                             key={i}
                             icon="mdi:star"
-                            className={`h-[clamp(0.75rem,1.11vw,1rem)] w-[clamp(0.75rem,1.11vw,1rem)] ${
-                                i < rating ? 'text-[#ffc633]' : 'text-gray-300'
-                            }`}
+                            className={`h-[clamp(0.75rem,1.11vw,1rem)] w-[clamp(0.75rem,1.11vw,1rem)] ${i < rating ? 'text-[#ffc633]' : 'text-gray-300'
+                                }`}
                         />
                     ))}
                 </div>
@@ -71,6 +70,9 @@ function TestimonialCard({ quote, name, role, image, rating, isActive }: Testimo
 }
 
 export default function TestimonialsSection() {
+    const { translations } = usePage<any>().props;
+    const __ = (key: string) => (translations && translations[key]) ? translations[key] : key;
+
     const [emblaRef, emblaApi] = useEmblaCarousel({
         align: 'start',
         loop: false,
@@ -106,30 +108,30 @@ export default function TestimonialsSection() {
 
     const testimonials = [
         {
-            quote: 'The Tajweed lessons are very interactive, and I feel more confident in my recitation.',
-            name: 'Ahmed S., UK',
-            role: 'CEO Universal',
+            quote: __('The Tajweed lessons are very interactive, and I feel more confident in my recitation.'),
+            name: __('Ahmed S., UK'),
+            role: __('CEO Universal'),
             image: '/images/feature-student.png',
             rating: 5,
         },
         {
-            quote: 'Finding a female Quran teacher for my daughter was difficult until I found this platform. Now, she enjoys her Tajweed classes.',
-            name: 'Aisha K., Canada',
-            role: 'CEO Eronaman',
+            quote: __('Finding a female Quran teacher for my daughter was difficult until I found this platform. Now, she enjoys her Tajweed classes.'),
+            name: __('Aisha K., Canada'),
+            role: __('CEO Eronaman'),
             image: '/images/feature-student.png',
             rating: 5,
         },
         {
-            quote: "I always struggled with pronunciation, but my teacher's patience and guidance helped me improve.",
-            name: 'Bilal R., UAE',
-            role: 'CEO Universal',
+            quote: __("I always struggled with pronunciation, but my teacher's patience and guidance helped me improve."),
+            name: __('Bilal R., UAE'),
+            role: __('CEO Universal'),
             image: '/images/feature-student.png',
             rating: 5,
         },
         {
-            quote: 'My son completed his Hifz with an excellent tutor. The structured lessons and motivation from his teacher made all the difference!',
-            name: 'Farooq M., Saudi Arabia',
-            role: 'CEO Universal',
+            quote: __('My son completed his Hifz with an excellent tutor. The structured lessons and motivation from his teacher made all the difference!'),
+            name: __('Farooq M., Saudi Arabia'),
+            role: __('CEO Universal'),
             image: '/images/feature-student.png',
             rating: 5,
         },
@@ -137,28 +139,11 @@ export default function TestimonialsSection() {
 
     return (
         <div className="relative w-full overflow-hidden bg-white px-[clamp(2rem,4.38vw,4rem)] py-[clamp(4rem,6.94vw,6.25rem)]">
-            {/* Background Decorative Waves */}
-            {/* <div className="pointer-events-none absolute inset-0 opacity-30">
-                <svg className="absolute left-0 top-0 h-full w-full" viewBox="0 0 1440 800" fill="none">
-                    <path
-                        d="M0 100C240 50 480 150 720 100C960 50 1200 150 1440 100V0H0V100Z"
-                        fill="url(#wave-gradient)"
-                        opacity="0.1"
-                    />
-                    <defs>
-                        <linearGradient id="wave-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stopColor="#338078" />
-                            <stop offset="100%" stopColor="#0a1a18" />
-                        </linearGradient>
-                    </defs>
-                </svg>
-            </div> */}
-
             {/* Background Quran Image */}
             <div className="pointer-events-none absolute bottom-0 left-[-1%] size-[400px] opacity-30">
                 <img
                     src="/images/Beautiful_quran_mazid-removebg-preview 3.png"
-                    alt=""
+                    alt={__("Decorative Quran")}
                     className="size-full object-cover"
                 />
             </div>
@@ -166,10 +151,10 @@ export default function TestimonialsSection() {
             {/* Section Header */}
             <div className="relative z-10 mb-[clamp(3rem,4.17vw,3.75rem)] flex flex-col items-center text-center">
                 <p className="font-['Nunito'] text-[clamp(0.875rem,1.25vw,1.125rem)] font-bold uppercase leading-normal text-[#338078]">
-                    Testimonial
+                    {__("Testimonial")}
                 </p>
                 <p className="bg-gradient-to-r from-[#338078] to-[#0a1a18] bg-clip-text font-['Nunito'] text-[clamp(2rem,3.33vw,3rem)] font-bold leading-[clamp(3rem,4.44vw,4rem)] text-transparent">
-                    What Our Students Say
+                    {__("What Our Students Say")}
                 </p>
             </div>
 
@@ -221,7 +206,7 @@ export default function TestimonialsSection() {
                 <button
                     onClick={scrollPrev}
                     className="flex size-[clamp(2.5rem,3.47vw,3.125rem)] items-center justify-center rounded-full transition-colors hover:bg-gray-100"
-                    aria-label="Previous testimonial"
+                    aria-label={__("Previous testimonial")}
                 >
                     <Icon
                         icon="mdi:chevron-left"
@@ -231,7 +216,7 @@ export default function TestimonialsSection() {
                 <button
                     onClick={scrollNext}
                     className="flex size-[clamp(2.5rem,3.47vw,3.125rem)] items-center justify-center rounded-full transition-colors hover:bg-gray-100"
-                    aria-label="Next testimonial"
+                    aria-label={__("Next testimonial")}
                 >
                     <Icon
                         icon="mdi:chevron-right"

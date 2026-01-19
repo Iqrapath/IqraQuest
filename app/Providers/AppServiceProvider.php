@@ -29,5 +29,13 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Teacher::observe(\App\Observers\TeacherObserver::class);
         \App\Models\TeacherCertificate::observe(\App\Observers\TeacherCertificateObserver::class);
         \App\Models\Booking::observe(\App\Observers\BookingObserver::class);
+
+        // Set Global Locale from Settings
+        if (\Illuminate\Support\Facades\Schema::hasTable('system_settings')) {
+            $locale = \App\Models\SystemSetting::get('language');
+            if ($locale) {
+                \Illuminate\Support\Facades\App::setLocale($locale);
+            }
+        }
     }
 }
