@@ -47,6 +47,12 @@ class ProcessAutoPayoutJob implements ShouldQueue
     public function handle(PayoutService $payoutService): void
     {
         try {
+            // Check if auto-payouts are enabled globally
+            if (!\App\Models\SystemSetting::get('auto_payouts', true)) {
+                Log::info("Auto-payout job: Auto-payouts are disabled globally by admin");
+                return;
+            }
+
             // Use database lock to prevent race conditions
             DB::transaction(function () use ($payoutService) {
                 // Lock teacher record
@@ -57,7 +63,7 @@ class ProcessAutoPayoutJob implements ShouldQueue
                     return;
                 }
 
-                // 1. Check if automatic payouts are enabled
+                // 1. Check if automatic payouts are enabled for this teacher
                 if (!$teacher->automatic_payouts) {
                     Log::info("Auto-payout job: Teacher {$teacher->id} has automatic payouts disabled");
                     return;
@@ -74,8 +80,10 @@ class ProcessAutoPayoutJob implements ShouldQueue
                 }
 
                 // 3. Check daily limit (24 hours since last payout request)
-                if ($teacher->last_payout_requested_at && 
-                    $teacher->last_payout_requested_at->gt(now()->subDay())) {
+                if (
+                    $teacher->last_payout_requested_at &&
+                    $teacher->last_payout_requested_at->gt(now()->subDay())
+                ) {
                     Log::info("Auto-payout job: Teacher {$teacher->id} already requested payout today");
                     return;
                 }
@@ -121,11 +129,11 @@ class ProcessAutoPayoutJob implements ShouldQueue
                 // 11. Process payout (send to gateway) - this may throw exception if fails
                 try {
                     $payoutService->processPayout($payout->id);
-                    
+
                     // 12. If we reach here, payout was successful
                     // Update teacher's last auto-payout timestamp
                     $teacher->update(['last_auto_payout_at' => now()]);
-                    
+
                     // 13. Send success notification to teacher
                     $payout->refresh(); // Get latest status
                     if ($payout->status === 'completed') {
@@ -133,12 +141,12 @@ class ProcessAutoPayoutJob implements ShouldQueue
                         $teacher->user->notify(new \App\Notifications\AutoPayoutProcessedNotification($payout));
                         Log::info("Auto-payout job: Success notification sent");
                     }
-                    
+
                     Log::info("Auto-payout job: Successfully processed payout ID {$payout->id} for Teacher {$teacher->id}");
                 } catch (\Exception $payoutException) {
                     // Payout processing failed (e.g., Paystack error)
                     Log::error("Auto-payout job: Payout processing failed for Teacher {$teacher->id}: " . $payoutException->getMessage());
-                    
+
                     // Re-throw to trigger job retry and failure notification
                     throw $payoutException;
                 }

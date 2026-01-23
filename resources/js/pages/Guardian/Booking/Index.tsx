@@ -89,6 +89,52 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
     const { days } = getDaysInMonth(currentMonth);
     const daysArray = [...Array(days).keys()].map(i => i + 1);
 
+    const getSlotConflict = (date: Date, start: string, end: string, checkCart = true) => {
+        const slotStart = new Date(date);
+        const [sH, sM] = start.split(':').map(Number);
+        slotStart.setHours(sH, sM, 0, 0);
+
+        const slotEnd = new Date(date);
+        const [eH, eM] = end.split(':').map(Number);
+        slotEnd.setHours(eH, eM, 0, 0);
+
+        // 1. Check against backend booked_slots
+        const isExternalConflict = booked_slots?.some(booking => {
+            const bStart = parseNaiveTime(booking.start);
+            const bEnd = parseNaiveTime(booking.end);
+            return slotStart < bEnd && slotEnd > bStart;
+        });
+
+        if (isExternalConflict) return 'booked';
+
+        // 2. Check against current selection in cart (to prevent double picking same day/time)
+        if (checkCart) {
+            const isInternalConflict = selectedSessions.some(session => {
+                if (session.date.toDateString() !== date.toDateString()) return false;
+                return session.start === start;
+            });
+            if (isInternalConflict) return 'selected';
+        }
+
+        return null;
+    };
+
+    const validateRecurrence = (date: Date, start: string, end: string, checkCart = true, forceRecurring?: boolean, forceOccurrences?: number) => {
+        const loopCount = (forceRecurring ?? isRecurring) ? (forceOccurrences ?? occurrences) : 1;
+        const conflicts: Date[] = [];
+
+        for (let i = 0; i < loopCount; i++) {
+            const futureDate = new Date(date);
+            futureDate.setDate(date.getDate() + (i * 7));
+
+            if (getSlotConflict(futureDate, start, end, checkCart)) {
+                conflicts.push(futureDate);
+            }
+        }
+
+        return conflicts;
+    };
+
     const getAvailableSlots = (date: Date | null): TimeSlot[] => {
         if (!date) return [];
 
@@ -164,51 +210,7 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
         return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
     };
 
-    const getSlotConflict = (date: Date, start: string, end: string, checkCart = true) => {
-        const slotStart = new Date(date);
-        const [sH, sM] = start.split(':').map(Number);
-        slotStart.setHours(sH, sM, 0, 0);
 
-        const slotEnd = new Date(date);
-        const [eH, eM] = end.split(':').map(Number);
-        slotEnd.setHours(eH, eM, 0, 0);
-
-        // 1. Check against backend booked_slots
-        const isExternalConflict = booked_slots?.some(booking => {
-            const bStart = parseNaiveTime(booking.start);
-            const bEnd = parseNaiveTime(booking.end);
-            return slotStart < bEnd && slotEnd > bStart;
-        });
-
-        if (isExternalConflict) return 'booked';
-
-        // 2. Check against current selection in cart (to prevent double picking same day/time)
-        if (checkCart) {
-            const isInternalConflict = selectedSessions.some(session => {
-                if (session.date.toDateString() !== date.toDateString()) return false;
-                return session.start === start;
-            });
-            if (isInternalConflict) return 'selected';
-        }
-
-        return null;
-    };
-
-    const validateRecurrence = (date: Date, start: string, end: string, checkCart = true, forceRecurring?: boolean, forceOccurrences?: number) => {
-        const loopCount = (forceRecurring ?? isRecurring) ? (forceOccurrences ?? occurrences) : 1;
-        const conflicts: Date[] = [];
-
-        for (let i = 0; i < loopCount; i++) {
-            const futureDate = new Date(date);
-            futureDate.setDate(date.getDate() + (i * 7));
-
-            if (getSlotConflict(futureDate, start, end, checkCart)) {
-                conflicts.push(futureDate);
-            }
-        }
-
-        return conflicts;
-    };
 
     const getAvailabilitySummary = (schedule: any[]) => {
         if (!schedule || schedule.length === 0) return { days: 'flexible', time: 'Contact for details' };
@@ -396,6 +398,7 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
             occurrences: occurrences
         }, {
             preserveScroll: true,
+            preserveState: true,
             onStart: () => setIsProcessing(true),
             onFinish: () => setIsProcessing(false),
             onSuccess: (page) => {
@@ -487,6 +490,8 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
                     onPaymentMethodChange={setPaymentMethod}
                     onBack={goToPrevStep}
                     onProceed={handleProceedCheck}
+                    slotsCount={selectedSessions.length}
+                    sessionCount={totalSessions}
                 />
             )}
 
@@ -509,6 +514,8 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
                 isOpen={isInsufficientFundsOpen}
                 onClose={() => setIsInsufficientFundsOpen(false)}
                 requiredAmount={totalCostNGN}
+                initializeRoute="/guardian/payment/initialize"
+                verifyRouteBase="/guardian/payment/verify"
             />
 
             <BookingSuccessModal

@@ -6,12 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\SystemSetting;
 use App\Models\PaymentSetting;
+use App\Models\FAQ;
 use App\Models\User;
 use App\Enums\UserRole;
 use App\Constants\Permissions;
+use App\Notifications\TermsUpdatedNotification;
+use App\Notifications\AdminCredentialsNotification;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification as NotificationFacade;
 use Illuminate\Validation\Rule;
 
 class SettingsController extends Controller
@@ -35,6 +39,7 @@ class SettingsController extends Controller
             'roles' => Role::withCount('users')->get(),
             'admins' => User::where('role', UserRole::ADMIN)->with('roleDetail')->get(),
             'availablePermissions' => Permissions::getAllGrouped(),
+            'faqs' => FAQ::orderBy('order')->get(),
         ]);
     }
 
@@ -74,6 +79,42 @@ class SettingsController extends Controller
         }
 
         return back()->with('success', 'General settings updated successfully.');
+    }
+
+    /**
+     * Update Legal Settings (T&C, Privacy Policy).
+     */
+    public function updateLegal(Request $request)
+    {
+        $validated = $request->validate([
+            'terms_conditions' => 'nullable|string',
+            'privacy_policy' => 'nullable|string',
+            'tc_send_email' => 'nullable|boolean',
+            'tc_send_dashboard' => 'nullable|boolean',
+        ]);
+
+        foreach ($validated as $key => $value) {
+            $type = is_bool($value) ? 'boolean' : 'string';
+            SystemSetting::set($key, $value, 'legal', $type);
+        }
+
+        // Handle Notifications if requested
+        if ($request->tc_send_email || $request->tc_send_dashboard) {
+            $users = User::all();
+            NotificationFacade::send(
+                $users,
+                new TermsUpdatedNotification(
+                    (bool) $request->tc_send_email,
+                    (bool) $request->tc_send_dashboard
+                )
+            );
+
+            // Reset flags to avoid double sending on next save
+            SystemSetting::set('tc_send_email', false, 'legal', 'boolean');
+            SystemSetting::set('tc_send_dashboard', false, 'legal', 'boolean');
+        }
+
+        return back()->with('success', 'Legal settings updated successfully.');
     }
 
     /**
@@ -127,22 +168,47 @@ class SettingsController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($id)],
+            'phone' => 'nullable|string|max:20',
             'role_id' => 'required|exists:roles,id',
             'password' => $id ? 'nullable|min:8' : 'required|min:8',
+            'avatar' => 'nullable|image|max:2048',
+            'full_access' => 'nullable|boolean',
+            'permissions' => 'nullable|string', // JSON string
+            'send_via_email' => 'nullable|boolean',
+            'send_via_sms' => 'nullable|boolean',
         ]);
 
         $userData = [
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
             'role_id' => $validated['role_id'],
             'role' => UserRole::ADMIN,
+            'email_verified_at' => now(), // Auto-verify admin accounts
         ];
 
-        if ($validated['password']) {
+        if (!empty($validated['password'])) {
             $userData['password'] = Hash::make($validated['password']);
         }
 
-        User::updateOrCreate(['id' => $id], $userData);
+        // Handle avatar upload
+        if ($request->hasFile('avatar')) {
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $userData['avatar'] = $avatarPath;
+        }
+
+        $user = User::updateOrCreate(['id' => $id], $userData);
+
+        // Store custom permissions if provided
+        if (isset($validated['permissions'])) {
+            $permissions = json_decode($validated['permissions'], true) ?? [];
+            // TODO: Store permissions in a pivot table or JSON column if needed
+        }
+
+        // Send credentials via email if requested
+        if ($request->boolean('send_via_email') && !$id && !empty($validated['password'])) {
+            $user->notify(new AdminCredentialsNotification($validated['password']));
+        }
 
         return back()->with('success', $id ? 'Admin updated.' : 'Admin created.');
     }
@@ -152,5 +218,48 @@ class SettingsController extends Controller
         return SystemSetting::all()->groupBy('group')->map(function ($group) {
             return $group->pluck('value', 'key');
         });
+    }
+
+    /**
+     * Delete Admin.
+     */
+    public function deleteAdmin($id)
+    {
+        $user = User::where('id', $id)->where('role', UserRole::ADMIN)->firstOrFail();
+
+        // Prevent deleting self or Super Admin
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'You cannot delete yourself.');
+        }
+
+        if ($user->isSuperAdmin()) {
+            return back()->with('error', 'Cannot delete a Super Admin.');
+        }
+
+        $user->delete();
+
+        return back()->with('success', 'Admin deleted successfully.');
+    }
+
+    /**
+     * Toggle Admin Status (Active/Suspended).
+     */
+    public function toggleAdminStatus($id)
+    {
+        $user = User::where('id', $id)->where('role', UserRole::ADMIN)->firstOrFail();
+
+        // Prevent suspending self or Super Admin
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'You cannot suspend yourself.');
+        }
+
+        if ($user->isSuperAdmin()) {
+            return back()->with('error', 'Cannot suspend a Super Admin.');
+        }
+
+        $user->status = $user->status === 'active' ? 'suspended' : 'active';
+        $user->save();
+
+        return back()->with('success', 'Admin status updated to ' . $user->status . '.');
     }
 }

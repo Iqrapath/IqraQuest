@@ -74,49 +74,49 @@ export default function Footer() {
                             {/* Social Media Icons */}
                             <div className="flex items-center gap-[clamp(0.75rem,1.53vw,1.375rem)]">
                                 <a
-                                    href="https://facebook.com"
+                                    href="https://web.facebook.com/profile.php?id=61582931091041"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="transition-transform hover:scale-110"
                                     aria-label="Facebook"
                                 >
-                                    <Icon icon="mdi:facebook" className="h-[clamp(0.875rem,1.32vw,1.188rem)] w-[clamp(0.5rem,0.76vw,0.688rem)] text-white" />
+                                    <Icon icon="mdi:facebook" className="h-[30px] w-[30px] text-white" />
                                 </a>
                                 <a
-                                    href="https://twitter.com"
+                                    href="https://x.com/iqraquest"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="transition-transform hover:scale-110"
                                     aria-label="Twitter"
                                 >
-                                    <Icon icon="mdi:twitter" className="h-[clamp(0.75rem,1.04vw,0.938rem)] w-[clamp(0.875rem,1.32vw,1.188rem)] text-white" />
+                                    <Icon icon="mdi:twitter" className="h-[30px] w-[30px] text-white" />
                                 </a>
                                 <a
-                                    href="https://instagram.com"
+                                    href="https://www.instagram.com/iqra.quest/"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="transition-transform hover:scale-110"
                                     aria-label="Instagram"
                                 >
-                                    <Icon icon="mdi:instagram" className="h-[clamp(0.875rem,1.32vw,1.188rem)] w-[clamp(0.875rem,1.32vw,1.188rem)] text-white" />
+                                    <Icon icon="mdi:instagram" className="h-[30px] w-[30px] text-white" />
                                 </a>
-                                <a
+                                {/* <a
                                     href="https://linkedin.com"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="transition-transform hover:scale-110"
                                     aria-label="LinkedIn"
                                 >
-                                    <Icon icon="mdi:linkedin" className="h-[clamp(0.875rem,1.25vw,1.125rem)] w-[clamp(0.875rem,1.32vw,1.188rem)] text-white" />
-                                </a>
+                                    <Icon icon="mdi:linkedin" className="h-[30px] w-[30px] text-white" />
+                                </a> */}
                                 <a
-                                    href="https://youtube.com"
+                                    href="https://www.tiktok.com/@iqraquest?lang=en"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="transition-transform hover:scale-110"
-                                    aria-label="YouTube"
+                                    aria-label="Tiktok"
                                 >
-                                    <Icon icon="mdi:youtube" className="h-[clamp(0.75rem,1.04vw,0.938rem)] w-[clamp(1rem,1.46vw,1.313rem)] text-white" />
+                                    <Icon icon="iconoir:tiktok" className="h-[30px] w-[30px] text-white" />
                                 </a>
                             </div>
                         </div>
@@ -128,7 +128,7 @@ export default function Footer() {
                             </h3>
                             <nav className="flex flex-col items-start gap-[clamp(0.375rem,0.69vw,0.625rem)]">
                                 <Link
-                                    href="/"
+                                    href="/home"
                                     className="whitespace-pre text-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-semibold leading-[clamp(1rem,1.67vw,1.5rem)] tracking-[0.2px] text-[#d9d9d9] transition-colors hover:text-white"
                                 >
                                     {__("Home")}
@@ -222,11 +222,11 @@ export default function Footer() {
                     </p>
                     <p className="text-center font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-normal leading-[clamp(1.25rem,2.08vw,1.875rem)] text-[#d9d9d9] lg:text-right">
                         <span>{__("All Rights Reserved | ")}</span>
-                        <Link href="#terms" className="text-[#fad4b4] underline decoration-solid transition-colors hover:text-white">
+                        <Link href="terms" className="text-[#fad4b4] underline decoration-solid transition-colors hover:text-white">
                             {__("Terms and Conditions")}
                         </Link>
                         <span> | </span>
-                        <Link href="#privacy" className="text-[#fad4b4] underline decoration-solid transition-colors hover:text-white">
+                        <Link href="privacy" className="text-[#fad4b4] underline decoration-solid transition-colors hover:text-white">
                             {__("Privacy Policy")}
                         </Link>
                     </p>

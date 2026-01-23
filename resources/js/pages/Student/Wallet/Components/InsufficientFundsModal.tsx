@@ -13,7 +13,9 @@ interface InsufficientFundsModalProps {
     // onFund is usually passed if parent handles logic, but here we handle it internally too
     onFund?: () => void;
     paystackPublicKey?: string;
-    requiredAmount?: number; // Added requiredAmount
+    requiredAmount?: number;
+    initializeRoute?: string;
+    verifyRouteBase?: string;
 }
 
 export const InsufficientFundsModal: React.FC<InsufficientFundsModalProps> = ({
@@ -21,7 +23,9 @@ export const InsufficientFundsModal: React.FC<InsufficientFundsModalProps> = ({
     onClose,
     onFund,
     paystackPublicKey = "",
-    requiredAmount = 0
+    requiredAmount = 0,
+    initializeRoute = '/student/payment/initialize',
+    verifyRouteBase = '/student/payment/verify'
 }) => {
     const [isTopUpOpen, setIsTopUpOpen] = useState(false);
     const pageProps = usePage<any>().props;
@@ -74,7 +78,7 @@ export const InsufficientFundsModal: React.FC<InsufficientFundsModalProps> = ({
                 channels: !isPayPal ? [channel] : undefined,
             };
 
-            const response = await axios.post('/student/payment/initialize', payload);
+            const response = await axios.post(initializeRoute, payload);
 
             const data = response.data;
 
@@ -126,7 +130,7 @@ export const InsufficientFundsModal: React.FC<InsufficientFundsModalProps> = ({
 
         try {
             // Call backend to verify and credit wallet
-            await axios.get(`/student/payment/verify/${txRef}`);
+            await axios.get(`${verifyRouteBase}/${txRef}`);
 
             toast.dismiss(verifyToast);
             toast.success('Payment successful! Your wallet has been credited.');

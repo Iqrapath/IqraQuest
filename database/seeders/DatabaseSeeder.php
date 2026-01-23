@@ -16,14 +16,14 @@ class DatabaseSeeder extends Seeder
         // Seed demo users with roles
         $this->call([
             AdminSettingSeeder::class,
+            PlanFeatureSeeder::class,
             AdminSeeder::class,
-            //GuardianSeeder::class,
-          //  StudentSeeder::class,
-         //   TeacherDemoSeeder::class,
+            GuardianSeeder::class,
+            StudentSeeder::class,
+            TeacherDemoSeeder::class,
             SubjectSeeder::class,
-            // TeacherSeeder::class, // Bulk seeder if needed
-          //  PayoutSeeder::class,
-         //   PlanFeatureSeeder::class,
+            TeacherSeeder::class, // Bulk seeder if needed
+            PayoutSeeder::class,
         ]);
     }
 }

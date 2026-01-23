@@ -20,6 +20,8 @@ interface Props {
     roomName: string;
     isAdmin: boolean;
     liveKitUrl: string;
+    platform?: string;
+    zoomUrl?: string;
 }
 
 export default function VerificationRoom({
@@ -27,16 +29,24 @@ export default function VerificationRoom({
     token,
     isAdmin,
     liveKitUrl,
+    platform = 'LiveKit',
+    zoomUrl,
 }: Props) {
+
     const [shouldConnect, setShouldConnect] = useState(false);
     const [videoEnabled, setVideoEnabled] = useState(true);
     const [audioEnabled, setAudioEnabled] = useState(true);
 
     const handleJoin = () => {
-        setShouldConnect(true);
+        if (platform === 'Zoom' && zoomUrl) {
+            window.open(zoomUrl, '_blank');
+            setShouldConnect(true); // Treat as joined to show control panel
+        } else {
+            setShouldConnect(true);
+        }
     };
 
-    if (!token) {
+    if (!token && platform !== 'Zoom') {
         return (
             <div className="h-screen flex items-center justify-center bg-gray-950 text-white">
                 <div className="text-center">
@@ -57,14 +67,16 @@ export default function VerificationRoom({
                 <Head title="Join Verification" />
                 <div className="max-w-md w-full bg-[#1a1a1a] border border-white/5 rounded-2xl p-8 text-center">
                     <div className="w-20 h-20 bg-[#338078]/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Icon icon="uil:video" className="text-[#338078] w-10 h-10" />
+                        <Icon icon={platform === 'Zoom' ? "lucide:video" : "uil:video"} className="text-[#338078] w-10 h-10" />
                     </div>
                     <h1 className="text-2xl font-bold mb-2">Ready to join?</h1>
-                    <p className="text-gray-400 mb-8">Video verification for teacher <strong>{teacher.user.name}</strong></p>
+                    <p className="text-gray-400 mb-8">
+                        {platform === 'Zoom' ? 'Zoom' : 'LiveKit'} verification for teacher <strong>{teacher.user.name}</strong>
+                    </p>
 
                     <div className="flex flex-col gap-3">
                         <Button onClick={handleJoin} className="bg-[#338078] hover:bg-[#2a6a63] h-12 text-lg">
-                            Join Now
+                            {platform === 'Zoom' ? 'Launch Zoom Meeting' : 'Join Now'}
                         </Button>
                         <Link href={isAdmin ? `/admin/verifications/${teacher.id}` : "/teacher/waiting-area"}>
                             <Button variant="ghost" className="text-gray-400">Cancel</Button>
@@ -74,6 +86,61 @@ export default function VerificationRoom({
             </div>
         );
     }
+
+    if (platform === 'Zoom') {
+        return (
+            <div className="h-screen bg-[#0a0a0a] text-white flex flex-col">
+                <Head title="Zoom Verification" />
+                <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                    <div className="w-24 h-24 bg-blue-500/20 rounded-3xl flex items-center justify-center mb-8">
+                        <Icon icon="logos:zoom-icon" className="w-12 h-12" />
+                    </div>
+                    <h2 className="text-3xl font-bold mb-4">Zoom Meeting Active</h2>
+                    <p className="text-gray-400 max-w-md mb-8">
+                        The verification session is being held on Zoom. If the meeting didn't open automatically, use the button below.
+                    </p>
+                    <div className="flex gap-4">
+                        <Button
+                            onClick={() => window.open(zoomUrl, '_blank')}
+                            className="bg-blue-600 hover:bg-blue-700 h-12 px-8"
+                        >
+                            <Icon icon="solar:videocamera-record-bold" className="mr-2 w-5 h-5" />
+                            Open Zoom Again
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => router.visit(isAdmin ? `/admin/verifications/${teacher.id}` : "/teacher/waiting-area")}
+                            className="h-12 border-white/10"
+                        >
+                            Return to App
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="h-24 bg-black/40 border-t border-white/5 px-8 flex items-center justify-between">
+                    <div>
+                        <p className="font-bold text-lg">{teacher.user.name}</p>
+                        <p className="text-xs text-gray-500 uppercase tracking-widest">External Verification Session</p>
+                    </div>
+
+                    {isAdmin && (
+                        <Button
+                            className="bg-green-600 hover:bg-green-700 h-12 px-10 font-bold"
+                            onClick={() => {
+                                const notes = window.prompt("Enter assessment notes:");
+                                if (notes !== null) {
+                                    router.post(`/admin/verifications/${teacher.id}/room/complete`, { notes });
+                                }
+                            }}
+                        >
+                            Mark as Completed
+                        </Button>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
 
     return (
         <div className="h-screen bg-black flex flex-col overflow-hidden">

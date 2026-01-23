@@ -30,11 +30,17 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\TeacherCertificate::observe(\App\Observers\TeacherCertificateObserver::class);
         \App\Models\Booking::observe(\App\Observers\BookingObserver::class);
 
-        // Set Global Locale from Settings
+        // Set Global Locale and Timezone from Settings
         if (\Illuminate\Support\Facades\Schema::hasTable('system_settings')) {
             $locale = \App\Models\SystemSetting::get('language');
             if ($locale) {
                 \Illuminate\Support\Facades\App::setLocale($locale);
+            }
+
+            $timezone = \App\Models\SystemSetting::get('timezone');
+            if ($timezone) {
+                config(['app.timezone' => $timezone]);
+                date_default_timezone_set($timezone);
             }
         }
     }

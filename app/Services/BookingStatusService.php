@@ -148,15 +148,15 @@ class BookingStatusService
         // For confirmed bookings, check time-based status
         if ($booking->status === 'confirmed') {
             $now = now();
-            
+
             if ($booking->start_time->gt($now)) {
                 return 'upcoming';
             }
-            
+
             if ($booking->start_time->lte($now) && $booking->end_time->gte($now)) {
                 return 'ongoing';
             }
-            
+
             if ($booking->end_time->lt($now)) {
                 return 'completed';
             }
@@ -262,14 +262,14 @@ class BookingStatusService
     public function formatBookingForResponse(Booking $booking, ?User $viewer = null): array
     {
         $isTeacher = $viewer?->teacher && $booking->teacher_id === $viewer->teacher->id;
-        
+
         // Get existing review for this booking
         $existingReview = null;
         if ($viewer && !$isTeacher) {
             $review = \App\Models\Review::where('booking_id', $booking->id)
                 ->where('user_id', $viewer->id)
                 ->first();
-            
+
             if ($review) {
                 $existingReview = [
                     'id' => $review->id,
@@ -279,6 +279,10 @@ class BookingStatusService
                 ];
             }
         }
+
+        // Get global date format and map to PHP format
+        $globalFormat = \App\Models\SystemSetting::get('date_format', 'DD/MM/YYYY');
+        $phpFormat = str_replace(['DD', 'YYYY'], ['d', 'Y'], $globalFormat);
 
         return [
             'id' => $booking->id,
@@ -298,7 +302,7 @@ class BookingStatusService
             ],
             'start_time' => $booking->start_time->toIso8601String(),
             'end_time' => $booking->end_time->toIso8601String(),
-            'formatted_date' => $booking->start_time->format('jS F Y'),
+            'formatted_date' => $booking->start_time->format($phpFormat),
             'formatted_time' => $booking->start_time->format('g:i A') . ' - ' . $booking->end_time->format('g:i A'),
             'duration_minutes' => $booking->start_time->diffInMinutes($booking->end_time),
             'status' => $booking->status,
@@ -329,7 +333,7 @@ class BookingStatusService
 
         $now = now();
         $joinWindowStart = $booking->start_time->copy()->subMinutes(15);
-        
+
         return $now->gte($joinWindowStart) && $now->lte($booking->end_time);
     }
 
@@ -338,7 +342,8 @@ class BookingStatusService
      */
     protected function hasRated(Booking $booking, ?User $user): bool
     {
-        if (!$user) return true;
+        if (!$user)
+            return true;
 
         return \App\Models\Review::where('booking_id', $booking->id)
             ->where('user_id', $user->id)

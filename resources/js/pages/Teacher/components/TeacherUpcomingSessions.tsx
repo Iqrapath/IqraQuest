@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { cn } from '@/lib/utils';
-import { Link } from '@inertiajs/react'; // Link import
+import { Link } from '@inertiajs/react';
+import { useFormatDate } from '@/lib/format';
 import SessionDetailsModal from './SessionDetailsModal';
 
 interface Session {
@@ -28,6 +29,7 @@ interface TeacherUpcomingSessionsProps {
 }
 
 export default function TeacherUpcomingSessions({ sessions, serverDate }: TeacherUpcomingSessionsProps) {
+    const { formatDate } = useFormatDate();
     // Parse server date without timezone conversion (YYYY-MM-DD format)
     const parseServerDate = (dateStr: string) => {
         const [year, month, day] = dateStr.split('-').map(Number);
@@ -52,7 +54,7 @@ export default function TeacherUpcomingSessions({ sessions, serverDate }: Teache
         return date;
     });
 
-    const currentMonth = selectedDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+    const currentMonth = formatDate(selectedDate, 'MMMM yyyy');
 
     const navigateWeek = (direction: number) => {
         const newStart = new Date(currentWeekStart);
@@ -101,7 +103,7 @@ export default function TeacherUpcomingSessions({ sessions, serverDate }: Teache
                                 )}
                             >
                                 <span className={cn("font-['Nunito'] text-xs mb-1", isSelected(date) ? 'text-white/80' : 'text-[#9ca3af]')}>
-                                    {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                                    {formatDate(date, 'EEE')}
                                 </span>
                                 <span className={cn("font-['Poppins'] font-medium text-lg", isSelected(date) ? 'text-white' : 'text-[#181818]')}>
                                     {date.getDate()}
@@ -120,7 +122,7 @@ export default function TeacherUpcomingSessions({ sessions, serverDate }: Teache
                 <div className="flex items-center gap-2">
                     <Icon icon="mdi:calendar" className="h-5 w-5 text-[#338078]" />
                     <span className="font-['Poppins'] font-medium text-[#181818]">
-                        {selectedDate.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' })}
+                        {formatDate(selectedDate, 'EEEE, d MMMM')}
                     </span>
                 </div>
 
@@ -134,8 +136,8 @@ export default function TeacherUpcomingSessions({ sessions, serverDate }: Teache
                         <div key={session.id} className="flex items-center gap-4">
                             {/* Date Box */}
                             <div className="flex flex-col items-center justify-center bg-[#fdf8e8] text-[#92400e] rounded-xl w-16 h-16 shrink-0">
-                                <span className="text-[10px] uppercase font-bold">{session.formatted_month}</span>
-                                <span className="text-xl font-bold leading-none">{session.formatted_day}</span>
+                                <span className="text-[10px] uppercase font-bold">{formatDate(session.start_time, 'MMM')}</span>
+                                <span className="text-xl font-bold leading-none">{formatDate(session.start_time, 'd')}</span>
                             </div>
 
                             {/* Session Details */}
@@ -144,7 +146,7 @@ export default function TeacherUpcomingSessions({ sessions, serverDate }: Teache
                                     <h4 className="font-bold text-gray-900 text-lg">{session.student.name}</h4>
                                     <div className="flex items-center gap-2 mt-1">
                                         <div className="px-2 py-0.5 rounded border border-gray-300 text-xs font-medium text-gray-600 bg-white">
-                                            {session.formatted_start_time} - {session.formatted_end_time}
+                                            {formatDate(session.start_time, 'p')} - {formatDate(session.end_time, 'p')}
                                         </div>
                                     </div>
                                 </div>

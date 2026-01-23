@@ -61,7 +61,7 @@ export default function Navbar() {
 
                 {/* Desktop Navigation Links */}
                 <div className="hidden shrink-0 items-center gap-[clamp(1.5rem,3vw,3rem)] lg:flex">
-                    <Link href="/" className="group relative py-2">
+                    <Link href="/home" className="group relative py-2">
                         <span className={`whitespace-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-medium transition-colors ${isActive('/') ? 'text-[#2a6b64]' : 'text-[#317b74] group-hover:text-[#2a6b64]'}`}>
                             {__('Home')}
                         </span>
@@ -208,9 +208,9 @@ export default function Navbar() {
                     {/* Mobile Menu Links - No Icons */}
                     <nav className="flex flex-col border-t border-[#317b74]/10 py-4">
                         <Link
-                            href="/"
+                            href="/home"
                             onClick={toggleMobileMenu}
-                            className={`border-b border-[#317b74]/10 py-4 font-['Nunito'] text-base font-semibold transition-colors ${isActive('/') ? 'text-[#2a6b64]' : 'text-[#317b74] hover:text-[#2a6b64]'}`}
+                            className={`border-b border-[#317b74]/10 py-4 font-['Nunito'] text-base font-semibold transition-colors ${isActive('/home') ? 'text-[#2a6b64]' : 'text-[#317b74] hover:text-[#2a6b64]'}`}
                         >
                             {__('Home')}
                         </Link>

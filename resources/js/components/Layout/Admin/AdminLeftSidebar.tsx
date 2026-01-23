@@ -11,9 +11,15 @@ export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProp
     const { url, props } = usePage<any>();
     const { auth, site_logo, site_name, unreadMessagesCount, unreadNotificationsCount, pendingTeacherApplicationsCount, pendingPayoutsCount, translations } = props;
     const userId = auth?.user?.id;
+    const permissions = auth?.permissions || [];
 
     // Translation helper
     const __ = (key: string) => (translations && translations[key]) ? translations[key] : key;
+
+    const hasPermission = (permission?: string) => {
+        if (!permission) return true;
+        return permissions.includes('*') || permissions.includes(permission);
+    };
 
     useEffect(() => {
         if (!userId) return;
@@ -38,24 +44,24 @@ export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProp
 
     const mainMenuItems = [
         { name: __('Dashboard'), icon: 'solar:widget-5-outline', route: '/admin/dashboard' },
-        { name: __('Teacher Management'), icon: 'hugeicons:teacher', route: '/admin/teachers' },
-        { name: __('Parent Management'), icon: 'ri:parent-line', route: '/admin/students' },
-        { name: __('Booking Management'), icon: 'solar:calendar-outline', route: '/admin/bookings' },
-        { name: __('Verification Requests'), icon: 'uil:comment-verify', route: '/admin/verifications', badge: pendingTeacherApplicationsCount },
-        { name: __('Subscription Plans'), icon: 'eos-icons:subscriptions-created-outlined', route: '#', comingSoon: true },
-        { name: __('Guardian Management'), icon: 'fluent:guardian-28-regular', route: '#', comingSoon: true },
-        { name: __('Payment Management'), icon: 'streamline-plump:wallet', route: '/admin/payments', badge: pendingPayoutsCount },
+        { name: __('Teacher Management'), icon: 'hugeicons:teacher', route: '/admin/teachers', permission: 'manage_users' },
+        { name: __('Parent Management'), icon: 'ri:parent-line', route: '/admin/students', permission: 'manage_users' },
+        { name: __('Booking Management'), icon: 'solar:calendar-outline', route: '/admin/bookings', permission: 'manage_bookings' },
+        { name: __('Verification Requests'), icon: 'uil:comment-verify', route: '/admin/verifications', badge: pendingTeacherApplicationsCount, permission: 'manage_users' },
+        { name: __('Subscription Plans'), icon: 'eos-icons:subscriptions-created-outlined', route: '#', comingSoon: true, permission: 'manage_users' },
+        { name: __('Guardian Management'), icon: 'fluent:guardian-28-regular', route: '#', comingSoon: true, permission: 'manage_users' },
+        { name: __('Payment Management'), icon: 'streamline-plump:wallet', route: '/admin/payments', badge: pendingPayoutsCount, permission: 'handle_payouts' },
     ];
 
     const cmsItems = [
-        { name: __('CMS'), icon: 'simple-icons:payloadcms', route: '#', comingSoon: true },
-        { name: __('Admin Controls'), icon: 'carbon:network-admin-control', route: '#', comingSoon: true },
-        { name: __('Referrals System'), icon: 'carbon:review', route: '#', comingSoon: true },
+        { name: __('CMS'), icon: 'simple-icons:payloadcms', route: '#', comingSoon: true, permission: 'change_platform_settings' },
+        { name: __('Admin Controls'), icon: 'carbon:network-admin-control', route: '#', comingSoon: true, permission: 'change_platform_settings' },
+        { name: __('Referrals System'), icon: 'carbon:review', route: '#', comingSoon: true, permission: 'change_platform_settings' },
     ];
 
     const settingsItems = [
-        { name: __('Settings & Security'), icon: 'solar:settings-outline', route: '/admin/settings' },
-        { name: __('Notification System'), icon: 'solar:bell-outline', route: '/admin/notifications', badge: unreadNotificationsCount },
+        { name: __('Settings & Security'), icon: 'solar:settings-outline', route: '/admin/settings', permission: 'change_platform_settings' },
+        { name: __('Notification System'), icon: 'solar:bell-outline', route: '/admin/notifications', badge: unreadNotificationsCount, permission: 'change_platform_settings' },
         { name: __('Messages'), icon: 'mdi:message-text-outline', route: '/admin/messages', badge: unreadMessagesCount },
         { name: __('Feedback & Support'), icon: 'fluent:person-support-20-regular', route: '#', comingSoon: true },
     ];
@@ -70,7 +76,9 @@ export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProp
         });
     };
 
-    const renderMenuItem = (item: { name: string; icon: string; route: string; comingSoon?: boolean; badge?: number; badgeColor?: string }) => {
+    const renderMenuItem = (item: { name: string; icon: string; route: string; comingSoon?: boolean; badge?: number; badgeColor?: string; permission?: string }) => {
+        if (!hasPermission(item.permission)) return null;
+
         if (item.comingSoon) {
             return (
                 <button
@@ -162,14 +170,16 @@ export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProp
                     </div>
 
                     {/* CMS Section */}
-                    <div className="flex flex-col gap-[8px] pt-[16px] border-t border-white/50">
-                        <p className="font-['Inter'] font-semibold text-[10px] text-white/60 uppercase tracking-[1.5px] px-[16px] mb-[4px]">
-                            CMS
-                        </p>
-                        <div className="flex flex-col gap-[4px]">
-                            {cmsItems.map(renderMenuItem)}
+                    {(cmsItems.some(item => hasPermission(item.permission))) && (
+                        <div className="flex flex-col gap-[8px] pt-[16px] border-t border-white/50">
+                            <p className="font-['Inter'] font-semibold text-[10px] text-white/60 uppercase tracking-[1.5px] px-[16px] mb-[4px]">
+                                CMS
+                            </p>
+                            <div className="flex flex-col gap-[4px]">
+                                {cmsItems.map(renderMenuItem)}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* SETTINGS Section */}
                     <div className="flex flex-col gap-[8px] pt-[16px] border-t border-white/50">

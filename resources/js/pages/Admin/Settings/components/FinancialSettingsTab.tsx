@@ -5,6 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from '@/components/ui/switch';
 import { Icon } from '@iconify/react';
 
+declare var route: any;
+
 interface Props {
     settings: any;
 }
@@ -23,7 +25,7 @@ export default function FinancialSettingsTab({ settings }: Props) {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        put(route('admin.payments.update-settings'), {
+        put(('admin/settings/payments/update-settings'), {
             onSuccess: () => toast.success('Financial settings updated'),
         });
     };
@@ -33,7 +35,9 @@ export default function FinancialSettingsTab({ settings }: Props) {
             <h3 className="text-[18px] font-semibold text-[#101928]">Financial Controls</h3>
 
             <div className="bg-white rounded-[16px] p-8 border border-gray-100 shadow-sm space-y-8">
-                {/* Platform Currency */}
+                {/* TODO: Implement platform currency logic in backend (PaymentSetting model and WalletService) */}
+                {/* Platform Currency - Mocked for now */}
+                {/* 
                 <div className="flex items-center justify-between">
                     <label className="text-[16px] font-medium text-[#101928]">Platform Currency</label>
                     <Select value={data.platform_currency} onValueChange={(v) => setData('platform_currency', v)}>
@@ -46,7 +50,8 @@ export default function FinancialSettingsTab({ settings }: Props) {
                             <SelectItem value="EUR (€)">EUR (€)</SelectItem>
                         </SelectContent>
                     </Select>
-                </div>
+                </div> 
+                */}
 
                 {/* Commission Rate */}
                 <div className="space-y-4">
@@ -58,7 +63,6 @@ export default function FinancialSettingsTab({ settings }: Props) {
                             onChange={(e) => setData('commission_rate', e.target.value)}
                             className="flex-1 h-[48px] px-4 rounded-[8px] border border-gray-200 bg-[#FAFAFA] text-[#667085] focus:ring-1 focus:ring-[#338078] outline-none"
                         />
-                        <button type="button" className="text-[#338078] text-sm font-medium hover:underline">Edit Rate</button>
                     </div>
                 </div>
 
@@ -91,7 +95,6 @@ export default function FinancialSettingsTab({ settings }: Props) {
                                 className="w-full h-[48px] pl-8 pr-4 rounded-[8px] border border-gray-200 bg-[#FAFAFA] text-[#667085] focus:ring-1 focus:ring-[#338078] outline-none"
                             />
                         </div>
-                        <button type="button" className="text-[#338078] text-sm font-medium hover:underline">Edit</button>
                     </div>
                 </div>
 
@@ -108,13 +111,26 @@ export default function FinancialSettingsTab({ settings }: Props) {
                                 className="w-full h-[48px] pl-8 pr-4 rounded-[8px] border border-gray-200 bg-[#FAFAFA] text-[#667085] focus:ring-1 focus:ring-[#338078] outline-none"
                             />
                         </div>
-                        <button type="button" className="text-[#338078] text-sm font-medium hover:underline">Edit</button>
                     </div>
                 </div>
 
-                {/* Instant Payouts Toggle (System wide) */}
+                {/* TODO: Display withdrawal_note in Teacher's payout/withdrawal initiation UI */}
+                {/* Withdrawal Note - Saved but not yet displayed to teachers */}
+                {/* 
+                <div className="space-y-4">
+                    <label className="text-[16px] font-medium text-[#101928]">Withdrawal Note (Shown to Teachers)</label>
+                    <textarea
+                        value={data.withdrawal_note}
+                        onChange={(e) => setData('withdrawal_note', e.target.value)}
+                        className="w-full h-[100px] p-4 rounded-[8px] border border-gray-200 bg-[#FAFAFA] text-[#667085] focus:ring-1 focus:ring-[#338078] outline-none resize-none"
+                        placeholder="e.g. Payouts are processed every Friday."
+                    />
+                </div>
+                */}
+
+                {/* Instant Payouts Toggle - Saved but backend logic not yet fully enforcing blocking */}
                 <div className="flex items-center justify-between">
-                    <label className="text-[16px] font-medium text-[#101928]">Instant Payouts</label>
+                    <label className="text-[16px] font-medium text-[#101928]">Bank Verification Requirement</label>
                     <Switch
                         checked={data.bank_verification_enabled}
                         onCheckedChange={(v) => setData('bank_verification_enabled', v)}
@@ -122,16 +138,22 @@ export default function FinancialSettingsTab({ settings }: Props) {
                     />
                 </div>
 
-                {/* Export Log Mockup */}
+                {/* TODO: Implement Export Payout Logs (Backend route + CSV/PDF generation) */}
+                {/* Export Log Mockup - Commented out */}
                 <div className="flex items-center justify-between">
                     <label className="text-[16px] font-medium text-[#101928]">Export Payout Logs</label>
-                    <div className="flex items-center gap-2 text-[#338078] text-xs font-semibold cursor-pointer">
+                    <div
+                        onClick={() => window.open('/admin/payments/export', '_blank')}
+                        className="flex items-center gap-2 text-[#338078] text-xs font-semibold cursor-pointer hover:underline"
+                    >
                         <Icon icon="ph:download-simple-bold" className="w-4 h-4" />
                         <span>Export Logs</span>
                     </div>
                 </div>
 
-                {/* Multi-Currency Mode Toggle */}
+                {/* TODO: Implement Multi-Currency support in WalletService and BookingService */}
+                {/* Multi-Currency Mode Toggle - Commented out */}
+                {/* 
                 <div className="flex items-center justify-between">
                     <label className="text-[16px] font-medium text-[#101928]">Multi-Currency Mode</label>
                     <div className="flex items-center gap-6">
@@ -145,6 +167,7 @@ export default function FinancialSettingsTab({ settings }: Props) {
                         </div>
                     </div>
                 </div>
+                */}
             </div>
 
             <div className="flex justify-end mt-4">

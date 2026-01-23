@@ -1,15 +1,21 @@
+import React, { FormEventHandler, useState, useRef, useEffect } from 'react';
 import { useForm, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
-import { FormEventHandler, useState, useRef, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Combobox } from "@/components/ui/combobox";
+import TermsConditionsTab from './TermsConditionsTab';
+import PrivacyPolicyTab from './PrivacyPolicyTab';
+import KnowledgeBaseTab from './KnowledgeBaseTab';
 
 interface Props {
     settings: any;
     localization: any;
+    legalSettings: any;
+    faqs: any[];
 }
 
-export default function GeneralSettingsTab({ settings, localization }: Props) {
+export default function GeneralSettingsTab({ settings, localization, legalSettings, faqs }: Props) {
     const { site_logo, site_name: global_site_name, translations } = usePage<any>().props;
 
     // Translation helper
@@ -17,7 +23,43 @@ export default function GeneralSettingsTab({ settings, localization }: Props) {
 
     const [logoPreview, setLogoPreview] = useState<string | null>(site_logo || "/images/Logo.png");
     const [isEditingName, setIsEditingName] = useState(false);
+    const [isEditingDateFormat, setIsEditingDateFormat] = useState(false);
+    const [activeExtension, setActiveExtension] = useState<'none' | 'terms' | 'privacy' | 'faq'>('none');
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Generate timezone options
+    const timezones = React.useMemo(() => {
+        try {
+            return (Intl as any).supportedValuesOf('timeZone').map((tz: string) => {
+                const now = new Date();
+                const formatter = new Intl.DateTimeFormat('en-US', {
+                    timeZone: tz,
+                    timeZoneName: 'shortOffset'
+                });
+                const parts = formatter.formatToParts(now);
+                const offset = parts.find(p => p.type === 'timeZoneName')?.value || '';
+
+                return {
+                    value: tz,
+                    label: `${tz} (${offset})`
+                };
+            });
+        } catch (e) {
+            // Fallback for older browsers
+            return [
+                { value: 'Africa/Lagos', label: 'Africa/Lagos (GMT+1)' },
+                { value: 'UTC', label: 'UTC (GMT+0)' },
+                { value: 'America/New_York', label: 'America/New_York (GMT-5)' }
+            ];
+        }
+    }, []);
+
+    const dateFormats = [
+        { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY (25/12/2025)' },
+        { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY (12/25/2025)' },
+        { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD (2025-12-25)' },
+        { value: 'jS F Y', label: 'Full Date (25th December 2025)' },
+    ];
 
     const { data, setData, post, processing, errors, reset } = useForm({
         site_name: settings?.site_name || global_site_name || 'IQRAQUEST',
@@ -63,6 +105,19 @@ export default function GeneralSettingsTab({ settings, localization }: Props) {
             onError: () => toast.error('Failed to update settings. Please check the form.'),
         });
     };
+
+    if (activeExtension === 'terms') {
+        return <TermsConditionsTab settings={legalSettings} onBack={() => setActiveExtension('none')} />;
+    }
+
+    if (activeExtension === 'privacy') {
+        return <PrivacyPolicyTab settings={legalSettings} onBack={() => setActiveExtension('none')} />;
+    }
+
+    if (activeExtension === 'faq') {
+        return <KnowledgeBaseTab faqs={faqs} onBack={() => setActiveExtension('none')} />;
+    }
+
 
     return (
         <form onSubmit={handleSubmit} className="font-[Nunito] pb-20">
@@ -203,28 +258,46 @@ export default function GeneralSettingsTab({ settings, localization }: Props) {
 
                     <div className="flex items-center justify-between">
                         <label className="text-sm font-bold text-[#101928]">{__("Time Zone")}</label>
-                        <Select value={data.timezone} onValueChange={v => setData('timezone', v)}>
-                            <SelectTrigger className="w-[280px] h-[44px] bg-white border-gray-200 rounded-[8px]">
-                                <SelectValue placeholder={__("Select Timezone")} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Africa/Lagos">Africa/Lagos (GMT+1)</SelectItem>
-                                <SelectItem value="UTC">UTC (GMT+0)</SelectItem>
-                                <SelectItem value="America/New_York">America/New_York (GMT-5)</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <Combobox
+                            options={timezones}
+                            value={data.timezone}
+                            onChange={v => setData('timezone', v)}
+                            placeholder={__("Select Timezone")}
+                            className="w-[280px] h-[44px] bg-white border-gray-200 rounded-[8px]"
+                        />
                     </div>
 
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-[#101928]">{__("Date Format")}</label>
                         <div className="flex items-center gap-4">
-                            <input
-                                type="text"
-                                value={data.date_format}
-                                readOnly
-                                className="w-[280px] h-[44px] px-4 rounded-[8px] border border-gray-200 bg-[#FAFAFA] text-sm text-gray-500 outline-none"
-                            />
-                            <button type="button" className="text-[#338078] text-xs font-semibold hover:underline">{__("Edit")}</button>
+                            {isEditingDateFormat ? (
+                                <input
+                                    type="text"
+                                    value={data.date_format}
+                                    onChange={e => setData('date_format', e.target.value)}
+                                    placeholder="e.g., DD/MM/YYYY"
+                                    className="w-[280px] h-[44px] px-4 rounded-[8px] border border-[#338078] bg-white text-sm outline-none"
+                                    autoFocus
+                                />
+                            ) : (
+                                <Select value={data.date_format} onValueChange={v => setData('date_format', v)}>
+                                    <SelectTrigger className="w-[280px] h-[44px] bg-white border-gray-200 rounded-[8px]">
+                                        <SelectValue placeholder={__("Select Format")} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {dateFormats.map(fmt => (
+                                            <SelectItem key={fmt.value} value={fmt.value}>{fmt.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                            <button
+                                type="button"
+                                onClick={() => setIsEditingDateFormat(!isEditingDateFormat)}
+                                className="text-[#338078] text-xs font-semibold hover:underline"
+                            >
+                                {isEditingDateFormat ? __("Back to Presets") : __("Custom")}
+                            </button>
                         </div>
                     </div>
 
@@ -236,8 +309,10 @@ export default function GeneralSettingsTab({ settings, localization }: Props) {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="home">{__("Home")}</SelectItem>
-                                <SelectItem value="dashboard">{__("Dashboard")}</SelectItem>
-                                <SelectItem value="courses">{__("Courses")}</SelectItem>
+                                <SelectItem value="find-teacher">{__("Find a Teacher")}</SelectItem>
+                                <SelectItem value="how-it-works">{__("How It Works")}</SelectItem>
+                                <SelectItem value="blog">{__("Blog")}</SelectItem>
+                                <SelectItem value="about-us">{__("About Us")}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -248,11 +323,19 @@ export default function GeneralSettingsTab({ settings, localization }: Props) {
                     <div className="flex items-center justify-between">
                         <span className="text-sm font-bold text-[#101928]">{__("Terms & Conditions")}</span>
                         <div className="flex items-center gap-6">
-                            <button type="button" className="flex items-center gap-2 text-[#667085] hover:text-[#338078] text-sm">
+                            <button
+                                type="button"
+                                onClick={() => setActiveExtension('terms')}
+                                className="flex items-center gap-2 text-[#667085] hover:text-[#338078] text-sm cursor-pointer hover:underline transition-all"
+                            >
                                 <Icon icon="ph:eye-light" className="w-5 h-5 text-gray-400" />
                                 {__("View")}
                             </button>
-                            <button type="button" className="flex items-center gap-2 text-[#338078] hover:text-[#2a6b64] text-sm font-semibold">
+                            <button
+                                type="button"
+                                onClick={() => setActiveExtension('terms')}
+                                className="flex items-center gap-2 text-[#338078] hover:text-[#2a6b64] text-sm font-semibold cursor-pointer hover:underline transition-all"
+                            >
                                 <Icon icon="ph:note-pencil-light" className="w-5 h-5" />
                                 {__("Edit")}
                             </button>
@@ -262,11 +345,19 @@ export default function GeneralSettingsTab({ settings, localization }: Props) {
                     <div className="flex items-center justify-between">
                         <span className="text-sm font-bold text-[#101928]">{__("Privacy Policy")}</span>
                         <div className="flex items-center gap-6">
-                            <button type="button" className="flex items-center gap-2 text-[#667085] hover:text-[#338078] text-sm">
+                            <button
+                                type="button"
+                                onClick={() => setActiveExtension('privacy')}
+                                className="flex items-center gap-2 text-[#667085] hover:text-[#338078] text-sm cursor-pointer hover:underline transition-all"
+                            >
                                 <Icon icon="ph:eye-light" className="w-5 h-5 text-gray-400" />
                                 {__("View")}
                             </button>
-                            <button type="button" className="flex items-center gap-2 text-[#338078] hover:text-[#2a6b64] text-sm font-semibold">
+                            <button
+                                type="button"
+                                onClick={() => setActiveExtension('privacy')}
+                                className="flex items-center gap-2 text-[#338078] hover:text-[#2a6b64] text-sm font-semibold cursor-pointer hover:underline transition-all"
+                            >
                                 <Icon icon="ph:note-pencil-light" className="w-5 h-5" />
                                 {__("Edit")}
                             </button>
@@ -276,11 +367,19 @@ export default function GeneralSettingsTab({ settings, localization }: Props) {
                     <div className="flex items-center justify-between">
                         <span className="text-sm font-bold text-[#101928]">{__("FAQ")}</span>
                         <div className="flex items-center gap-6">
-                            <button type="button" className="flex items-center gap-2 text-[#667085] hover:text-[#338078] text-sm">
+                            <button
+                                type="button"
+                                onClick={() => setActiveExtension('faq')}
+                                className="flex items-center gap-2 text-[#667085] hover:text-[#338078] text-sm cursor-pointer hover:underline transition-all"
+                            >
                                 <Icon icon="ph:eye-light" className="w-5 h-5 text-gray-400" />
                                 {__("View")}
                             </button>
-                            <button type="button" className="flex items-center gap-2 text-[#338078] hover:text-[#2a6b64] text-sm font-semibold">
+                            <button
+                                type="button"
+                                onClick={() => setActiveExtension('faq')}
+                                className="flex items-center gap-2 text-[#338078] hover:text-[#2a6b64] text-sm font-semibold cursor-pointer hover:underline transition-all"
+                            >
                                 <Icon icon="ph:note-pencil-light" className="w-5 h-5" />
                                 {__("Edit")}
                             </button>
@@ -293,7 +392,7 @@ export default function GeneralSettingsTab({ settings, localization }: Props) {
                     <button
                         type="submit"
                         disabled={processing}
-                        className="bg-[#338078] text-white px-10 py-3 rounded-[35px] font-semibold hover:bg-[#2a6b64] transition-all shadow-lg tracking-wider"
+                        className="bg-[#338078] text-white px-10 py-3 rounded-[35px] font-semibold hover:bg-[#2a6b64] transition-all shadow-lg tracking-wider cursor-pointer"
                     >
                         {processing ? __("Saving...") : __("Save Changes")}
                     </button>

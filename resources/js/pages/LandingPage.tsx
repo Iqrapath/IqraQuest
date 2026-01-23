@@ -15,9 +15,10 @@ import ScrollToTop from '@/components/landing/ScrollToTop';
 
 interface Props {
     teachers: any[];
+    faqs: any[];
 }
 
-export default function LandingPage({ teachers }: Props) {
+export default function LandingPage({ teachers, faqs }: Props) {
     const { translations } = usePage<any>().props;
     const __ = (key: string) => (translations && translations[key]) ? translations[key] : key;
 
@@ -80,7 +81,7 @@ export default function LandingPage({ teachers }: Props) {
 
                 {/* FAQ Section */}
                 <section>
-                    <FAQSection />
+                    <FAQSection faqs={faqs} />
                 </section>
 
                 {/* App Download Section */}

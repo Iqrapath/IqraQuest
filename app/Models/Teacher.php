@@ -26,7 +26,9 @@ class Teacher extends Model
         'application_submitted_at',
         'video_verification_status',
         'video_verification_room_id',
+        'video_verification_url',
         'video_verification_scheduled_at',
+
         'video_verification_platform',
         'video_verification_notes',
         // Personal information

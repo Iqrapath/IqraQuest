@@ -3,6 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Icon } from '@iconify/react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useFormatDate } from '@/lib/format';
 
 interface SessionDetailsModalProps {
     isOpen: boolean;
@@ -21,6 +22,7 @@ interface SessionDetailsModalProps {
 }
 
 export default function SessionDetailsModal({ isOpen, onClose, session }: SessionDetailsModalProps) {
+    const { formatDate } = useFormatDate();
     if (!session) return null;
 
     return (
@@ -64,7 +66,7 @@ export default function SessionDetailsModal({ isOpen, onClose, session }: Sessio
                                     {/* Session Details Header */}
                                     <h4 className="text-[#358D83] text-xl font-medium mb-2">Session Details</h4>
                                     <p className="text-gray-500 text-sm mb-8">
-                                        {session.formatted_date} | {session.formatted_start_time} - {session.formatted_end_time}
+                                        {(session as any).start_time ? formatDate((session as any).start_time) : session.formatted_date} | {formatDate((session as any).start_time, 'p')} - {formatDate((session as any).end_time, 'p')}
                                     </p>
 
                                     {/* Info Section */}

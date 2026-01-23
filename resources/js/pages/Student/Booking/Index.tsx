@@ -556,6 +556,8 @@ export default function BookingIndex({ teacher, booked_slots = [], rebook_data }
                 isOpen={isInsufficientFundsOpen}
                 onClose={() => setIsInsufficientFundsOpen(false)}
                 requiredAmount={totalCostNGN}
+                initializeRoute="/student/payment/initialize"
+                verifyRouteBase="/student/payment/verify"
             />
             {selectedSessions.length > 0 && (
                 <BookingSuccessModal

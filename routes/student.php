@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Student\TeacherController;
 use App\Http\Controllers\Api\SubjectController;
 use App\Http\Controllers\Api\FilterController;
+use App\Http\Controllers\Api\CurrencyController;
 use App\Http\Controllers\Student\DashboardController;
 
 // API Routes for Browse Teachers
@@ -10,6 +11,10 @@ Route::get('/api/teachers', [TeacherController::class, 'index'])->name('api.teac
 Route::get('/api/teachers/{id}', [TeacherController::class, 'show'])->name('api.teachers.show');
 Route::get('/api/subjects', [SubjectController::class, 'index'])->name('api.subjects.index');
 Route::get('/api/filter-options', [FilterController::class, 'getOptions'])->name('api.filter-options');
+
+// Currency API Routes
+Route::get('/api/currency/rates', [CurrencyController::class, 'getRates'])->name('api.currency.rates');
+Route::post('/api/currency/convert', [CurrencyController::class, 'convert'])->name('api.currency.convert');
 
 // Page Routes
 use App\Http\Controllers\Student\WalletController;

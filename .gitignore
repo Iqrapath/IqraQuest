@@ -42,3 +42,7 @@ test_escrow.php
 test_teachers.php
 test-banks.ps1
 verify_final.php
+debug_timezone.php
+update_timezone.php
+repro_booking_error.php
+temp_err.txt

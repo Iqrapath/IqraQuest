@@ -24,7 +24,7 @@ class PayoutController extends Controller
     public function index(Request $request)
     {
         $teacher = auth()->user()->teacher;
-        
+
         $query = $teacher->payouts()->with('paymentMethod');
 
         // Filter by status
@@ -49,7 +49,7 @@ class PayoutController extends Controller
     public function create()
     {
         $teacher = auth()->user()->teacher;
-        
+
         // Get available balance
         $availableBalance = $this->payoutService->calculateAvailableBalance($teacher->id);
 
@@ -72,6 +72,13 @@ class PayoutController extends Controller
      */
     public function store(Request $request)
     {
+        // Check if withdrawals are enabled globally
+        if (!\App\Models\SystemSetting::get('allow_teacher_withdrawals', true)) {
+            return back()
+                ->withErrors(['error' => 'Withdrawals are currently disabled by the administrator. Please try again later.'])
+                ->withInput();
+        }
+
         $request->validate([
             'amount' => 'required|numeric|min:100',
             'payment_method_id' => 'required|exists:teacher_payment_methods,id',
@@ -102,7 +109,7 @@ class PayoutController extends Controller
     public function show(int $id)
     {
         $teacher = auth()->user()->teacher;
-        
+
         $payout = $teacher->payouts()
             ->with(['paymentMethod', 'approvedBy'])
             ->findOrFail($id);
@@ -118,7 +125,7 @@ class PayoutController extends Controller
     public function cancel(int $id)
     {
         $teacher = auth()->user()->teacher;
-        
+
         $payout = $teacher->payouts()->findOrFail($id);
 
         if (!$payout->canBeCancelled()) {

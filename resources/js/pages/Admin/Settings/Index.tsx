@@ -1,5 +1,5 @@
 import AdminLayout from '@/layouts/AdminLayout';
-import { Head, router } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GeneralSettingsTab from './components/GeneralSettingsTab';
@@ -14,6 +14,7 @@ interface Props {
     roles: any[];
     admins: any[];
     availablePermissions: any;
+    faqs: any[];
 }
 
 export default function SettingsIndex({
@@ -22,15 +23,13 @@ export default function SettingsIndex({
     paymentSettings,
     roles,
     admins,
-    availablePermissions
+    availablePermissions,
+    faqs
 }: Props) {
     const [currentTab, setCurrentTab] = useState(activeTab);
 
     const handleTabChange = (value: string) => {
         setCurrentTab(value);
-        // Update URL without full reload to maintain state if needed, 
-        // but typically Inertia handles this via links. 
-        // Here we just use state for immediate feedback.
     };
 
     return (
@@ -74,23 +73,11 @@ export default function SettingsIndex({
                             >
                                 Admin & Roles Management
                             </TabsTrigger>
-                            <TabsTrigger
-                                value="backup"
-                                className="px-4 py-2 rounded-[12px] text-[19px] font-light text-[#6B7280] data-[state=active]:bg-[#338078] data-[state=active]:text-white data-[state=active]:font-semibold transition-all shadow-none whitespace-nowrap"
-                            >
-                                Backup & Security Settings
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="close-account"
-                                className="px-4 py-2 rounded-[12px] text-[19px] font-light text-[#6B7280] data-[state=active]:bg-[#338078] data-[state=active]:text-white data-[state=active]:font-semibold transition-all shadow-none whitespace-nowrap"
-                            >
-                                Close Your Account
-                            </TabsTrigger>
                         </TabsList>
                     </div>
 
                     <TabsContent value="general">
-                        <GeneralSettingsTab settings={settings.general} localization={settings.localization} />
+                        <GeneralSettingsTab settings={settings.general} localization={settings.localization} legalSettings={settings.legal} faqs={faqs} />
                     </TabsContent>
 
                     <TabsContent value="financial">

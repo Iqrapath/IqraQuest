@@ -5,7 +5,21 @@ use App\Http\Controllers\Guardian\BookingController;
 use App\Http\Controllers\Guardian\TeacherController;
 use App\Http\Controllers\Student\WalletController;
 use App\Http\Controllers\Student\PaymentController;
+use App\Http\Controllers\Api\CurrencyController;
+use App\Http\Controllers\Api\Student\TeacherController as ApiTeacherController;
+use App\Http\Controllers\Api\SubjectController;
+use App\Http\Controllers\Api\FilterController;
 use Illuminate\Support\Facades\Route;
+
+// API Routes for Browse Teachers (shared with students)
+Route::get('/api/teachers', [ApiTeacherController::class, 'index'])->name('api.teachers.index');
+Route::get('/api/teachers/{id}', [ApiTeacherController::class, 'show'])->name('api.teachers.show');
+Route::get('/api/subjects', [SubjectController::class, 'index'])->name('api.subjects.index');
+Route::get('/api/filter-options', [FilterController::class, 'getOptions'])->name('api.filter-options');
+
+// Currency API Routes (shared with students)
+Route::get('/api/currency/rates', [CurrencyController::class, 'getRates'])->name('api.currency.rates');
+Route::post('/api/currency/convert', [CurrencyController::class, 'convert'])->name('api.currency.convert');
 
 // Guardian Routes (shares wallet/payment controllers with students)
 Route::middleware(['auth', 'verified', 'role:guardian'])
@@ -24,21 +38,21 @@ Route::middleware(['auth', 'verified', 'role:guardian'])
         Route::get('/children/{student}/edit', [DashboardController::class, 'editChild'])->name('children.edit');
         Route::get('/children/{student}/progress', [DashboardController::class, 'progress'])->name('children.progress');
         Route::patch('/children/{student}', [DashboardController::class, 'updateChild'])->name('children.update');
-        
+
         // Profile Routes (Implementation matches Figma design)
         Route::get('/profile', [\App\Http\Controllers\Guardian\ProfileController::class, 'index'])->name('profile.index');
         Route::post('/profile', [\App\Http\Controllers\Guardian\ProfileController::class, 'update'])->name('profile.update');
         Route::post('/profile/avatar', [\App\Http\Controllers\Guardian\ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
-        
+
         // Browse Teachers Routes
         Route::get('/teachers', [TeacherController::class, 'index'])->name('teachers.index');
         Route::get('/teachers/{id}', [TeacherController::class, 'show'])->name('teachers.show');
-        
+
         // Booking Creation Routes (Guardian books for themselves)
         Route::get('/book/{teacherId}', [BookingController::class, 'index'])->name('book.index');
         Route::post('/book/process', [BookingController::class, 'store'])->name('book.process');
         Route::post('/book/check-availability', [BookingController::class, 'checkAvailability'])->name('book.check-availability');
-        
+
         // Wallet Routes (shared with students)
         Route::get('/wallet', [WalletController::class, 'index'])->name('wallet');
         Route::post('/wallet/currency', [WalletController::class, 'updateCurrency'])->name('wallet.currency');
@@ -46,11 +60,11 @@ Route::middleware(['auth', 'verified', 'role:guardian'])
         Route::get('/payment/transactions', [WalletController::class, 'transactions'])->name('wallet.transactions');
         Route::get('/payment/transactions/export', [WalletController::class, 'exportTransactions'])->name('wallet.transactions.export');
         Route::post('/payment/transactions/email-report', [WalletController::class, 'emailTransactions'])->name('wallet.transactions.email-report');
-        
+
         // Payment Routes (shared with students)
         Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
         Route::get('/payment/verify/{reference}', [PaymentController::class, 'verifyPayment'])->name('payment.verify');
-        
+
         Route::get('/payment/banks', [PaymentController::class, 'getBanks'])->name('payment.banks');
         Route::get('/payment/resolve-account', [PaymentController::class, 'resolveAccount'])->name('payment.resolve-account');
         Route::post('/payment/methods/bank', [PaymentController::class, 'storeBankDetails'])->name('payment.methods.bank.store');
@@ -58,26 +72,26 @@ Route::middleware(['auth', 'verified', 'role:guardian'])
         Route::put('/payment/methods/bank/{id}', [PaymentController::class, 'updateBankDetails'])->name('payment.methods.bank.update');
         Route::post('/payment/methods/mobile-wallet', [PaymentController::class, 'storeMobileWalletDetails'])->name('payment.methods.mobile-wallet.store');
         Route::post('/payment/methods/paypal', [PaymentController::class, 'storePayPalDetails'])->name('payment.methods.paypal.store');
-        
+
         // PayPal OAuth Routes
         Route::get('/payment/methods/paypal/initiate', [PaymentController::class, 'initiatePayPalLinking'])->name('payment.methods.paypal.initiate');
         Route::get('/payment/methods/paypal/callback', [PaymentController::class, 'handlePayPalCallback'])->name('payment.methods.paypal.callback');
-        
+
         Route::post('/payment/initialize', [PaymentController::class, 'initializePayment'])->name('payment.initialize');
-        
+
         // Dispute Routes (guardians can dispute bookings they made for their children)
         Route::post('/booking/{booking}/dispute', [\App\Http\Controllers\Student\DisputeController::class, 'store'])->name('booking.dispute');
-        
+
         // Booking Cancellation Routes (guardians can cancel bookings they made)
         Route::get('/booking/{booking}/cancellation-details', [\App\Http\Controllers\Student\BookingCancellationController::class, 'getCancellationDetails'])->name('booking.cancellation-details');
         Route::post('/booking/{booking}/cancel', [\App\Http\Controllers\Student\BookingCancellationController::class, 'cancel'])->name('booking.cancel');
-        
+
         // Reschedule Routes (guardians can reschedule bookings they made)
         Route::get('/booking/{booking}/reschedule', [\App\Http\Controllers\Student\RescheduleController::class, 'index'])->name('booking.reschedule');
         Route::post('/booking/{booking}/reschedule', [\App\Http\Controllers\Student\RescheduleController::class, 'store'])->name('booking.reschedule.store');
         Route::post('/booking/{booking}/reschedule/check-availability', [\App\Http\Controllers\Student\RescheduleController::class, 'checkAvailability'])->name('booking.reschedule.check-availability');
         Route::post('/reschedule-request/{rescheduleRequest}/cancel', [\App\Http\Controllers\Student\RescheduleController::class, 'cancelRequest'])->name('reschedule-request.cancel');
-        
+
         // My Bookings Routes (guardians see bookings they made for their children)
         Route::get('/bookings', [\App\Http\Controllers\Student\BookingController::class, 'myBookings'])->name('bookings.index');
         Route::get('/bookings/{booking}', [\App\Http\Controllers\Student\BookingController::class, 'show'])->name('bookings.show');
@@ -87,19 +101,19 @@ Route::middleware(['auth', 'verified', 'role:guardian'])
         Route::post('/bookings/bulk-pay', [\App\Http\Controllers\Student\BookingController::class, 'bulkPay'])->name('bookings.bulk-pay');
         Route::post('/bookings/{booking}/pay-now', [\App\Http\Controllers\Student\BookingController::class, 'payNow'])->name('bookings.pay-now');
         Route::get('/bookings/{booking}/summary/pdf', [\App\Http\Controllers\BookingSummaryController::class, 'show'])->name('bookings.summary.pdf');
-        
+
         // Calendar Export Routes
         Route::get('/calendar/export', [\App\Http\Controllers\CalendarExportController::class, 'exportAllBookings'])->name('calendar.export');
         Route::get('/calendar/export/{booking}', [\App\Http\Controllers\CalendarExportController::class, 'exportBooking'])->name('calendar.export.booking');
         Route::get('/calendar/google/{booking}', [\App\Http\Controllers\CalendarExportController::class, 'googleCalendarUrl'])->name('calendar.google');
-        
+
         // Notification Routes
         Route::get('/notifications', [\App\Http\Controllers\Guardian\NotificationController::class, 'index'])->name('notifications.index');
         Route::post('/notifications/{id}/read', [\App\Http\Controllers\Guardian\NotificationController::class, 'markAsRead'])->name('notifications.read');
         Route::post('/notifications/mark-all-read', [\App\Http\Controllers\Guardian\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
         Route::delete('/notifications/{id}', [\App\Http\Controllers\Guardian\NotificationController::class, 'destroy'])->name('notifications.destroy');
         Route::delete('/notifications', [\App\Http\Controllers\Guardian\NotificationController::class, 'destroyAll'])->name('notifications.destroy-all');
-        
+
         // Messages Routes
         Route::post('/messages/support', [\App\Http\Controllers\MessageController::class, 'startWithAdmin'])->name('messages.support');
         Route::get('/messages/unread-count', [\App\Http\Controllers\MessageController::class, 'unreadCount'])->name('messages.unread-count');

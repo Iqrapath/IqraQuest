@@ -30,10 +30,18 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $this->passwordRules(),
         ])->validate();
 
-        return User::create([
+        $user = User::create([
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => $input['password'],
         ]);
+
+        // Auto-verify email if admin has disabled email verification requirement
+        if (!\App\Models\SystemSetting::get('email_verification_on_signup', true)) {
+            $user->email_verified_at = now();
+            $user->save();
+        }
+
+        return $user;
     }
 }

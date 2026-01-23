@@ -40,12 +40,20 @@ export function CurrencyProvider({ children, initialCurrency = 'NGN' }: { childr
     useEffect(() => {
         const fetchRates = async () => {
             try {
-                const response = await fetch('https://open.er-api.com/v6/latest/USD');
+                // Use Laravel API instead of external API
+                const response = await fetch('/api/currency/rates');
                 const data = await response.json();
                 setRates(data.rates);
                 setLoading(false);
             } catch (error) {
-                // console.error('Failed to fetch exchange rates:', error);
+                console.error('Failed to fetch exchange rates:', error);
+                // Fallback rates if API fails
+                setRates({
+                    USD: 1,
+                    NGN: 1538,
+                    EUR: 0.92,
+                    GBP: 0.79
+                });
                 setLoading(false);
             }
         };

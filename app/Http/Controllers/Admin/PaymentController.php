@@ -32,7 +32,7 @@ class PaymentController extends Controller
             if ($search) {
                 $query->whereHas('teacher.user', function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%");
+                        ->orWhere('email', 'like', "%{$search}%");
                 });
             }
 
@@ -45,51 +45,49 @@ class PaymentController extends Controller
             if ($request->filled('payment_method') && $request->payment_method !== 'all') {
                 $method = $request->payment_method;
                 if ($method === 'Bank Transfer') {
-                     $query->where('gateway', 'paystack');
+                    $query->where('gateway', 'paystack');
                 } elseif ($method === 'PayPal') {
-                     $query->where('gateway', 'paypal');
+                    $query->where('gateway', 'paypal');
                 }
             }
 
-             // 4. Date Range
-             if ($request->filled('date_range') && $request->date_range !== 'all') {
+            // 4. Date Range
+            if ($request->filled('date_range') && $request->date_range !== 'all') {
                 $range = $request->date_range;
-                
+
                 if ($range === 'last_7_days') {
                     $query->where('requested_at', '>=', now()->subDays(7));
                 } elseif ($range === 'last_30_days') {
-                     $query->where('requested_at', '>=', now()->subDays(30));
+                    $query->where('requested_at', '>=', now()->subDays(30));
                 } elseif ($range === 'this_month') {
-                     $query->whereMonth('requested_at', now()->month)
-                           ->whereYear('requested_at', now()->year);
+                    $query->whereMonth('requested_at', now()->month)
+                        ->whereYear('requested_at', now()->year);
                 } elseif ($range === 'last_month') {
-                     $query->whereMonth('requested_at', now()->subMonth()->month)
-                           ->whereYear('requested_at', now()->subMonth()->year);
+                    $query->whereMonth('requested_at', now()->subMonth()->month)
+                        ->whereYear('requested_at', now()->subMonth()->year);
                 }
-             }
+            }
 
             $payouts = $query->latest('requested_at')->paginate(20)->withQueryString();
 
             $data['payouts'] = $payouts;
-            
+
             $data['stats'] = [
                 'pending_count' => Payout::where('status', 'pending')->count(),
             ];
-        } 
-        elseif ($activeTab === 'student-payments') {
+        } elseif ($activeTab === 'student-payments') {
             // Placeholder
             $data['studentPayments'] = [];
-        }
-        elseif ($activeTab === 'payment-settings') {
-             // Fetch first row or default
-             $data['paymentSettings'] = PaymentSetting::firstOrNew([], [
+        } elseif ($activeTab === 'payment-settings') {
+            // Fetch first row or default
+            $data['paymentSettings'] = PaymentSetting::firstOrNew([], [
                 'commission_rate' => 10.00,
                 'commission_type' => 'fixed_percentage',
                 'auto_payout_threshold' => 50000.00,
                 'min_withdrawal_amount' => 10000.00,
                 'bank_verification_enabled' => true,
                 'apply_time' => 'set_now',
-             ]);
+            ]);
         }
 
         return Inertia::render('Admin/Payments/Index', $data);
@@ -119,5 +117,44 @@ class PaymentController extends Controller
         $settings->save();
 
         return redirect()->back()->with('success', 'Payment settings updated successfully.');
+    }
+
+    /**
+     * Export Payout Logs as CSV
+     */
+    public function exportLogs()
+    {
+        $payouts = Payout::with(['teacher.user'])->latest('requested_at')->get();
+
+        $filename = "payout-logs-" . now()->format('Y-m-d-His') . ".csv";
+
+        $headers = [
+            "Content-type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        ];
+
+        $callback = function () use ($payouts) {
+            $file = fopen('php://output', 'w');
+
+            // Header
+            fputcsv($file, ['Teacher', 'Amount', 'Gateway', 'Status', 'Requested At']);
+
+            foreach ($payouts as $payout) {
+                fputcsv($file, [
+                    $payout->teacher->user->name ?? 'N/A',
+                    $payout->amount,
+                    strtoupper($payout->gateway),
+                    ucfirst($payout->status),
+                    $payout->requested_at->format('Y-m-d H:i:s'),
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

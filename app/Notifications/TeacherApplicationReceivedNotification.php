@@ -54,7 +54,7 @@ class TeacherApplicationReceivedNotification extends Notification implements Sho
             ->line('This process typically takes 1-3 business days.')
             ->action('View Application Status', route('teacher.waiting-area'))
             ->line('Thank you for your patience!')
-            ->salutation('Best regards, The IqraPath Team');
+            ->salutation('Best regards, The IqraQuest Team');
     }
 
     /**

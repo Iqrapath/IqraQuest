@@ -11,6 +11,7 @@ import { BookingCard, JoinClassModal, CancelBookingModal, type BookingData } fro
 import { TopRatedTeachers } from '@/components/Teachers/TopRatedTeachers';
 import { TeacherProfileModal } from '@/components/Teachers/TeacherProfileModal';
 import { Button } from '@/components/ui/button';
+import { useFormatDate } from '@/lib/format';
 
 interface DashboardProps {
     student: {
@@ -34,6 +35,7 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ student, stats, upcomingClasses, topTeachers, progress }: DashboardProps) {
+    const { formatDate } = useFormatDate();
     const [joinModalOpen, setJoinModalOpen] = useState(false);
     const [cancelModalOpen, setCancelModalOpen] = useState(false);
     const [isCancelling, setIsCancelling] = useState(false);

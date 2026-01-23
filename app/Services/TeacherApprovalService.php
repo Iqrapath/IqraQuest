@@ -20,7 +20,7 @@ class TeacherApprovalService
     public function getVerificationChecklist(Teacher $teacher): array
     {
         $certificates = $teacher->certificates;
-        
+
         $idFront = $certificates->firstWhere('certificate_type', 'id_card_front');
         $idBack = $certificates->firstWhere('certificate_type', 'id_card_back');
         $cv = $certificates->firstWhere('certificate_type', 'cv');
@@ -64,9 +64,9 @@ class TeacherApprovalService
     public function hasIncompleteVerifications(Teacher $teacher): bool
     {
         $checklist = $this->getVerificationChecklist($teacher);
-        
-        return !$checklist['id_front']['verified'] 
-            || !$checklist['id_back']['verified'] 
+
+        return !$checklist['id_front']['verified']
+            || !$checklist['id_back']['verified']
             || !$checklist['cv']['verified']
             || !$checklist['video_verification']['completed'];
     }
@@ -80,18 +80,18 @@ class TeacherApprovalService
         $incomplete = [];
 
         if (!$checklist['id_front']['verified']) {
-            $incomplete[] = $checklist['id_front']['uploaded'] 
-                ? 'ID Card (Front) not verified' 
+            $incomplete[] = $checklist['id_front']['uploaded']
+                ? 'ID Card (Front) not verified'
                 : 'ID Card (Front) not uploaded';
         }
         if (!$checklist['id_back']['verified']) {
-            $incomplete[] = $checklist['id_back']['uploaded'] 
-                ? 'ID Card (Back) not verified' 
+            $incomplete[] = $checklist['id_back']['uploaded']
+                ? 'ID Card (Back) not verified'
                 : 'ID Card (Back) not uploaded';
         }
         if (!$checklist['cv']['verified']) {
-            $incomplete[] = $checklist['cv']['uploaded'] 
-                ? 'CV/Resume not verified' 
+            $incomplete[] = $checklist['cv']['uploaded']
+                ? 'CV/Resume not verified'
                 : 'CV/Resume not uploaded';
         }
         if (!$checklist['video_verification']['completed']) {
@@ -107,7 +107,7 @@ class TeacherApprovalService
     public function approve(Teacher $teacher, User $admin, ?string $overrideReason = null): void
     {
         $hasIncomplete = $this->hasIncompleteVerifications($teacher);
-        
+
         // Log the approval with details
         if ($hasIncomplete && $overrideReason) {
             $incompleteItems = $this->getIncompleteItems($teacher);
@@ -143,7 +143,11 @@ class TeacherApprovalService
 
             // Send approval notification to teacher
             $teacher->user->notify(new TeacherApprovedNotification($teacher));
+
+            // Broadcast real-time update
+            broadcast(new \App\Events\TeacherUpdated($teacher, 'Your application has been approved!'));
         });
+
     }
 
     /**
@@ -163,7 +167,11 @@ class TeacherApprovalService
 
             // Send rejection notification to teacher
             $teacher->user->notify(new TeacherRejectedNotification($teacher, $reason));
+
+            // Broadcast real-time update
+            broadcast(new \App\Events\TeacherUpdated($teacher, 'Your application status has been updated.'));
         });
+
     }
 
     /**
@@ -180,6 +188,10 @@ class TeacherApprovalService
 
             // Notify the teacher
             $teacher->user->notify(new TeacherSuspendedNotification($teacher, $reason));
+
+            // Broadcast real-time update
+            broadcast(new \App\Events\TeacherUpdated($teacher, 'Your account status has been updated.'));
+
 
             Log::channel('daily')->info('Teacher suspended', [
                 'teacher_id' => $teacher->id,

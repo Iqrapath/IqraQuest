@@ -20,6 +20,7 @@
         "laravel/tinker": "^2.10.1",
         "laravel/wayfinder": "^0.1.9",
         "paypal/paypal-checkout-sdk": "^1.0",
+        "tightenco/ziggy": "^2.6",
         "yabacon/paystack-php": "^2.2"
     },
     "require-dev": {

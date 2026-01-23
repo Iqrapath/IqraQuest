@@ -71,4 +71,15 @@ return [
         'api_secret' => env('LIVEKIT_API_SECRET'),
     ],
 
+    'zoom' => [
+        'account_id' => env('ZOOM_ACCOUNT_ID'),
+        'client_id' => env('ZOOM_CLIENT_ID'),
+        'client_secret' => env('ZOOM_CLIENT_SECRET'),
+        'webhook_secret_token' => env('ZOOM_WEBHOOK_SECRET_TOKEN'),
+        'base_url' => 'https://api.zoom.us/v2/',
+        'auth_url' => 'https://zoom.us/oauth/token',
+    ],
+
+
+
 ];

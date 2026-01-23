@@ -9,6 +9,7 @@ use App\Services\TeacherApprovalService;
 use App\Services\CertificateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Services\ZoomService;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,15 +18,18 @@ class VerificationRequestController extends Controller
     protected TeacherApprovalService $approvalService;
     protected CertificateService $certificateService;
     protected \App\Services\WalletService $walletService;
+    protected ZoomService $zoomService;
 
     public function __construct(
-        TeacherApprovalService $approvalService, 
+        TeacherApprovalService $approvalService,
         CertificateService $certificateService,
-        \App\Services\WalletService $walletService
+        \App\Services\WalletService $walletService,
+        ZoomService $zoomService
     ) {
         $this->approvalService = $approvalService;
         $this->certificateService = $certificateService;
         $this->walletService = $walletService;
+        $this->zoomService = $zoomService;
     }
 
     /**
@@ -38,7 +42,7 @@ class VerificationRequestController extends Controller
 
         // Filter by Application Status (Tabs)
         $appStatus = $request->input('application_status', 'pending');
-        
+
         if ($appStatus === 'approved') {
             $query->whereIn('status', ['approved', 'active']);
         } elseif ($appStatus === 'rejected') {
@@ -53,7 +57,7 @@ class VerificationRequestController extends Controller
             $search = $request->search;
             $query->whereHas('user', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -102,12 +106,12 @@ class VerificationRequestController extends Controller
         $teacher->load(['user', 'subjects', 'certificates', 'availability', 'paymentMethods']);
 
         $wallet = $this->walletService->getOrCreateWallet($teacher->user_id);
-        
+
         $totalEarned = \App\Models\Transaction::where('user_id', $teacher->user_id)
             ->where('type', 'credit')
             ->where('status', 'completed')
             ->sum('amount');
-            
+
         $pendingPayouts = \App\Models\Transaction::where('user_id', $teacher->user_id)
             ->where('type', 'debit') // or specific transactionable_type if payouts have one
             ->where('status', 'pending')
@@ -157,22 +161,46 @@ class VerificationRequestController extends Controller
             'notes' => 'nullable|string|max:500',
         ]);
 
+        // Delete old meeting if rescheduling
+        if ($isReschedule && $teacher->video_verification_room_id && $teacher->video_verification_platform === 'Zoom') {
+            $this->zoomService->deleteMeeting($teacher->video_verification_room_id);
+        }
+
+        // Create Zoom Meeting
+        $meeting = $this->zoomService->createMeeting([
+            'topic' => "Account Verification - " . $teacher->user->name,
+            'start_time' => \Carbon\Carbon::parse($validated['scheduled_at'])->toIso8601String(),
+            'duration' => 30,
+            'agenda' => "Identity and qualification verification for IqraQuest teacher profile.",
+        ]);
+
+        if (!$meeting) {
+            return redirect()->back()->with('error', 'Failed to create Zoom meeting. Please check Zoom configuration or try again.');
+        }
+
         $teacher->update([
             'video_verification_status' => 'scheduled',
             'video_verification_scheduled_at' => $validated['scheduled_at'],
-            'video_verification_room_id' => Str::uuid(),
+            'video_verification_room_id' => $meeting['id'], // Store Zoom ID
+            'video_verification_url' => $meeting['join_url'], // Store Zoom Join URL
+            'video_verification_platform' => 'Zoom',
             'video_verification_notes' => $validated['notes'] ?? null,
             'status' => 'under_review',
         ]);
 
+
         // Send notification to teacher
         $teacher->user->notify(new \App\Notifications\VerificationCallScheduledNotification(
-            $teacher, 
-            $validated['scheduled_at'], 
+            $teacher,
+            $validated['scheduled_at'],
             $validated['notes'] ?? null
         ));
-        
-        return redirect()->back()->with('success', 'Verification call scheduled successfully.');
+
+        // Broadcast real-time update
+        broadcast(new \App\Events\TeacherUpdated($teacher, 'A verification call has been scheduled.'));
+
+        return redirect()->back()->with('success', 'Verification call scheduled on Zoom successfully.');
+
     }
 
     /**
@@ -193,7 +221,11 @@ class VerificationRequestController extends Controller
             $teacher->user->notify(new \App\Notifications\DocumentRejectedNotification($certificate, $request->reason));
         }
 
+        // Broadcast real-time update (updates the checklist in UI)
+        broadcast(new \App\Events\TeacherUpdated($teacher, 'Documents updated.'));
+
         return redirect()->back()->with('success', 'Document status updated.');
+
     }
 
     /**
@@ -209,11 +241,11 @@ class VerificationRequestController extends Controller
 
         $file = $request->file('file');
         $type = $request->type;
-        
+
         // Determine title based on type if not provided
         $title = $request->title;
         if (!$title) {
-            $title = match($type) {
+            $title = match ($type) {
                 'id_card_front' => 'ID Card (Front)',
                 'id_card_back' => 'ID Card (Back)',
                 'cv' => 'CV/Resume',
@@ -247,7 +279,7 @@ class VerificationRequestController extends Controller
     public function approve(Request $request, Teacher $teacher)
     {
         $hasIncomplete = $this->approvalService->hasIncompleteVerifications($teacher);
-        
+
         // If there are incomplete verifications, require an override reason
         if ($hasIncomplete) {
             $request->validate([
@@ -259,8 +291,8 @@ class VerificationRequestController extends Controller
         }
 
         $this->approvalService->approve(
-            $teacher, 
-            $request->user(), 
+            $teacher,
+            $request->user(),
             $hasIncomplete ? $request->override_reason : null
         );
 
@@ -335,10 +367,10 @@ class VerificationRequestController extends Controller
     public function destroy(Teacher $teacher)
     {
         $user = $teacher->user;
-        
+
         // Delete all related data (handled by database cascading usually, but good to be explicit for some)
         // For clean deletion we'll delete the user which should cascade to teacher profile
-        
+
         // If soft deletes are used, this will soft delete
         $user->delete();
 

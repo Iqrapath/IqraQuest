@@ -37,8 +37,9 @@ class DashboardController extends Controller
                 ->where('start_time', '>=', now())
                 ->count();
 
+            // Pending requests - include all pending-type statuses
             $stats['pending_requests'] = Booking::where('teacher_id', $teacher->id)
-                ->where('status', 'pending')
+                ->whereIn('status', ['pending', 'awaiting_approval'])
                 ->count();
 
             $sessions = Booking::where('teacher_id', $teacher->id)
@@ -109,7 +110,7 @@ class DashboardController extends Controller
                 ->where('start_time', '>=', now())
                 ->count(),
             'pending_requests' => Booking::where('teacher_id', $teacher->id)
-                ->where('status', 'pending')
+                ->whereIn('status', ['pending', 'awaiting_approval'])
                 ->count(),
         ];
 

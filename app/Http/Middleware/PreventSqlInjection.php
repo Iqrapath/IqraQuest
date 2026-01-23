@@ -23,13 +23,29 @@ class PreventSqlInjection
     ];
 
     /**
+     * The names of the attributes that should not be validated for SQL injection.
+     *
+     * @var array<int, string>
+     */
+    protected array $except = [
+        'terms_conditions',
+        'privacy_policy',
+        'answer',
+    ];
+
+    /**
      * Handle an incoming request.
      */
     public function handle(Request $request, Closure $next): Response
     {
         $inputs = $request->all();
 
-        foreach ($inputs as $input) {
+        foreach ($inputs as $key => $input) {
+            // Skip excepted fields
+            if (in_array($key, $this->except)) {
+                continue;
+            }
+
             if (is_string($input) && $this->containsSqlInjection($input)) {
                 abort(403, 'Suspicious activity detected');
             }

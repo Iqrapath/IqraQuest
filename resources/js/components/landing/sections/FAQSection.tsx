@@ -54,9 +54,10 @@ function FAQItem({ number, question, answer, isOpen, onToggle }: FAQItemProps) {
                         {/* Answer */}
                         {isOpen && (
                             <div className="flex flex-col gap-[clamp(0.75rem,1.03vw,0.931rem)] pt-[clamp(0.5rem,1vw,1rem)]">
-                                <p className="font-['Nunito'] text-[clamp(0.875rem,1.67vw,1.5rem)] font-normal leading-[1.5] text-[rgba(60,60,67,0.85)]">
-                                    {answer}
-                                </p>
+                                <div
+                                    className="font-['Nunito'] text-[clamp(0.875rem,1.67vw,1.5rem)] font-normal leading-[1.5] text-[rgba(60,60,67,0.85)] prose prose-sm max-w-none"
+                                    dangerouslySetInnerHTML={{ __html: answer }}
+                                />
                             </div>
                         )}
                     </div>
@@ -69,34 +70,11 @@ function FAQItem({ number, question, answer, isOpen, onToggle }: FAQItemProps) {
     );
 }
 
-export default function FAQSection() {
+export default function FAQSection({ faqs }: { faqs: any[] }) {
     const { translations } = usePage<any>().props;
     const __ = (key: string) => (translations && translations[key]) ? translations[key] : key;
 
     const [openIndex, setOpenIndex] = useState<number>(0);
-
-    const faqs = [
-        {
-            number: '01',
-            question: __('How do I book a teacher?'),
-            answer: __('Nibh quisque suscipit fermentum netus nulla cras porttitor euismod nulla. Orci, dictumst nec aliquet id ullamcorper venenatis. Fermentum sulla craspor ttitore  ismod nulla.'),
-        },
-        {
-            number: '02',
-            question: __('Are the teachers certified?'),
-            answer: __('Yes, all our teachers are certified and have extensive experience in teaching Quran with proper Tajweed and Islamic knowledge.'),
-        },
-        {
-            number: '03',
-            question: __('Can I choose the class timing?'),
-            answer: __('Absolutely! You have full flexibility to choose class timings that work best for your schedule. Our teachers are available 24/7.'),
-        },
-        {
-            number: '04',
-            question: __('Do you offer free trial classes?'),
-            answer: __('Yes, we offer a free trial class so you can experience our teaching methodology and find the perfect teacher for your needs.'),
-        },
-    ];
 
     return (
         <div className="relative w-full overflow-hidden bg-white px-[clamp(1rem,11.5vw,10.356rem)] py-[clamp(2rem,4.14vw,3.725rem)]">
@@ -128,14 +106,30 @@ export default function FAQSection() {
                 {/* FAQ List */}
                 <div className="flex flex-col items-center px-[clamp(0rem,11.5vw,10.356rem)] py-[clamp(1.5rem,4.14vw,3.725rem)]">
                     <div className="w-full max-w-[1098.88px]">
-                        {faqs.map((faq, index) => (
-                            <FAQItem
-                                key={index}
-                                {...faq}
-                                isOpen={openIndex === index}
-                                onToggle={() => setOpenIndex(openIndex === index ? -1 : index)}
-                            />
-                        ))}
+                        {faqs.length > 0 ? (
+                            faqs.map((faq, index) => (
+                                <FAQItem
+                                    key={index}
+                                    number={(index + 1).toString().padStart(2, '0')}
+                                    question={faq.question}
+                                    answer={faq.answer}
+                                    isOpen={openIndex === index}
+                                    onToggle={() => setOpenIndex(openIndex === index ? -1 : index)}
+                                />
+                            ))
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-20 text-center">
+                                <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#f3f5f6]">
+                                    <Icon icon="ph:question-light" className="h-10 w-10 text-[#338078]" />
+                                </div>
+                                <h3 className="mb-2 font-['Nunito'] text-xl font-bold text-[#338078]">
+                                    {__("No Questions Yet")}
+                                </h3>
+                                <p className="max-w-md font-['Nunito'] text-gray-500">
+                                    {__("We haven't added any frequently asked questions yet. If you have a question, please feel free to reach out to our support team.")}
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

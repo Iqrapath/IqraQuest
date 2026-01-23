@@ -35,7 +35,7 @@ export default function RoleManagementModal({ isOpen, onClose, role, availablePe
                 permissions: role?.permissions || []
             });
         }
-    }, [isOpen, role]);
+    }, [isOpen, role?.id]);
 
     const togglePermission = (perm: string) => {
         const newPerms = data.permissions.includes(perm)
@@ -46,7 +46,7 @@ export default function RoleManagementModal({ isOpen, onClose, role, availablePe
 
     const handleSubmit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(route('admin.settings.roles.save'), {
+        post('/admin/settings/roles', {
             onSuccess: () => {
                 toast.success(data.id ? 'Role updated' : 'Role created');
                 onClose();
@@ -57,7 +57,7 @@ export default function RoleManagementModal({ isOpen, onClose, role, availablePe
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-[700px] max-h-[90vh] overflow-y-auto font-[Nunito]">
+            <DialogContent className="max-w-[700px] max-h-[90vh] overflow-y-auto font-[Nunito]" aria-describedby="role-modal-desc">
                 <DialogHeader>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-[#338078]/10 text-[#338078] flex items-center justify-center">
@@ -67,6 +67,9 @@ export default function RoleManagementModal({ isOpen, onClose, role, availablePe
                             {data.id ? 'Edit Admin Role' : 'Create New Admin Role'}
                         </DialogTitle>
                     </div>
+                    <p id="role-modal-desc" className="sr-only">
+                        Form to create or edit an administrative role and assign permissions.
+                    </p>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-8 mt-6">

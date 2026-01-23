@@ -52,7 +52,7 @@ class AdminSettingSeeder extends Seeder
         // 2. Create Initial System Settings
         $settings = [
             ['group' => 'general', 'key' => 'site_name', 'value' => 'IQRAQUEST', 'type' => 'string'],
-            ['group' => 'general', 'key' => 'support_email', 'value' => 'support@iqrapath.com', 'type' => 'string'],
+            ['group' => 'general', 'key' => 'support_email', 'value' => 'Officialiqraquest@gmail.com', 'type' => 'string'],
             ['group' => 'general', 'key' => 'office_address', 'value' => 'Iqrapath Headquarters, Lagos, Nigeria', 'type' => 'string'],
             ['group' => 'general', 'key' => 'contact_number', 'value' => '+2347069731575', 'type' => 'string'],
             ['group' => 'general', 'key' => 'whatsapp_number', 'value' => '+2347069731575', 'type' => 'string'],

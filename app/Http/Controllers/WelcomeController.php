@@ -3,22 +3,43 @@
 namespace App\Http\Controllers;
 
 use App\Models\Teacher;
+use App\Models\SystemSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 class WelcomeController extends Controller
 {
+    public function handleRedirect()
+    {
+        $defaultPage = SystemSetting::get('default_landing_page', 'home');
+
+        if ($defaultPage === 'home') {
+            return redirect()->route('home');
+        }
+
+        if (Route::has($defaultPage)) {
+            return redirect()->route($defaultPage);
+        }
+
+        return redirect()->route('home');
+    }
+
     public function index()
     {
         $teachers = Teacher::with(['user'])
             ->where('status', 'approved')
-            ->withCount(['reviews' => function($query) {
-                $query->where('is_approved', true);
-            }])
-            ->withAvg(['reviews' => function($query) {
-                $query->where('is_approved', true);
-            }], 'rating')
+            ->withCount([
+                'reviews' => function ($query) {
+                    $query->where('is_approved', true);
+                }
+            ])
+            ->withAvg([
+                'reviews' => function ($query) {
+                    $query->where('is_approved', true);
+                }
+            ], 'rating')
             ->latest('approved_at')
             ->take(4)
             ->get()
@@ -26,8 +47,8 @@ class WelcomeController extends Controller
                 return [
                     'id' => $teacher->id,
                     'name' => $teacher->user->name,
-                    'specialty' => is_array($teacher->specializations) && count($teacher->specializations) > 0 
-                        ? implode(' & ', array_slice($teacher->specializations, 0, 2)) 
+                    'specialty' => is_array($teacher->specializations) && count($teacher->specializations) > 0
+                        ? implode(' & ', array_slice($teacher->specializations, 0, 2))
                         : 'Quran Teacher',
                     'rating' => number_format($teacher->reviews_avg_rating ?? 0, 1),
                     'reviews' => $teacher->reviews_count,
@@ -36,9 +57,14 @@ class WelcomeController extends Controller
                 ];
             });
 
+        $faqs = \App\Models\FAQ::where('status', 'published')
+            ->orderBy('order')
+            ->get();
+
         return Inertia::render('welcome', [
-            'canRegister' => \Laravel\Fortify\Features::enabled(\Laravel\Fortify\Features::registration()),
+            'canRegister' => Features::enabled(Features::registration()),
             'teachers' => $teachers,
+            'faqs' => $faqs,
         ]);
     }
 

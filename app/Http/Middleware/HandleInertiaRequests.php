@@ -52,6 +52,10 @@ class HandleInertiaRequests extends Middleware
                     'contact_number' => \App\Models\SystemSetting::get('contact_number'),
                     'whatsapp_number' => \App\Models\SystemSetting::get('whatsapp_number'),
                 ],
+                'localization' => [
+                    'timezone' => \App\Models\SystemSetting::get('timezone', 'UTC'),
+                    'date_format' => \App\Models\SystemSetting::get('date_format', 'DD/MM/YYYY'),
+                ],
             ],
             'locale' => app()->getLocale(),
             'translations' => array_merge(
@@ -65,6 +69,9 @@ class HandleInertiaRequests extends Middleware
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
                 'user' => $request->user(),
+                'permissions' => $request->user()?->isAdmin()
+                    ? ($request->user()->isSuperAdmin() ? ['*'] : ($request->user()->roleDetail->permissions ?? []))
+                    : [],
                 'wallet_balance' => $request->user()?->wallet()->value('balance') ?? 0,
                 'wallet_currency' => $request->user()?->wallet?->currency ?? 'NGN',
                 'payment_gateways_currencies' => [

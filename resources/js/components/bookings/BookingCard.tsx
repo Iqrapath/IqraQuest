@@ -3,6 +3,7 @@ import { Icon } from '@iconify/react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { CalendarExport } from '@/components/ui/calendar-export';
+import { useFormatDate } from '@/lib/format';
 
 export interface BookingReview {
     id: number;
@@ -55,9 +56,12 @@ interface BookingCardProps {
 
 export function BookingCard(props: BookingCardProps) {
     const { booking, status, userRole = 'student', showBorder = true } = props;
+    const { formatDate, formatDateTime } = useFormatDate();
 
     const isTeacher = userRole === 'teacher';
     const person = isTeacher ? booking.student : booking.teacher;
+
+    const displayTime = `${formatDate(booking.start_time, 'p')} - ${formatDate(booking.end_time, 'p')}`;
 
     return (
         <div className={cn('px-[clamp(1.5rem,3vw,2rem)] py-[clamp(1rem,2vw,1.5rem)]', showBorder && 'border-b border-[#e5e7eb]')}>
@@ -77,7 +81,7 @@ export function BookingCard(props: BookingCardProps) {
 
                 {/* Date/Time and Status Row */}
                 <div className="flex items-center gap-[clamp(0.5rem,1vw,0.75rem)] flex-wrap">
-                    <DateTimeBadge date={booking.formatted_date} time={booking.formatted_time} />
+                    <DateTimeBadge date={formatDate(booking.start_time)} time={displayTime} />
                     <StatusBadge status={booking.display_status} />
                 </div>
 

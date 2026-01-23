@@ -20,11 +20,9 @@ class WaitingAreaController extends Controller
         Log::info('Teacher Waiting Area: Rendering page', [
             'user_id' => $user->id,
             'teacher_id' => $teacher?->id,
-            'teacher_status' => $teacher?->status,
-            'onboarding_step' => $teacher?->onboarding_step,
-            'is_pending' => $teacher?->isPending(),
-            'is_rejected' => $teacher?->isRejected(),
-            'referrer' => request()->headers->get('referer'),
+            'status' => $teacher?->status,
+            'verification_status' => $teacher?->video_verification_status,
+            'verification_scheduled_at' => $teacher?->video_verification_scheduled_at,
         ]);
 
         // Fetch admin conversation if exists
@@ -33,16 +31,20 @@ class WaitingAreaController extends Controller
                 $query->where('user_one_id', $user->id)
                     ->orWhere('user_two_id', $user->id);
             })
-            ->with(['messages' => function ($query) {
-                $query->with('sender:id,name,avatar')->orderBy('created_at', 'asc');
-            }, 'userOne', 'userTwo'])
+            ->with([
+                'messages' => function ($query) {
+                    $query->with('sender:id,name,avatar')->orderBy('created_at', 'asc');
+                },
+                'userOne',
+                'userTwo'
+            ])
             ->first();
 
         // Format conversation for the view if it exists
         $formattedConversation = null;
         if ($adminConversation) {
-            $otherUser = $adminConversation->user_one_id === $user->id 
-                ? $adminConversation->userTwo 
+            $otherUser = $adminConversation->user_one_id === $user->id
+                ? $adminConversation->userTwo
                 : $adminConversation->userOne;
 
             $formattedConversation = [
@@ -70,12 +72,14 @@ class WaitingAreaController extends Controller
         return Inertia::render('Teacher/WaitingArea', [
             'teacher' => $teacher->load(['approver', 'rejecter']),
             'status' => $teacher->status,
-            'isPending' => $teacher->isPending(),
-            'isRejected' => $teacher->isRejected(),
-            'isSuspended' => $teacher->isSuspended(),
-            'rejectionReason' => $teacher->rejection_reason,
-            'suspensionReason' => $teacher->suspension_reason,
-            'rejectedAt' => $teacher->rejected_at,
+            'verificationStatus' => $teacher->video_verification_status,
+            'verificationScheduledAt' => $teacher->video_verification_scheduled_at,
+            'isPending' => $teacher ? $teacher->isPending() : false,
+            'isRejected' => $teacher ? $teacher->isRejected() : false,
+            'isSuspended' => $teacher ? $teacher->isSuspended() : false,
+            'rejectionReason' => $teacher->rejection_reason ?? null,
+            'suspensionReason' => $teacher->suspension_reason ?? null,
+            'rejectedAt' => $teacher->rejected_at ?? null,
             'conversation' => $formattedConversation,
         ]);
     }
@@ -90,11 +94,10 @@ class WaitingAreaController extends Controller
         ]);
 
         $user = auth()->user();
-        
+
         // Find existing admin conversation or create new one with first admin found
-        // In a real app, you might want to assign to specific support user or generic admin
         $adminUser = \App\Models\User::where('role', \App\Enums\UserRole::ADMIN)->first();
-        
+
         if (!$adminUser) {
             return back()->with('error', 'Support is currently unavailable.');
         }
@@ -115,11 +118,9 @@ class WaitingAreaController extends Controller
 
         $conversation->update(['last_message_at' => now()]);
 
-        // Broadcast events for real-time updates
         broadcast(new \App\Events\MessageSent($message->load('sender')))->toOthers();
         broadcast(new \App\Events\NewMessageReceived($message->load('sender'), $adminUser));
 
-        // Send email notification to Admin
         $replyUrl = config('app.url') . '/admin/verifications/' . $user->teacher->id;
         $adminUser->notify(new \App\Notifications\AdminNewMessageNotification(
             $user->name,

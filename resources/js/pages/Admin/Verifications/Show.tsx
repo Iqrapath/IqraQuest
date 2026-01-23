@@ -329,13 +329,21 @@ export default function VerificationShow({
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-xs sm:text-sm font-medium text-gray-600">Scheduled Verification Call</p>
-                                                <p className="text-sm sm:text-lg font-bold text-gray-900 truncate">
-                                                    {format(scheduledAt, 'EEEE, MMM d, yyyy')}
+                                                <p className="text-sm sm:text-lg font-bold text-gray-900 truncate mt-1">
+                                                    {new Intl.DateTimeFormat('en-US', {
+                                                        weekday: 'long', month: 'short', day: 'numeric', year: 'numeric',
+                                                        timeZone: 'UTC'
+                                                    }).format(scheduledAt)}
                                                 </p>
                                                 <p className="text-lg sm:text-2xl font-extrabold text-blue-600">
-                                                    {format(scheduledAt, 'h:mm a')}
+                                                    {new Intl.DateTimeFormat('en-US', {
+                                                        hour: '2-digit', minute: '2-digit',
+                                                        timeZone: 'UTC'
+                                                    }).format(scheduledAt)} <span className="text-sm font-normal text-gray-400">UTC</span>
                                                 </p>
                                             </div>
+
+
                                         </div>
 
                                         {/* Join Status Message */}
