@@ -18,12 +18,12 @@ class DatabaseSeeder extends Seeder
             AdminSettingSeeder::class,
             PlanFeatureSeeder::class,
             AdminSeeder::class,
-            GuardianSeeder::class,
-            StudentSeeder::class,
-            TeacherDemoSeeder::class,
             SubjectSeeder::class,
-            TeacherSeeder::class, // Bulk seeder if needed
-            PayoutSeeder::class,
+            // GuardianSeeder::class,
+            // StudentSeeder::class,
+            // TeacherDemoSeeder::class,
+            // TeacherSeeder::class, // Bulk seeder if needed
+            // PayoutSeeder::class,
         ]);
     }
 }
