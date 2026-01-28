@@ -16,3 +16,14 @@ export function isSameUrl(
 export function resolveUrl(url: NonNullable<InertiaLinkProps['href']>): string {
     return typeof url === 'string' ? url : url.url;
 }
+
+export function parseDBDate(dateStr: string): Date {
+    // Ensure the date string is treated as UTC by appending 'Z' if not present
+    // and replacing space with T if necessary.
+    // Standard Laravel DB timestamp format is 'YYYY-MM-DD HH:MM:SS'
+    let isoStr = dateStr.replace(' ', 'T');
+    if (!isoStr.endsWith('Z') && !isoStr.includes('+')) {
+        isoStr += 'Z';
+    }
+    return new Date(isoStr);
+}

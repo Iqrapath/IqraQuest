@@ -27,7 +27,7 @@ class VerificationCallScheduledNotification extends Notification implements Shou
         // Store primitive values instead of Eloquent model to avoid serialization issues
         $this->teacherId = $teacher->id;
         $this->teacherName = $teacher->user->name ?? 'Teacher';
-        
+
         // Pre-compute the URL using the teacher route (not admin)
         $this->roomUrl = config('app.url') . '/teacher/verification/room/' . $teacher->id;
     }
@@ -39,7 +39,8 @@ class VerificationCallScheduledNotification extends Notification implements Shou
 
     public function toMail(object $notifiable): MailMessage
     {
-        $scheduledDate = Carbon::parse($this->scheduledAt)->format('M d, Y \a\t h:i A');
+        // Force UTC timezone for display
+        $scheduledDate = Carbon::parse($this->scheduledAt)->setTimezone('UTC')->format('M d, Y \a\t h:i A') . ' UTC';
 
         return (new MailMessage)
             ->subject('Video Verification Call Scheduled - IqraQuest')
@@ -56,7 +57,7 @@ class VerificationCallScheduledNotification extends Notification implements Shou
     {
         return [
             'title' => 'Verification Call Scheduled',
-            'message' => 'Your verification call is scheduled for ' . Carbon::parse($this->scheduledAt)->format('M d, Y h:i A'),
+            'message' => 'Your verification call is scheduled for ' . Carbon::parse($this->scheduledAt)->setTimezone('UTC')->format('M d, Y h:i A') . ' UTC',
             'type' => 'verification_call',
             'scheduled_at' => $this->scheduledAt,
             'room_url' => $this->roomUrl,
@@ -68,7 +69,7 @@ class VerificationCallScheduledNotification extends Notification implements Shou
     {
         return new BroadcastMessage([
             'title' => 'Verification Call Scheduled',
-            'message' => 'Your verification call is scheduled for ' . Carbon::parse($this->scheduledAt)->format('M d, Y h:i A'),
+            'message' => 'Your verification call is scheduled for ' . Carbon::parse($this->scheduledAt)->setTimezone('UTC')->format('M d, Y h:i A') . ' UTC',
             'type' => 'verification_call',
             'room_url' => $this->roomUrl,
         ]);

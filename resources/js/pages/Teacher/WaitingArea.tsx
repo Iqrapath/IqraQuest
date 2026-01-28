@@ -4,6 +4,7 @@ import TeacherLayout from '@/layouts/TeacherLayout';
 import { toast } from 'sonner';
 import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button';
+import { parseDBDate } from '@/lib/utils';
 import ContactSupportModal from './components/ContactSupportModal';
 import { useEcho } from '@laravel/echo-react';
 
@@ -188,13 +189,13 @@ export default function WaitingArea({
                                                     weekday: 'short', month: 'short', day: 'numeric',
                                                     hour: '2-digit', minute: '2-digit',
                                                     timeZone: 'UTC'
-                                                }).format(new Date(vDate))} <span className="text-sm font-normal text-gray-400">UTC</span>
+                                                }).format(parseDBDate(vDate))} <span className="text-sm font-normal text-gray-400">UTC</span>
                                             </p>
                                         </div>
 
 
                                         {(() => {
-                                            const scheduled = new Date(vDate).getTime();
+                                            const scheduled = parseDBDate(vDate).getTime();
                                             const isActive = new Date().getTime() >= (scheduled - 15 * 60 * 1000);
                                             return (
                                                 <div className="w-full">

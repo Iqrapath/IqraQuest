@@ -1,4 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { parseDBDate } from '@/lib/utils';
 import AdminLayout from '@/layouts/AdminLayout';
 import { useState } from 'react';
 import { Icon } from '@iconify/react';
@@ -312,7 +313,7 @@ export default function VerificationShow({
 
                         {/* Scheduled Call Card + Actions */}
                         {teacher.video_verification_status === 'scheduled' && teacher.video_verification_scheduled_at ? (() => {
-                            const scheduledAt = new Date(teacher.video_verification_scheduled_at);
+                            const scheduledAt = parseDBDate(teacher.video_verification_scheduled_at);
                             const now = new Date();
                             const earlyJoinTime = new Date(scheduledAt.getTime() - 15 * 60 * 1000);
                             const lateJoinTime = new Date(scheduledAt.getTime() + 60 * 60 * 1000);
@@ -356,7 +357,7 @@ export default function VerificationShow({
                                             ) : isTooEarly ? (
                                                 <p className="text-xs sm:text-sm text-gray-600 flex items-center gap-1">
                                                     <Icon icon="solar:clock-circle-linear" className="w-4 h-4 shrink-0" />
-                                                    <span>Room opens at <strong>{format(earlyJoinTime, 'h:mm a')}</strong></span>
+                                                    <span>Room opens at <strong>{new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'UTC' }).format(earlyJoinTime)} UTC</strong></span>
                                                 </p>
                                             ) : (
                                                 <p className="text-xs sm:text-sm text-red-600 flex items-center gap-1">
