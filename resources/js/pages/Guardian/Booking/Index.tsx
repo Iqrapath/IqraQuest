@@ -365,6 +365,11 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
     const handleFinalBooking = () => {
         if (selectedSessions.length === 0 || !selectedSubject) return;
 
+        // Helper to format date for MySQL/Laravel (Using ISO to preserve timezone)
+        const formatForBackend = (date: Date) => {
+            return date.toISOString();
+        };
+
         // Process all sessions
         const formattedSessions = selectedSessions.map(s => {
             const startD = new Date(s.date);
@@ -376,13 +381,11 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
             endD.setHours(eH, eM, 0, 0);
 
             const pad = (n: number) => String(n).padStart(2, '0');
-            const formatForBackend = (date: Date) =>
-                `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 
             return {
+                date: `${s.date.getFullYear()}-${pad(s.date.getMonth() + 1)}-${pad(s.date.getDate())}`,
                 start_time: formatForBackend(startD),
                 end_time: formatForBackend(endD),
-                date: `${s.date.getFullYear()}-${pad(s.date.getMonth() + 1)}-${pad(s.date.getDate())}`
             };
         });
 

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Test - IqraQuest Error Illustrations</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #fffbeb 0%, #ffffff 50%, #fde8e8 100%);
+            padding: 40px;
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #1C2A3A;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        .test-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .test-card h2 {
+            color: #338078;
+            font-size: 18px;
+            margin: 0 0 15px 0;
+        }
+        .svg-container {
+            width: 100%;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f9fafb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .svg-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .status.loading {
+            background: #FFF7E4;
+            color: #F5AD7E;
+        }
+        .status.success {
+            background: #DEF7E4;
+            color: #014737;
+        }
+        .status.error {
+            background: #FDE8E8;
+            color: #771D1D;
+        }
+        .info {
+            background: #E8F5E9;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 4px solid #4CAF50;
+        }
+        .info h3 {
+            margin-top: 0;
+            color: #2E7D32;
+        }
+        .info ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .info li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 IqraQuest Error Page Illustrations Test</h1>
+        
+        <div class="info">
+            <h3>📋 Testing Instructions</h3>
+            <ul>
+                <li><strong>Green status</strong> = SVG loaded successfully ✅</li>
+                <li><strong>Red status</strong> = SVG failed to load (file missing or browser cache issue) ❌</li>
+                <li><strong>If you see red</strong>: Press <code>Ctrl + F5</code> to hard refresh</li>
+                <li><strong>Still broken?</strong> Check if file exists in <code>public/images/errors/</code></li>
+            </ul>
+        </div>
+
+        <div class="test-grid">
+            <!-- 400 Bad Request -->
+            <div class="test-card">
+                <h2>400 - Bad Request</h2>
+                <div class="svg-container">
+                    <img src="/images/errors/400-Error-Bad-Request.svg" 
+                         alt="400 Error" 
+                         onload="updateStatus(this, 'success')"
+                         onerror="updateStatus(this, 'error')">
+                </div>
+                <div class="status loading" data-status="400">Loading...</div>
+            </div>
+
+            <!-- 401 Unauthorized -->
+            <div class="test-card">
+                <h2>401 - Unauthorized</h2>
+                <div class="svg-container">
+                    <img src="/images/errors/401-Error-Unauthorized.svg" 
+                         alt="401 Error"
+                         onload="updateStatus(this, 'success')"
+                         onerror="updateStatus(this, 'error')">
+                </div>
+                <div class="status loading" data-status="401">Loading...</div>
+            </div>
+
+            <!-- 403 Forbidden -->
+            <div class="test-card">
+                <h2>403 - Forbidden</h2>
+                <div class="svg-container">
+                    <img src="/images/errors/403-Error-Forbidden.svg" 
+                         alt="403 Error"
+                         onload="updateStatus(this, 'success')"
+                         onerror="updateStatus(this, 'error')">
+                </div>
+                <div class="status loading" data-status="403">Loading...</div>
+            </div>
+
+            <!-- 404 Not Found -->
+            <div class="test-card">
+                <h2>404 - Not Found</h2>
+                <div class="svg-container">
+                    <img src="/images/errors/404-Error-Page-Not-Found.svg" 
+                         alt="404 Error"
+                         onload="updateStatus(this, 'success')"
+                         onerror="updateStatus(this, 'error')">
+                </div>
+                <div class="status loading" data-status="404">Loading...</div>
+            </div>
+
+            <!-- 405 Method Not Allowed -->
+            <div class="test-card">
+                <h2>405 - Method Not Allowed</h2>
+                <div class="svg-container">
+                    <img src="/images/errors/405-Error-Method-Not-Allowed.svg" 
+                         alt="405 Error"
+                         onload="updateStatus(this, 'success')"
+                         onerror="updateStatus(this, 'error')">
+                </div>
+                <div class="status loading" data-status="405">Loading...</div>
+            </div>
+
+            <!-- 408 Request Timeout -->
+            <div class="test-card">
+                <h2>408 - Request Timeout</h2>
+                <div class="svg-container">
+                    <img src="/images/errors/408-Error-Request-Timeout.svg" 
+                         alt="408 Error"
+                         onload="updateStatus(this, 'success')"
+                         onerror="updateStatus(this, 'error')">
+                </div>
+                <div class="status loading" data-status="408">Loading...</div>
+            </div>
+
+            <!-- 419 Page Expired -->
+            <div class="test-card">
+                <h2>419 - Page Expired</h2>
+                <div class="svg-container">
+                    <img src="/images/errors/419-Error-Page-Expired.svg" 
+                         alt="419 Error"
+                         onload="updateStatus(this, 'success')"
+                         onerror="updateStatus(this, 'error')">
+                </div>
+                <div class="status loading" data-status="419">Loading...</div>
+            </div>
+
+            <!-- 429 Too Many Requests -->
+            <div class="test-card">
+                <h2>429 - Too Many Requests</h2>
+                <div class="svg-container">
+                    <img src="/images/errors/429-Error-Too-Many-Requests.svg" 
+                         alt="429 Error"
+                         onload="updateStatus(this, 'success')"
+                         onerror="updateStatus(this, 'error')">
+                </div>
+                <div class="status loading" data-status="429">Loading...</div>
+            </div>
+
+            <!-- 500 Internal Server Error -->
+            <div class="test-card">
+                <h2>500 - Internal Server Error</h2>
+                <div class="svg-container">
+                    <img src="/images/errors/500-Error-Internal-Server-Error.svg" 
+                         alt="500 Error"
+                         onload="updateStatus(this, 'success')"
+                         onerror="updateStatus(this, 'error')">
+                </div>
+                <div class="status loading" data-status="500">Loading...</div>
+            </div>
+
+            <!-- 502 Bad Gateway -->
+            <div class="test-card">
+                <h2>502 - Bad Gateway</h2>
+                <div class="svg-container">
+                    <img src="/images/errors/502-Error-Bad-Gateway.svg" 
+                         alt="502 Error"
+                         onload="updateStatus(this, 'success')"
+                         onerror="updateStatus(this, 'error')">
+                </div>
+                <div class="status loading" data-status="502">Loading...</div>
+            </div>
+
+            <!-- 503 Service Unavailable -->
+            <div class="test-card">
+                <h2>503 - Service Unavailable</h2>
+                <div class="svg-container">
+                    <img src="/images/errors/503-Error-Service-Unavailable.svg" 
+                         alt="503 Error"
+                         onload="updateStatus(this, 'success')"
+                         onerror="updateStatus(this, 'error')">
+                </div>
+                <div class="status loading" data-status="503">Loading...</div>
+            </div>
+
+            <!-- 504 Gateway Timeout -->
+            <div class="test-card">
+                <h2>504 - Gateway Timeout</h2>
+                <div class="svg-container">
+                    <img src="/images/errors/504-Error-Gateway-Timeout.svg" 
+                         alt="504 Error"
+                         onload="updateStatus(this, 'success')"
+                         onerror="updateStatus(this, 'error')">
+                </div>
+                <div class="status loading" data-status="504">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateStatus(img, status) {
+            const card = img.closest('.test-card');
+            const statusDiv = card.querySelector('.status');
+            
+            if (status === 'success') {
+                statusDiv.className = 'status success';
+                statusDiv.textContent = '✅ Loaded Successfully';
+            } else {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ Failed to Load - Check file or clear cache';
+            }
+        }
+    </script>
+</body>
+</html>
+

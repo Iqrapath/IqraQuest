@@ -1,0 +1,19 @@
+# Error Page Illustrations
+
+Place downloaded Storyset illustrations here:
+
+- 400-bad-request.svg
+- 401-unauthorized.svg
+- 403-forbidden.svg
+- 404-not-found.svg
+- 405-method-not-allowed.svg
+- 408-timeout.svg
+- 419-expired.svg
+- 429-too-many-requests.svg
+- 500-server-error.svg
+- 502-bad-gateway.svg
+- 503-maintenance.svg
+- 504-gateway-timeout.svg
+
+Download from: https://storyset.com/
+See STORYSET_DOWNLOAD_GUIDE.md for details

@@ -60,7 +60,17 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Render custom Inertia error pages
+        $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response) {
+            // Temporarily allow in local environment to preview error pages
+            if (in_array($response->getStatusCode(), [400, 401, 403, 404, 405, 408, 419, 429, 500, 502, 503, 504])) {
+                return \Inertia\Inertia::render('errors/' . $response->getStatusCode())
+                    ->toResponse(request())
+                    ->setStatusCode($response->getStatusCode());
+            }
+
+            return $response;
+        });
     })
     ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
         $schedule->job(new \App\Jobs\CancelExpiredAwaitingPaymentBookings)->everyFifteenMinutes();

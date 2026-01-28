@@ -38,6 +38,23 @@ Route::get('/book/{teacher}', [\App\Http\Controllers\WelcomeController::class, '
 Route::get('/register/teacher', [\App\Http\Controllers\Auth\TeacherRegistrationController::class, 'create'])
     ->name('teacher.register');
 
+// Error Page Previews (Only in local environment)
+if (app()->environment('local')) {
+    Route::get('/preview/errors', fn() => Inertia::render('errors/Preview'))->name('preview.errors');
+    Route::get('/preview/error/400', fn() => Inertia::render('errors/400'))->name('preview.error.400');
+    Route::get('/preview/error/401', fn() => Inertia::render('errors/401'))->name('preview.error.401');
+    Route::get('/preview/error/403', fn() => Inertia::render('errors/403'))->name('preview.error.403');
+    Route::get('/preview/error/404', fn() => Inertia::render('errors/404'))->name('preview.error.404');
+    Route::get('/preview/error/405', fn() => Inertia::render('errors/405'))->name('preview.error.405');
+    Route::get('/preview/error/408', fn() => Inertia::render('errors/408'))->name('preview.error.408');
+    Route::get('/preview/error/419', fn() => Inertia::render('errors/419'))->name('preview.error.419');
+    Route::get('/preview/error/429', fn() => Inertia::render('errors/429'))->name('preview.error.429');
+    Route::get('/preview/error/500', fn() => Inertia::render('errors/500'))->name('preview.error.500');
+    Route::get('/preview/error/502', fn() => Inertia::render('errors/502'))->name('preview.error.502');
+    Route::get('/preview/error/503', fn() => Inertia::render('errors/503'))->name('preview.error.503');
+    Route::get('/preview/error/504', fn() => Inertia::render('errors/504'))->name('preview.error.504');
+}
+
 // POST route only for guests
 Route::post('/register/teacher', [\App\Http\Controllers\Auth\TeacherRegistrationController::class, 'store'])
     ->middleware('guest');
