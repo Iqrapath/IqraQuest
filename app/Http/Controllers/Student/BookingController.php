@@ -149,8 +149,8 @@ class BookingController extends Controller
                 ],
                 'start_time' => $booking->start_time->toIso8601String(),
                 'end_time' => $booking->end_time->toIso8601String(),
-                'formatted_date' => $booking->start_time->format('jS F Y'),
-                'formatted_time' => $booking->start_time->format('g:i A') . ' - ' . $booking->end_time->format('g:i A'),
+                'formatted_date' => $booking->start_time->setTimezone('UTC')->format('jS F Y'),
+                'formatted_time' => $booking->start_time->setTimezone('UTC')->format('g:i A') . ' - ' . $booking->end_time->setTimezone('UTC')->format('g:i A') . ' UTC',
                 'duration_minutes' => $booking->start_time->diffInMinutes($booking->end_time),
                 'status' => $booking->status,
                 'display_status' => $this->bookingStatusService->getDisplayStatus($booking),
@@ -169,12 +169,16 @@ class BookingController extends Controller
     public function index(Request $request, $teacherId)
     {
         $teacher = Teacher::with(['user', 'subjects', 'availability'])
-            ->withCount(['reviews as total_reviews' => function ($query) {
-                $query->where('is_approved', true);
-            }])
-            ->withAvg(['reviews as average_rating' => function ($query) {
-                $query->where('is_approved', true);
-            }], 'rating')
+            ->withCount([
+                'reviews as total_reviews' => function ($query) {
+                    $query->where('is_approved', true);
+                }
+            ])
+            ->withAvg([
+                'reviews as average_rating' => function ($query) {
+                    $query->where('is_approved', true);
+                }
+            ], 'rating')
             ->findOrFail($teacherId);
 
         // Fetch existing bookings to prevent double booking
@@ -195,7 +199,7 @@ class BookingController extends Controller
             $previousBooking = Booking::where('id', $request->rebook_from)
                 ->where('user_id', $request->user()->id)
                 ->first();
-            
+
             if ($previousBooking) {
                 $rebookData = [
                     'subject_id' => $previousBooking->subject_id,
@@ -288,17 +292,18 @@ class BookingController extends Controller
         ]);
 
         $user = $request->user();
-        if (!$user) abort(401);
+        if (!$user)
+            abort(401);
 
         $teacher = \App\Models\Teacher::findOrFail($request->teacher_id);
-        
+
         try {
             $bookings = $bookingService->createBatchBookings(
-                $user, 
-                $teacher, 
-                $request->sessions, 
-                $request->is_recurring ?? false, 
-                $request->recurrence_occurrences ?? 1, 
+                $user,
+                $teacher,
+                $request->sessions,
+                $request->is_recurring ?? false,
+                $request->recurrence_occurrences ?? 1,
                 $request->subject_id,
                 $request->notes,
                 $request->currency
@@ -310,8 +315,8 @@ class BookingController extends Controller
                 $firstBooking->refresh();
             }
             $status = $firstBooking->status;
-            
-            $message = $status === 'awaiting_payment' 
+
+            $message = $status === 'awaiting_payment'
                 ? 'Booking saved! Please top up your wallet to complete the payment.'
                 : 'Booking confirmed!';
 
@@ -328,7 +333,7 @@ class BookingController extends Controller
     public function payNow(Booking $booking)
     {
         $user = request()->user();
-        
+
         if ($booking->user_id !== $user->id) {
             abort(403);
         }
@@ -340,7 +345,7 @@ class BookingController extends Controller
         try {
             // Attempt to process payment again
             \App\Jobs\ProcessBookingPaymentJob::dispatchSync($booking);
-            
+
             if ($booking->fresh()->status === 'awaiting_payment') {
                 throw new \Exception("Insufficient wallet balance. Please top up and try again.");
             }
@@ -363,7 +368,7 @@ class BookingController extends Controller
 
         $user = $request->user();
         $bookingIds = $request->booking_ids;
-        
+
         // Fetch all bookings and verify ownership/status
         $bookings = Booking::whereIn('id', $bookingIds)
             ->where('user_id', $user->id)
@@ -378,7 +383,7 @@ class BookingController extends Controller
             \Illuminate\Support\Facades\DB::transaction(function () use ($bookings) {
                 foreach ($bookings as $booking) {
                     \App\Jobs\ProcessBookingPaymentJob::dispatchSync($booking);
-                    
+
                     if ($booking->fresh()->status === 'awaiting_payment') {
                         throw new \Exception("Insufficient wallet balance to pay for all selected sessions. Please top up and try again.");
                     }

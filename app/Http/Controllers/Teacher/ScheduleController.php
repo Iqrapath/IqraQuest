@@ -92,11 +92,11 @@ class ScheduleController extends Controller
             'start_time' => $booking->start_time->toIso8601String(),
             'end_time' => $booking->end_time->toIso8601String(),
             'date_key' => $booking->start_time->format('Y-m-d'),
-            'formatted_date' => $booking->start_time->format('j M'),
+            'formatted_date' => $booking->start_time->setTimezone('UTC')->format('j M'),
             'formatted_day' => $booking->start_time->format('j'),
             'formatted_month' => $booking->start_time->format('F'),
-            'formatted_start_time' => $booking->start_time->format('g:i A'),
-            'formatted_end_time' => $booking->end_time->format('g:i A'),
+            'formatted_start_time' => $booking->start_time->setTimezone('UTC')->format('g:i A'),
+            'formatted_end_time' => $booking->end_time->setTimezone('UTC')->format('g:i A') . ' UTC',
             'status' => $booking->status,
             'can_join' => $this->canJoinSession($booking),
             'meeting_link' => $booking->meeting_link,
@@ -149,8 +149,8 @@ class ScheduleController extends Controller
                     'id' => $booking->subject->id,
                     'name' => $booking->subject->name,
                 ],
-                'formatted_start_time' => $booking->start_time->format('g:i A'),
-                'formatted_end_time' => $booking->end_time->format('g:i A'),
+                'formatted_start_time' => $booking->start_time->setTimezone('UTC')->format('g:i A'),
+                'formatted_end_time' => $booking->end_time->setTimezone('UTC')->format('g:i A') . ' UTC',
                 'can_join' => $this->canJoinSession($booking),
                 'meeting_link' => $booking->meeting_link,
             ]);
@@ -177,8 +177,8 @@ class ScheduleController extends Controller
                     if ($avail['is_available'] && !empty($avail['start_time']) && !empty($value)) {
                         $startParts = explode(':', $avail['start_time']);
                         $endParts = explode(':', $value);
-                        $startMin = (int)$startParts[0] * 60 + (int)$startParts[1];
-                        $endMin = (int)$endParts[0] * 60 + (int)$endParts[1];
+                        $startMin = (int) $startParts[0] * 60 + (int) $startParts[1];
+                        $endMin = (int) $endParts[0] * 60 + (int) $endParts[1];
 
                         // Handle rollover (e.g. 23:00 to 00:00)
                         if ($endMin < $startMin) {

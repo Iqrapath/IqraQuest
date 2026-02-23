@@ -30,8 +30,8 @@ class BookingCancelledByAdminNotification extends Notification implements Should
 
     public function toMail(object $notifiable): MailMessage
     {
-        $sessionDate = $this->booking->start_time->format('l, M j, Y');
-        $sessionTime = $this->booking->start_time->format('h:i A') . ' - ' . $this->booking->end_time->format('h:i A');
+        $sessionDate = $this->booking->start_time->setTimezone('UTC')->format('l, M j, Y');
+        $sessionTime = $this->booking->start_time->setTimezone('UTC')->format('h:i A') . ' - ' . $this->booking->end_time->setTimezone('UTC')->format('h:i A') . ' UTC';
         $currency = $this->booking->currency ?? 'NGN';
 
         $mail = (new MailMessage)
@@ -82,8 +82,8 @@ class BookingCancelledByAdminNotification extends Notification implements Should
                 'booking_id' => $this->booking->id,
                 'teacher_name' => $this->booking->teacher->user->name,
                 'subject' => $this->booking->subject->name,
-                'session_date' => $this->booking->start_time->format('M j, Y'),
-                'session_time' => $this->booking->start_time->format('h:i A'),
+                'session_date' => $this->booking->start_time->setTimezone('UTC')->format('M j, Y'),
+                'session_time' => $this->booking->start_time->setTimezone('UTC')->format('h:i A') . ' UTC',
                 'reason' => $this->reason,
                 'refunded' => $this->booking->payment_status === 'refunded',
                 'message' => "Your {$this->booking->subject->name} class on {$this->booking->start_time->format('M j')} has been cancelled.",
@@ -95,8 +95,8 @@ class BookingCancelledByAdminNotification extends Notification implements Should
             'booking_id' => $this->booking->id,
             'student_name' => $this->booking->student->name,
             'subject' => $this->booking->subject->name,
-            'session_date' => $this->booking->start_time->format('M j, Y'),
-            'session_time' => $this->booking->start_time->format('h:i A'),
+            'session_date' => $this->booking->start_time->setTimezone('UTC')->format('M j, Y'),
+            'session_time' => $this->booking->start_time->setTimezone('UTC')->format('h:i A') . ' UTC',
             'reason' => $this->reason,
             'message' => "Your class with {$this->booking->student->name} on {$this->booking->start_time->format('M j')} has been cancelled.",
         ];

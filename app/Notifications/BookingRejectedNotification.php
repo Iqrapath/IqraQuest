@@ -39,17 +39,17 @@ class BookingRejectedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-                    ->subject('Booking Request Declined: ' . $this->booking->teacher->user->name)
-                    ->greeting('Salaam ' . $notifiable->name . ',')
-                    ->line('Your booking request has been declined by the teacher.')
-                    ->line('**Teacher:** ' . $this->booking->teacher->user->name)
-                    ->line('**Date:** ' . $this->booking->start_time->format('F j, Y, g:i a') . ' (' . ($notifiable->timezone ?? 'UTC') . ')')
-                    ->line('---')
-                    ->line('**Refund Processed**')
-                    ->line('The amount of ' . ($this->booking->currency === 'USD' ? '$' : '₦') . number_format($this->booking->total_price, 0) . ' has been fully refunded to your wallet.')
-                    ->line('---')
-                    ->action('Find Another Teacher', url('/teachers'))
-                    ->line('We encourage you to browse other available teachers.');
+            ->subject('Booking Request Declined: ' . $this->booking->teacher->user->name)
+            ->greeting('Salaam ' . $notifiable->name . ',')
+            ->line('Your booking request has been declined by the teacher.')
+            ->line('**Teacher:** ' . $this->booking->teacher->user->name)
+            ->line('**Date:** ' . $this->booking->start_time->setTimezone('UTC')->format('F j, Y, g:i a') . ' UTC')
+            ->line('---')
+            ->line('**Refund Processed**')
+            ->line('The amount of ' . ($this->booking->currency === 'USD' ? '$' : '₦') . number_format($this->booking->total_price, 0) . ' has been fully refunded to your wallet.')
+            ->line('---')
+            ->action('Find Another Teacher', url('/teachers'))
+            ->line('We encourage you to browse other available teachers.');
     }
 
     /**

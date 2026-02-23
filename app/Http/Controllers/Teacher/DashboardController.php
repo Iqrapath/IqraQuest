@@ -52,7 +52,7 @@ class DashboardController extends Controller
                 ->map(function ($booking) {
                     $start = \Carbon\Carbon::parse($booking->start_time);
                     $end = \Carbon\Carbon::parse($booking->end_time);
-                    
+
                     return [
                         'id' => $booking->id,
                         'student' => [
@@ -67,11 +67,11 @@ class DashboardController extends Controller
                         'start_time' => $start->toIso8601String(),
                         'end_time' => $end->toIso8601String(),
                         'date_key' => $start->format('Y-m-d'),
-                        'formatted_date' => $start->format('M d, Y'),
+                        'formatted_date' => $start->setTimezone('UTC')->format('M d, Y'),
                         'formatted_day' => $start->format('d'),
                         'formatted_month' => $start->format('M'),
                         'formatted_start_time' => $start->format('g:i A'),
-                        'formatted_end_time' => $end->format('g:i A'),
+                        'formatted_end_time' => $end->setTimezone('UTC')->format('g:i A') . ' UTC',
                         'status' => $booking->status,
                         'can_join' => $start->isToday() && $start->diffInMinutes(now()) <= 15, // Simple logic
                         'meeting_link' => $booking->meeting_link,
@@ -124,7 +124,7 @@ class DashboardController extends Controller
             ->with(['student.subjects']) // Eager load student profile AND their subjects from student_subjects table
             ->get()
             ->map(function ($studentUser) use ($teacher) {
-                $studentProfile = $studentUser->student; 
+                $studentProfile = $studentUser->student;
 
                 // Get all bookings for this student with this teacher
                 $studentBookings = Booking::where('teacher_id', $teacher->id)
@@ -134,7 +134,7 @@ class DashboardController extends Controller
 
                 $completedBookings = $studentBookings->where('status', 'completed');
                 $sessionsCompleted = $completedBookings->count();
-                
+
                 // Calculate total hours from completed sessions
                 $totalMinutes = $completedBookings->sum(function ($booking) {
                     return $booking->actual_duration_minutes ?? $booking->start_time->diffInMinutes($booking->end_time);
@@ -169,14 +169,14 @@ class DashboardController extends Controller
                     ->sortBy('start_time')
                     ->take(5)
                     ->map(function ($booking) {
-                        return [
-                            'id' => $booking->id,
-                            'start_time' => $booking->start_time->format('g A'),
-                            'end_time' => $booking->start_time->addMinutes($booking->start_time->diffInMinutes($booking->end_time))->format('g A'),
-                            'day' => $booking->start_time->format('l'),
-                            'subject' => $booking->subject->name ?? 'Session',
-                        ];
-                    })
+                    return [
+                        'id' => $booking->id,
+                        'start_time' => $booking->start_time->format('g A'),
+                        'end_time' => $booking->start_time->addMinutes($booking->start_time->diffInMinutes($booking->end_time))->format('g A'),
+                        'day' => $booking->start_time->format('l'),
+                        'subject' => $booking->subject->name ?? 'Session',
+                    ];
+                })
                     ->values()
                     ->toArray();
 
@@ -204,19 +204,19 @@ class DashboardController extends Controller
                 // Get available days
                 $availableDays = [];
                 if ($studentProfile && $studentProfile->preferred_days) {
-                    $availableDays = is_array($studentProfile->preferred_days) 
-                        ? $studentProfile->preferred_days 
+                    $availableDays = is_array($studentProfile->preferred_days)
+                        ? $studentProfile->preferred_days
                         : json_decode($studentProfile->preferred_days, true) ?? [];
                 }
-                
+
                 return [
                     'id' => $studentUser->id,
                     'name' => $studentUser->name,
                     'avatar' => $studentUser->avatar ?? null,
                     'email' => $studentUser->email,
                     'level' => $studentProfile ? ucfirst($studentProfile->level ?? 'Beginner') : 'Beginner',
-                    'location' => $studentProfile && $studentProfile->city 
-                        ? ($studentProfile->city . ($studentProfile->country ? ', ' . $studentProfile->country : '')) 
+                    'location' => $studentProfile && $studentProfile->city
+                        ? ($studentProfile->city . ($studentProfile->country ? ', ' . $studentProfile->country : ''))
                         : null,
                     'sessions_completed' => $sessionsCompleted,
                     'total_hours' => $totalHours,
@@ -252,7 +252,7 @@ class DashboardController extends Controller
             ->map(function ($booking) {
                 $start = \Carbon\Carbon::parse($booking->start_time);
                 $end = \Carbon\Carbon::parse($booking->end_time);
-                
+
                 return [
                     'id' => $booking->id,
                     'student' => [
@@ -267,11 +267,11 @@ class DashboardController extends Controller
                     'start_time' => $start->toIso8601String(),
                     'end_time' => $end->toIso8601String(),
                     'date_key' => $start->format('Y-m-d'),
-                    'formatted_date' => $start->format('M d, Y'),
+                    'formatted_date' => $start->setTimezone('UTC')->format('M d, Y'),
                     'formatted_day' => $start->format('d'),
                     'formatted_month' => $start->format('M'),
                     'formatted_start_time' => $start->format('g:i A'),
-                    'formatted_end_time' => $end->format('g:i A'),
+                    'formatted_end_time' => $end->setTimezone('UTC')->format('g:i A') . ' UTC',
                     'status' => $booking->status,
                     'can_join' => $start->isToday() && $start->diffInMinutes(now()) <= 15,
                     'meeting_link' => $booking->meeting_link,

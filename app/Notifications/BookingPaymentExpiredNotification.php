@@ -40,7 +40,7 @@ class BookingPaymentExpiredNotification extends Notification implements ShouldQu
         return (new MailMessage)
             ->subject('Booking Reservation Expired')
             ->greeting("Hello {$notifiable->name},")
-            ->line("Your reservation for the session with {$this->booking->teacher->user->name} on {$this->booking->start_time->format('M j, Y \a\t g:i A')} has expired due to non-payment.")
+            ->line("Your reservation for the session with {$this->booking->teacher->user->name} on {$this->booking->start_time->setTimezone('UTC')->format('M j, Y \a\t g:i A')} UTC has expired due to non-payment.")
             ->line('The time slot has been released and is now available for other students to book.')
             ->action('Book Again', url('/student/teachers'))
             ->line('If you have any questions, please contact our support team.');

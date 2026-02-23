@@ -39,20 +39,20 @@ class BookingRequestedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-                    ->subject('Booking Request Sent: ' . $this->booking->teacher->user->name)
-                    ->greeting('Salaam ' . $notifiable->name . ',')
-                    ->line('Your booking request has been sent and is awaiting teacher approval.')
-                    ->line('**Teacher:** ' . $this->booking->teacher->user->name)
-                    ->line('**Date:** ' . $this->booking->start_time->format('F j, Y, g:i a') . ' (' . ($notifiable->timezone ?? 'UTC') . ')')
-                    ->line('**Subject:** ' . ($this->booking->subject->name ?? 'Quran Study'))
-                    ->line('---')
-                    ->line('**Payment Status: Funds Held**')
-                    ->line('Your payment has been secured and will be transferred to the teacher once they accept the request. If declined, it will be refunded to your wallet.')
-                    ->line('**Amount Held:** ' . ($this->booking->currency === 'USD' ? '$' : '₦') . number_format($this->booking->total_price, 0))
-                    ->line('**Booking Ref:** BKG-' . str_pad($this->booking->id, 6, '0', STR_PAD_LEFT))
-                    ->line('---')
-                    ->action('View Booking Status', url('/student/dashboard'))
-                    ->line('We will notify you as soon as the teacher responds.');
+            ->subject('Booking Request Sent: ' . $this->booking->teacher->user->name)
+            ->greeting('Salaam ' . $notifiable->name . ',')
+            ->line('Your booking request has been sent and is awaiting teacher approval.')
+            ->line('**Teacher:** ' . $this->booking->teacher->user->name)
+            ->line('**Date:** ' . $this->booking->start_time->setTimezone('UTC')->format('F j, Y, g:i a') . ' UTC')
+            ->line('**Subject:** ' . ($this->booking->subject->name ?? 'Quran Study'))
+            ->line('---')
+            ->line('**Payment Status: Funds Held**')
+            ->line('Your payment has been secured and will be transferred to the teacher once they accept the request. If declined, it will be refunded to your wallet.')
+            ->line('**Amount Held:** ' . ($this->booking->currency === 'USD' ? '$' : '₦') . number_format($this->booking->total_price, 0))
+            ->line('**Booking Ref:** BKG-' . str_pad($this->booking->id, 6, '0', STR_PAD_LEFT))
+            ->line('---')
+            ->action('View Booking Status', url('/student/dashboard'))
+            ->line('We will notify you as soon as the teacher responds.');
     }
 
     /**

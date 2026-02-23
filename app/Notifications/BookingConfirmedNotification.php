@@ -39,21 +39,21 @@ class BookingConfirmedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-                    ->subject('Booking Confirmed: Class with ' . $this->booking->teacher->user->name)
-                    ->greeting('Assalamu Alaikum ' . $notifiable->name . ',')
-                    ->line('Your booking for a Quran class has been confirmed and payment processed.')
-                    ->line('**Teacher:** ' . $this->booking->teacher->user->name)
-                    ->line('**Date:** ' . $this->booking->start_time->format('F j, Y, g:i a') . ' (' . ($notifiable->timezone ?? 'UTC') . ')')
-                    ->line('**Subject:** ' . ($this->booking->subject->name ?? 'Quran Study'))
-                    ->line('---')
-                    ->line('**Payment Receipt**')
-                    ->line('**Amount Paid:** ' . ($this->booking->currency === 'USD' ? '$' : '₦') . number_format($this->booking->total_price, 0))
-                    ->line('**Payment Method:** Wallet Balance')
-                    ->line('**Reference ID:** BKG-' . str_pad($this->booking->id, 6, '0', STR_PAD_LEFT))
-                    ->line('---')
-                    ->line('**Meeting Link:** Link will be available on your dashboard 15 minutes before the session.')
-                    ->action('View My Bookings', url('/student/dashboard'))
-                    ->line('JazakaAllahu Khair for learning with IqraQuest.');
+            ->subject('Booking Confirmed: Class with ' . $this->booking->teacher->user->name)
+            ->greeting('Assalamu Alaikum ' . $notifiable->name . ',')
+            ->line('Your booking for a Quran class has been confirmed and payment processed.')
+            ->line('**Teacher:** ' . $this->booking->teacher->user->name)
+            ->line('**Date:** ' . $this->booking->start_time->setTimezone('UTC')->format('F j, Y, g:i a') . ' UTC')
+            ->line('**Subject:** ' . ($this->booking->subject->name ?? 'Quran Study'))
+            ->line('---')
+            ->line('**Payment Receipt**')
+            ->line('**Amount Paid:** ' . ($this->booking->currency === 'USD' ? '$' : '₦') . number_format($this->booking->total_price, 0))
+            ->line('**Payment Method:** Wallet Balance')
+            ->line('**Reference ID:** BKG-' . str_pad($this->booking->id, 6, '0', STR_PAD_LEFT))
+            ->line('---')
+            ->line('**Meeting Link:** Link will be available on your dashboard 15 minutes before the session.')
+            ->action('View My Bookings', url('/student/dashboard'))
+            ->line('JazakaAllahu Khair for learning with IqraQuest.');
     }
 
     /**

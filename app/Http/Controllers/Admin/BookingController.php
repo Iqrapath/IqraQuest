@@ -27,7 +27,7 @@ class BookingController extends Controller
         if ($search = $request->get('search')) {
             $query->whereHas('student', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -35,7 +35,7 @@ class BookingController extends Controller
         if ($status = $request->get('status')) {
             if ($status === 'upcoming') {
                 $query->whereIn('status', ['confirmed', 'awaiting_approval', 'rescheduling'])
-                      ->where('start_time', '>', now());
+                    ->where('start_time', '>', now());
             } elseif ($status === 'completed') {
                 $query->where('status', 'completed');
             } elseif ($status === 'missed') {
@@ -87,8 +87,8 @@ class BookingController extends Controller
                 'id' => $booking->subject->id,
                 'name' => $booking->subject->name,
             ],
-            'formatted_date' => $booking->start_time->format('M j'),
-            'formatted_time' => $booking->start_time->format('g:i A'),
+            'formatted_date' => $booking->start_time->setTimezone('UTC')->format('M j'),
+            'formatted_time' => $booking->start_time->setTimezone('UTC')->format('g:i A') . ' UTC',
             'start_time' => $booking->start_time->toIso8601String(),
             'end_time' => $booking->end_time->toIso8601String(),
             'status' => $booking->status,
@@ -164,8 +164,8 @@ class BookingController extends Controller
                 ],
                 'start_time' => $booking->start_time->toIso8601String(),
                 'end_time' => $booking->end_time->toIso8601String(),
-                'formatted_date' => $booking->start_time->format('jS F Y'),
-                'formatted_time' => $booking->start_time->format('g:i A') . ' - ' . $booking->end_time->format('g:i A'),
+                'formatted_date' => $booking->start_time->setTimezone('UTC')->format('jS F Y'),
+                'formatted_time' => $booking->start_time->setTimezone('UTC')->format('g:i A') . ' - ' . $booking->end_time->setTimezone('UTC')->format('g:i A') . ' UTC',
                 'duration_minutes' => $booking->start_time->diffInMinutes($booking->end_time),
                 'status' => $booking->status,
                 'display_status' => $this->getDisplayStatus($booking),
@@ -215,10 +215,10 @@ class BookingController extends Controller
 
         // Load relationships and send notifications to both parties
         $booking->load(['student', 'teacher.user', 'subject']);
-        
+
         // Notify student
         $booking->student->notify(new BookingApprovedNotification($booking, 'student'));
-        
+
         // Notify teacher
         $booking->teacher->user->notify(new BookingApprovedNotification($booking, 'teacher'));
 
@@ -301,10 +301,10 @@ class BookingController extends Controller
         // Send notifications to all parties
         // Notify student
         $booking->student->notify(new TeacherReassignedNotification($booking, $oldTeacher, $newTeacher, $reason, 'student'));
-        
+
         // Notify old teacher
         $oldTeacher->user->notify(new TeacherReassignedNotification($booking, $oldTeacher, $newTeacher, $reason, 'old_teacher'));
-        
+
         // Notify new teacher
         $newTeacher->user->notify(new TeacherReassignedNotification($booking, $oldTeacher, $newTeacher, $reason, 'new_teacher'));
 
