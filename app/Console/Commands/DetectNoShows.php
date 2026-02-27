@@ -17,7 +17,7 @@ class DetectNoShows extends Command
 
     // Grace period before marking as no-show (minutes)
     const GRACE_PERIOD_MINUTES = 15;
-    
+
     // Warning sent after X minutes
     const WARNING_AFTER_MINUTES = 10;
 
@@ -48,8 +48,8 @@ class DetectNoShows extends Command
     protected function sendNoShowWarnings(): void
     {
         // Find sessions that started 10+ minutes ago but less than grace period
-        $warningWindow = now()->subMinutes(self::WARNING_AFTER_MINUTES);
-        $graceWindow = now()->subMinutes(self::GRACE_PERIOD_MINUTES);
+        $warningWindow = now()->setTimezone('UTC')->subMinutes(self::WARNING_AFTER_MINUTES);
+        $graceWindow = now()->setTimezone('UTC')->subMinutes(self::GRACE_PERIOD_MINUTES);
 
         $bookings = Booking::where('status', 'confirmed')
             ->where('start_time', '<=', $warningWindow)
@@ -144,7 +144,7 @@ class DetectNoShows extends Command
     protected function handleBothNoShow(Booking $booking): void
     {
         $this->escrowService->refundFunds($booking, null, 'Session not attended by either party');
-        
+
         $booking->update([
             'status' => 'cancelled',
             'cancellation_reason' => 'Both parties no-show',
@@ -166,7 +166,7 @@ class DetectNoShows extends Command
     protected function handleTeacherNoShow(Booking $booking): void
     {
         $this->escrowService->refundFunds($booking, null, 'Teacher did not attend the session');
-        
+
         $booking->update([
             'status' => 'cancelled',
             'cancellation_reason' => 'Teacher no-show',

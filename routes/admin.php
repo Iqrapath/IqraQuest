@@ -154,6 +154,11 @@ Route::middleware(['auth', 'verified', 'role:admin'])
             Route::post('/admins', [\App\Http\Controllers\Admin\SettingsController::class, 'saveAdmin'])->name('admins.save');
             Route::delete('/admins/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'deleteAdmin'])->name('admins.delete');
             Route::patch('/admins/{id}/status', [\App\Http\Controllers\Admin\SettingsController::class, 'toggleAdminStatus'])->name('admins.toggle-status');
+
+            // Subject Management
+            Route::post('/subjects', [\App\Http\Controllers\Admin\SettingsController::class, 'saveSubject'])->name('subjects.save');
+            Route::delete('/subjects/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'deleteSubject'])->name('subjects.delete');
+            Route::patch('/subjects/{id}/status', [\App\Http\Controllers\Admin\SettingsController::class, 'toggleSubjectStatus'])->name('subjects.toggle-status');
         });
 
         // FAQ Management Routes

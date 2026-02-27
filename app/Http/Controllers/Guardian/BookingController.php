@@ -18,12 +18,16 @@ class BookingController extends Controller
     public function index(Request $request, $teacherId)
     {
         $teacher = Teacher::with(['user', 'subjects', 'availability'])
-            ->withCount(['reviews as total_reviews' => function ($query) {
-                $query->where('is_approved', true);
-            }])
-            ->withAvg(['reviews as average_rating' => function ($query) {
-                $query->where('is_approved', true);
-            }], 'rating')
+            ->withCount([
+                'reviews as total_reviews' => function ($query) {
+                    $query->where('is_approved', true);
+                }
+            ])
+            ->withAvg([
+                'reviews as average_rating' => function ($query) {
+                    $query->where('is_approved', true);
+                }
+            ], 'rating')
             ->findOrFail($teacherId);
 
         // Fetch existing bookings to prevent double booking
@@ -44,7 +48,7 @@ class BookingController extends Controller
             $previousBooking = Booking::where('id', $request->rebook_from)
                 ->where('user_id', $request->user()->id)
                 ->first();
-            
+
             if ($previousBooking) {
                 $rebookData = [
                     'subject_id' => $previousBooking->subject_id,
@@ -132,7 +136,7 @@ class BookingController extends Controller
             'teacher_id' => 'required|exists:teachers,id',
             'subject_id' => 'required|exists:subjects,id',
             'sessions' => 'required|array|min:1',
-            'sessions.*.start_time' => 'required|date|after:' . now()->subMinutes(10)->toDateTimeString(),
+            'sessions.*.start_time' => 'required|date|after:' . now()->setTimezone('UTC')->subMinutes(10)->toDateTimeString(),
             'sessions.*.end_time' => 'required|date|after:sessions.*.start_time',
             'duration' => 'required|integer|in:30,45,60',
             'is_recurring' => 'boolean',
@@ -142,19 +146,20 @@ class BookingController extends Controller
         ]);
 
         $user = $request->user();
-        if (!$user) abort(401);
+        if (!$user)
+            abort(401);
 
         // $bookingService is already injected
 
         $teacher = Teacher::findOrFail($request->teacher_id);
-        
+
         try {
             $bookings = $bookingService->createBatchBookings(
-                $user, 
-                $teacher, 
-                $request->sessions, 
-                $request->is_recurring ?? false, 
-                $request->recurrence_occurrences ?? 1, 
+                $user,
+                $teacher,
+                $request->sessions,
+                $request->is_recurring ?? false,
+                $request->recurrence_occurrences ?? 1,
                 $request->subject_id,
                 $request->notes,
                 $request->currency
@@ -166,8 +171,8 @@ class BookingController extends Controller
                 $firstBooking->refresh();
             }
             $status = $firstBooking->status;
-            
-            $message = $status === 'awaiting_payment' 
+
+            $message = $status === 'awaiting_payment'
                 ? 'Booking saved! Please top up your wallet to complete the payment.'
                 : 'Booking confirmed!';
 

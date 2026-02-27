@@ -53,6 +53,7 @@ interface Session {
     formatted_month: string;
     formatted_start_time: string;
     formatted_end_time: string;
+    formatted_time: string;
     status: string;
     can_join: boolean;
     meeting_link: string | null;

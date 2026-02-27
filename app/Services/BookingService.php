@@ -18,8 +18,11 @@ class BookingService
     public function createBooking(User $student, Teacher $teacher, array $data, bool $processPayment = true)
     {
         return DB::transaction(function () use ($student, $teacher, $data, $processPayment) {
-            $startTime = Carbon::parse($data['start_time']);
-            $endTime = Carbon::parse($data['end_time']);
+            // Parse in UTC explicitly — availability times are timezone-naive and the app
+            // timezone is overridden to Africa/Lagos by AppServiceProvider, which would
+            // cause a 1-hour shift if we let Carbon use the default timezone.
+            $startTime = Carbon::parse($data['start_time'], 'UTC');
+            $endTime = Carbon::parse($data['end_time'], 'UTC');
 
             // 0. Smart Reuse/Deduplicate: Check if THIS user already has an active booking for EXACTLY this slot
             // We ONLY reuse/update if the existing booking is still PENDING. 
@@ -27,7 +30,7 @@ class BookingService
             $existingBooking = Booking::where('teacher_id', $teacher->id)
                 ->where('user_id', $student->id)
                 ->where('start_time', $startTime)
-                ->where('status', 'pending') 
+                ->where('status', 'pending')
                 ->first();
 
             if ($existingBooking) {
@@ -37,7 +40,7 @@ class BookingService
                 $existingBooking->update([
                     'subject_id' => $data['subject_id'],
                     'end_time' => $endTime,
-                    'total_price' => $totalPrice, 
+                    'total_price' => $totalPrice,
                     'currency' => $data['currency'] ?? ($teacher->preferred_currency ?? 'USD'),
                     'notes' => $data['notes'] ?? $existingBooking->notes,
                 ]);
@@ -92,10 +95,10 @@ class BookingService
     {
         // Reuse createBooking but skip automatic payment processing
         $booking = $this->createBooking($student, $teacher, $data, false);
-        
+
         // Dispatch Notification
         $student->notify(new \App\Notifications\NewClassOfferNotification($booking));
-        
+
         return $booking;
     }
 
@@ -118,7 +121,7 @@ class BookingService
 
         $hasConflict = $query->where(function ($q) use ($start, $end) {
             $q->where('start_time', '<', $end)
-              ->where('end_time', '>', $start);
+                ->where('end_time', '>', $start);
         })->exists();
 
         if ($hasConflict) {
@@ -128,7 +131,7 @@ class BookingService
                 ->whereIn('status', ['pending', 'confirmed', 'awaiting_approval', 'rescheduling', 'awaiting_payment'])
                 ->where(function ($q) use ($start, $end) {
                     $q->where('start_time', '<', $end)
-                      ->where('end_time', '>', $start);
+                        ->where('end_time', '>', $start);
                 })->first();
             if ($conflicting) {
                 \Illuminate\Support\Facades\Log::info("Conflicting Booking ID: " . $conflicting->id . " Start: " . $conflicting->start_time . " End: " . $conflicting->end_time);
@@ -167,15 +170,15 @@ class BookingService
     {
         return DB::transaction(function () use ($student, $teacher, $data, $recurrenceType, $occurrences, $processPayment) {
             $bookings = collect();
-            
+
             // 1. Create the first (parent) booking
             $parentBooking = $this->createBooking($student, $teacher, $data, $processPayment);
             $bookings->push($parentBooking);
-            
+
             // 2. Loop for subsequent bookings
             $currentStart = Carbon::parse($data['start_time']);
             $currentEnd = Carbon::parse($data['end_time']);
-            
+
             for ($i = 1; $i < $occurrences; $i++) {
                 if ($recurrenceType === 'weekly') {
                     $currentStart->addWeek();
@@ -197,9 +200,9 @@ class BookingService
                     $bookings->push($childBooking);
                 } catch (Exception $e) {
                     \Illuminate\Support\Facades\Log::info("Error creating recurring child at $currentStart. Error: " . $e->getMessage());
-                    
+
                     if ($e->getMessage() === "This time slot is no longer available.") {
-                         throw new Exception("Recurring slot unavailable on " . $currentStart->toFormattedDateString());
+                        throw new Exception("Recurring slot unavailable on " . $currentStart->toFormattedDateString());
                     }
 
                     throw $e; // Re-throw other errors (e.g. Mail/System)
@@ -219,12 +222,22 @@ class BookingService
             $allBookings = collect();
             $walletService = app(WalletService::class);
 
+            // Helper: Strip timezone indicators and parse as UTC.
+            // Availability times are timezone-naive (e.g. "19:00"). The app timezone
+            // is overridden to Africa/Lagos (UTC+1) by AppServiceProvider, so we must
+            // explicitly parse in UTC to prevent a 1-hour shift.
+            $parseAsUTC = function (string $datetime): Carbon {
+                // Strip Z/.000Z/+00:00 suffixes first, then parse as UTC
+                $naive = preg_replace('/(\\.\\d+)?Z$|[+-]\\d{2}:\\d{2}$/', '', $datetime);
+                return Carbon::parse($naive, 'UTC');
+            };
+
             // 1. Calculate Total Estimated Price for all sessions
             $totalSessionsCount = count($sessions) * ($isRecurring ? $occurrences : 1);
-            
+
             // Get duration from first session to estimate price
             $firstSession = $sessions[0];
-            $durationMinutes = Carbon::parse($firstSession['start_time'])->diffInMinutes(Carbon::parse($firstSession['end_time']));
+            $durationMinutes = $parseAsUTC($firstSession['start_time'])->diffInMinutes($parseAsUTC($firstSession['end_time']));
             $pricePerSession = ($teacher->hourly_rate / 60) * $durationMinutes;
             $batchTotalPrice = $pricePerSession * $totalSessionsCount;
 
@@ -232,8 +245,12 @@ class BookingService
             $canPayFull = $walletService->canDebit($student->id, $batchTotalPrice);
 
             foreach ($sessions as $session) {
-                $startTime = Carbon::parse($session['start_time']);
-                $endTime = Carbon::parse($session['end_time']);
+                $rawStart = $session['start_time'];
+                $rawEnd = $session['end_time'];
+                $startTime = $parseAsUTC($rawStart);
+                $endTime = $parseAsUTC($rawEnd);
+
+                \Illuminate\Support\Facades\Log::info("BookingService: Raw start={$rawStart}, Parsed(UTC) start={$startTime->toDateTimeString()}, Raw end={$rawEnd}, Parsed(UTC) end={$endTime->toDateTimeString()}");
 
                 $data = [
                     'subject_id' => $subjectId,

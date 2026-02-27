@@ -61,7 +61,7 @@ export function BookingCard(props: BookingCardProps) {
     const isTeacher = userRole === 'teacher';
     const person = isTeacher ? booking.student : booking.teacher;
 
-    const displayTime = `${formatDate(booking.start_time, 'p')} - ${formatDate(booking.end_time, 'p')}`;
+    const displayTime = booking.formatted_time || `${formatDate(booking.start_time, 'p')} - ${formatDate(booking.end_time, 'p')}`;
 
     return (
         <div className={cn('px-[clamp(1.5rem,3vw,2rem)] py-[clamp(1rem,2vw,1.5rem)]', showBorder && 'border-b border-[#e5e7eb]')}>
@@ -81,7 +81,7 @@ export function BookingCard(props: BookingCardProps) {
 
                 {/* Date/Time and Status Row */}
                 <div className="flex items-center gap-[clamp(0.5rem,1vw,0.75rem)] flex-wrap">
-                    <DateTimeBadge date={formatDate(booking.start_time)} time={displayTime} />
+                    <DateTimeBadge date={booking.formatted_date || formatDate(booking.start_time)} time={displayTime} />
                     <StatusBadge status={booking.display_status} />
                 </div>
 

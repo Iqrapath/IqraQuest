@@ -44,7 +44,7 @@ class BookingFailedNotification extends Notification implements ShouldQueue
             ->greeting('Salaam ' . $notifiable->name . ',')
             ->line('Your booking has been reserved but requires payment to be confirmed.')
             ->line('**Teacher:** ' . $this->booking->teacher->user->name)
-            ->line('**Date:** ' . $this->booking->start_time->setTimezone('UTC')->format('F j, Y, g:i a') . ' UTC')
+            ->line('**Date:** ' . $this->booking->start_time->format('F j, Y, g:i a') . ' UTC')
             ->line('**Status:** Awaiting Payment')
             ->line('Please visit your wallet to complete the payment within 1 hour, or the slot will be released.')
             ->action('Pay Now', url('/student/wallet'));

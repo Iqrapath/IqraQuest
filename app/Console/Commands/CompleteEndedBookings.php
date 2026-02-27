@@ -38,7 +38,7 @@ class CompleteEndedBookings extends Command
         foreach ($endedBookings as $booking) {
             $booking->update(['status' => 'completed']);
             $count++;
-            
+
             $this->line("  ✓ Booking #{$booking->id} marked as completed");
         }
 

@@ -37,9 +37,9 @@ class SessionReminderNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $timeLabel = $this->getTimeLabel();
-        $sessionDate = $this->booking->start_time->setTimezone('UTC')->format('l, M j, Y');
-        $sessionTime = $this->booking->start_time->setTimezone('UTC')->format('h:i A');
-        $endTime = $this->booking->end_time->setTimezone('UTC')->format('h:i A');
+        $sessionDate = $this->booking->start_time->format('l, M j, Y');
+        $sessionTime = $this->booking->start_time->format('h:i A');
+        $endTime = $this->booking->end_time->format('h:i A');
 
         $otherParty = $this->isStudent
             ? $this->booking->teacher->user->name
@@ -92,8 +92,8 @@ class SessionReminderNotification extends Notification implements ShouldQueue
             'reminder_type' => $this->reminderType,
             'subject' => $this->booking->subject->name,
             'other_party' => $otherParty,
-            'session_date' => $this->booking->start_time->setTimezone('UTC')->format('M j, Y'),
-            'session_time' => $this->booking->start_time->setTimezone('UTC')->format('h:i A') . ' UTC',
+            'session_date' => $this->booking->start_time->format('M j, Y'),
+            'session_time' => $this->booking->start_time->format('h:i A') . ' UTC',
             'message' => "Your {$this->booking->subject->name} session starts {$timeLabel}.",
         ];
     }

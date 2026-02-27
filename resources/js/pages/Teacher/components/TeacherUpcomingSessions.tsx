@@ -13,6 +13,7 @@ interface Session {
     end_time: string;
     date_key: string;
     formatted_date: string;
+    formatted_time: string;
     formatted_day: string;
     formatted_month: string;
     formatted_start_time: string;
@@ -146,7 +147,7 @@ export default function TeacherUpcomingSessions({ sessions, serverDate }: Teache
                                     <h4 className="font-bold text-gray-900 text-lg">{session.student.name}</h4>
                                     <div className="flex items-center gap-2 mt-1">
                                         <div className="px-2 py-0.5 rounded border border-gray-300 text-xs font-medium text-gray-600 bg-white">
-                                            {formatDate(session.start_time, 'p')} - {formatDate(session.end_time, 'p')}
+                                            {session.formatted_time || `${formatDate(session.start_time, 'p')} - ${formatDate(session.end_time, 'p')}`}
                                         </div>
                                     </div>
                                 </div>

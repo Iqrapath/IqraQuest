@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Icon } from '@iconify/react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Combobox } from "@/components/ui/combobox";
+import { Switch } from "@/components/ui/switch";
 import TermsConditionsTab from './TermsConditionsTab';
 import PrivacyPolicyTab from './PrivacyPolicyTab';
 import KnowledgeBaseTab from './KnowledgeBaseTab';
@@ -67,6 +68,10 @@ export default function GeneralSettingsTab({ settings, localization, legalSettin
         office_address: settings?.office_address || '',
         contact_number: settings?.contact_number || '',
         whatsapp_number: settings?.whatsapp_number || '',
+        show_support_email: settings?.show_support_email === undefined ? true : settings?.show_support_email == 1 || settings?.show_support_email === true,
+        show_office_address: settings?.show_office_address === undefined ? true : settings?.show_office_address == 1 || settings?.show_office_address === true,
+        show_contact_number: settings?.show_contact_number === undefined ? true : settings?.show_contact_number == 1 || settings?.show_contact_number === true,
+        show_whatsapp_number: settings?.show_whatsapp_number === undefined ? true : settings?.show_whatsapp_number == 1 || settings?.show_whatsapp_number === true,
         language: localization?.language || 'en',
         timezone: localization?.timezone || 'Africa/Lagos',
         date_format: localization?.date_format || 'DD/MM/YYYY',
@@ -195,7 +200,13 @@ export default function GeneralSettingsTab({ settings, localization, legalSettin
                 {/* Contact Information Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                     <div className="space-y-3">
-                        <label className="text-sm font-bold text-[#101928]">{__("Support Email")}</label>
+                        <div className="flex items-center justify-between">
+                            <label className="text-sm font-bold text-[#101928]">{__("Support Email")}</label>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-400">{data.show_support_email ? __("Visible") : __("Hidden")}</span>
+                                <Switch checked={data.show_support_email} onCheckedChange={(v) => setData('show_support_email', v)} />
+                            </div>
+                        </div>
                         <input
                             type="email"
                             value={data.support_email}
@@ -206,7 +217,13 @@ export default function GeneralSettingsTab({ settings, localization, legalSettin
                         {errors.support_email && <p className="text-xs text-red-500">{errors.support_email}</p>}
                     </div>
                     <div className="space-y-3">
-                        <label className="text-sm font-bold text-[#101928]">{__("Office Address")}</label>
+                        <div className="flex items-center justify-between">
+                            <label className="text-sm font-bold text-[#101928]">{__("Office Address")}</label>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-400">{data.show_office_address ? __("Visible") : __("Hidden")}</span>
+                                <Switch checked={data.show_office_address} onCheckedChange={(v) => setData('show_office_address', v)} />
+                            </div>
+                        </div>
                         <input
                             type="text"
                             value={data.office_address}
@@ -217,7 +234,13 @@ export default function GeneralSettingsTab({ settings, localization, legalSettin
                         {errors.office_address && <p className="text-xs text-red-500">{errors.office_address}</p>}
                     </div>
                     <div className="space-y-3">
-                        <label className="text-sm font-bold text-[#101928]">{__("Contact Number")}:</label>
+                        <div className="flex items-center justify-between">
+                            <label className="text-sm font-bold text-[#101928]">{__("Contact Number")}:</label>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-400">{data.show_contact_number ? __("Visible") : __("Hidden")}</span>
+                                <Switch checked={data.show_contact_number} onCheckedChange={(v) => setData('show_contact_number', v)} />
+                            </div>
+                        </div>
                         <input
                             type="text"
                             value={data.contact_number}
@@ -228,7 +251,13 @@ export default function GeneralSettingsTab({ settings, localization, legalSettin
                         {errors.contact_number && <p className="text-xs text-red-500">{errors.contact_number}</p>}
                     </div>
                     <div className="space-y-3">
-                        <label className="text-sm font-bold text-[#101928]">{__("Whatsapp Number")}:</label>
+                        <div className="flex items-center justify-between">
+                            <label className="text-sm font-bold text-[#101928]">{__("Whatsapp Number")}:</label>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-400">{data.show_whatsapp_number ? __("Visible") : __("Hidden")}</span>
+                                <Switch checked={data.show_whatsapp_number} onCheckedChange={(v) => setData('show_whatsapp_number', v)} />
+                            </div>
+                        </div>
                         <input
                             type="text"
                             value={data.whatsapp_number}

@@ -13,7 +13,7 @@ export default function CTASection() {
                     <div className="flex w-full flex-col gap-[clamp(1.5rem,2.22vw,2rem)] px-[clamp(0.5rem,0.83vw,0.75rem)] lg:w-[475px]">
                         <div className="flex flex-col gap-[clamp(0.5rem,0.83vw,0.75rem)] leading-normal">
                             <p className="max-w-[588px] bg-gradient-to-l from-[#338078] to-[rgba(20,20,20,0.44)] bg-clip-text font-['Nunito'] text-[clamp(2rem,3.61vw,3.25rem)] font-bold text-transparent">
-                                {__("Start your Quran Learning Journey Today")}
+                                {__("Start your Quran Teaching Journey Today")}
                             </p>
                             <p className="font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-normal text-gray-600">
                                 {__("Earn money by sharing your expertise with students. Sign up today and start teaching online with IqraPath!")}
@@ -21,7 +21,7 @@ export default function CTASection() {
                         </div>
 
                         <Link
-                            href="register"
+                            href="/register/teacher"
                             className="w-fit rounded-[clamp(1.5rem,3.89vw,3.5rem)] bg-[#338078] px-[clamp(1rem,1.67vw,1.5rem)] py-[clamp(0.5rem,0.83vw,0.75rem)] font-['Nunito'] text-[clamp(1rem,1.67vw,1.5rem)] font-semibold capitalize text-white transition-all hover:bg-[#2a6b64] hover:shadow-lg"
                         >
                             {__("Start Teaching Today")}

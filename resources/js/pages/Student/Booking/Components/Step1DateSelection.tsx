@@ -328,7 +328,66 @@ export default function Step1DateSelection({
                                 {availableSlots.length === 0 ? (
                                     <div className="h-full flex flex-col items-center justify-center text-gray-300 py-12">
                                         <Icon icon="ph:calendar-x-bold" className="w-16 h-16 opacity-20 mb-4" />
-                                        <p className="text-sm font-bold text-gray-400">No slots for this date</p>
+                                        {(() => {
+                                            if (!selectedDate) return <p className="text-sm font-bold text-gray-400">Select a date to see available slots</p>;
+
+                                            const dayOfWeekName = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
+                                            const daySchedules = teacher.availability_schedule.filter((s: any) =>
+                                                s.day_of_week.toLowerCase() === dayOfWeekName.toLowerCase() && s.is_available
+                                            );
+
+                                            if (daySchedules.length === 0) {
+                                                // Teacher has no availability on this day at all
+                                                return (
+                                                    <>
+                                                        <p className="text-sm font-bold text-gray-400">Not available on {dayOfWeekName}s</p>
+                                                        <p className="text-xs text-gray-300 mt-1">This teacher doesn't have hours set for this day</p>
+                                                    </>
+                                                );
+                                            }
+
+                                            // Teacher has availability but the window is too short for the selected duration
+                                            const windowMinutes = daySchedules.reduce((max: number, s: any) => {
+                                                if (!s.start_time || !s.end_time) return max;
+                                                const [sH, sM] = s.start_time.split(':').map(Number);
+                                                const [eH, eM] = s.end_time.split(':').map(Number);
+                                                let diff = (eH * 60 + eM) - (sH * 60 + sM);
+                                                if (diff <= 0) diff += 1440;
+                                                return Math.max(max, diff);
+                                            }, 0);
+
+                                            if (windowMinutes > 0 && windowMinutes < selectedDuration) {
+                                                const availWindow = daySchedules[0];
+                                                const formatTime = (t: string) => {
+                                                    const [h, m] = t.split(':').map(Number);
+                                                    const d = new Date(); d.setHours(h, m);
+                                                    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                                                };
+                                                return (
+                                                    <>
+                                                        <p className="text-sm font-bold text-gray-400">Session length too long</p>
+                                                        <p className="text-xs text-gray-300 mt-1 text-center max-w-xs leading-relaxed">
+                                                            The teacher is available {formatTime(availWindow.start_time)} – {formatTime(availWindow.end_time)} ({windowMinutes} min window),
+                                                            but your selected session is <span className="font-semibold text-gray-400">{selectedDuration} min</span>.
+                                                        </p>
+                                                        <button
+                                                            onClick={() => onDurationChange(windowMinutes >= 45 ? 45 : 30)}
+                                                            className="mt-3 px-4 py-2 bg-[#358D83] text-white text-xs font-bold rounded-xl hover:bg-[#2b756d] transition-all"
+                                                        >
+                                                            Switch to {windowMinutes >= 45 ? 45 : 30} min session
+                                                        </button>
+                                                    </>
+                                                );
+                                            }
+
+                                            // Slots exist in schedule but are all booked or in the past
+                                            return (
+                                                <>
+                                                    <p className="text-sm font-bold text-gray-400">All slots taken or past</p>
+                                                    <p className="text-xs text-gray-300 mt-1">Try selecting a future {dayOfWeekName}</p>
+                                                </>
+                                            );
+                                        })()}
                                     </div>
                                 ) : (
                                     <div className="space-y-10">

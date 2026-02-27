@@ -15,6 +15,7 @@ interface Props {
     admins: any[];
     availablePermissions: any;
     faqs: any[];
+    subjects: any;
 }
 
 export default function SettingsIndex({
@@ -24,7 +25,8 @@ export default function SettingsIndex({
     roles,
     admins,
     availablePermissions,
-    faqs
+    faqs,
+    subjects
 }: Props) {
     const [currentTab, setCurrentTab] = useState(activeTab);
 
@@ -85,7 +87,7 @@ export default function SettingsIndex({
                     </TabsContent>
 
                     <TabsContent value="features">
-                        <FeatureControlsTab toggles={settings.feature_controls} />
+                        <FeatureControlsTab toggles={settings.feature_controls} subjects={subjects} />
                     </TabsContent>
 
                     <TabsContent value="admins">

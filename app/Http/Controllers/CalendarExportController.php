@@ -12,7 +12,7 @@ class CalendarExportController extends Controller
     /**
      * Generate iCal (.ics) file for a single booking
      */
-    public function exportBooking(Booking $booking): Response
+    public function exportBooking(Booking $booking): \Illuminate\Http\Response
     {
         // Verify user has access to this booking
         $this->authorizeBookingAccess($booking);
@@ -27,21 +27,21 @@ class CalendarExportController extends Controller
     /**
      * Generate iCal (.ics) file for multiple bookings
      */
-    public function exportAllBookings(Request $request): Response
+    public function exportAllBookings(Request $request): \Illuminate\Http\Response
     {
         $user = Auth::user();
-        
+
         $bookings = Booking::where(function ($query) use ($user) {
-                // User's own bookings (as student/guardian)
-                $query->where('user_id', $user->id);
-                
-                // Or as teacher
-                if ($user->teacher) {
-                    $query->orWhere('teacher_id', $user->teacher->id);
-                }
-            })
+            // User's own bookings (as student/guardian)
+            $query->where('user_id', $user->id);
+
+            // Or as teacher
+            if ($user->teacher) {
+                $query->orWhere('teacher_id', $user->teacher->id);
+            }
+        })
             ->whereIn('status', ['confirmed', 'completed'])
-            ->where('start_time', '>=', now()->subMonths(1)) // Last month + future
+            ->where('start_time', '>=', now()->setTimezone('UTC')->subMonths(1)) // Last month + future
             ->orderBy('start_time')
             ->with(['teacher.user', 'student', 'subject'])
             ->get();
@@ -93,7 +93,7 @@ class CalendarExportController extends Controller
     {
         $user = Auth::user();
         $isTeacher = $user->teacher && $booking->teacher_id === $user->teacher->id;
-        
+
         $title = $this->getEventTitle($booking, $isTeacher);
         $description = $this->getEventDescription($booking, $isTeacher);
         $location = url("/classroom/{$booking->id}");
@@ -115,14 +115,14 @@ class CalendarExportController extends Controller
         $event .= "LOCATION:" . $this->escapeIcsText($location) . "\r\n";
         $event .= "URL:" . $this->escapeIcsText($location) . "\r\n";
         $event .= "STATUS:" . $this->getIcsStatus($booking->status) . "\r\n";
-        
+
         // Add reminder 15 minutes before
         $event .= "BEGIN:VALARM\r\n";
         $event .= "TRIGGER:-PT15M\r\n";
         $event .= "ACTION:DISPLAY\r\n";
         $event .= "DESCRIPTION:Session starting in 15 minutes\r\n";
         $event .= "END:VALARM\r\n";
-        
+
         // Add reminder 1 hour before
         $event .= "BEGIN:VALARM\r\n";
         $event .= "TRIGGER:-PT1H\r\n";
@@ -165,11 +165,11 @@ class CalendarExportController extends Controller
     protected function getEventTitle(Booking $booking, bool $isTeacher): string
     {
         $subject = $booking->subject->name ?? 'Session';
-        
+
         if ($isTeacher) {
             return "IqraQuest: {$subject} with {$booking->student->name}";
         }
-        
+
         return "IqraQuest: {$subject} with {$booking->teacher->user->name}";
     }
 
@@ -180,9 +180,9 @@ class CalendarExportController extends Controller
     {
         $lines = [
             "Subject: {$booking->subject->name}",
-            $isTeacher 
-                ? "Student: {$booking->student->name}" 
-                : "Teacher: {$booking->teacher->user->name}",
+            $isTeacher
+            ? "Student: {$booking->student->name}"
+            : "Teacher: {$booking->teacher->user->name}",
             "",
             "Join your session at:",
             url("/classroom/{$booking->id}"),
@@ -223,8 +223,8 @@ class CalendarExportController extends Controller
     protected function authorizeBookingAccess(Booking $booking): void
     {
         $user = Auth::user();
-        
-        $hasAccess = $booking->user_id === $user->id 
+
+        $hasAccess = $booking->user_id === $user->id
             || ($user->teacher && $booking->teacher_id === $user->teacher->id);
 
         if (!$hasAccess) {

@@ -9,6 +9,9 @@ interface SessionDetailsModalProps {
     isOpen: boolean;
     onClose: () => void;
     session: {
+        start_time: any;
+        formatted_time: string;
+        end_time: any;
         id: number;
         student: { id: number; name: string; avatar: string | null };
         subject: { id: number; name: string };
@@ -66,7 +69,7 @@ export default function SessionDetailsModal({ isOpen, onClose, session }: Sessio
                                     {/* Session Details Header */}
                                     <h4 className="text-[#358D83] text-xl font-medium mb-2">Session Details</h4>
                                     <p className="text-gray-500 text-sm mb-8">
-                                        {(session as any).start_time ? formatDate((session as any).start_time) : session.formatted_date} | {formatDate((session as any).start_time, 'p')} - {formatDate((session as any).end_time, 'p')}
+                                        {(session as any).formatted_date || ((session as any).start_time ? formatDate((session as any).start_time) : '')} | {(session as any).formatted_time || `${formatDate((session as any).start_time, 'p')} - ${formatDate((session as any).end_time, 'p')}`}
                                     </p>
 
                                     {/* Info Section */}

@@ -96,7 +96,7 @@ export default function Step2SessionDetails({
                                     <Icon icon="ph:timer-bold" className="w-4 h-4 text-[#358D83]" />
                                     <span className="text-xs font-black text-[#338078]">
                                         {selectedSessions.length === 1
-                                            ? `${formatTimePill(firstSession.start)}`
+                                            ? `${formatTimePill(firstSession.start)} - ${formatTimePill(firstSession.end)}`
                                             : "Multiple Times"
                                         }
                                     </span>

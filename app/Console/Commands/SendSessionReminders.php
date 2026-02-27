@@ -47,7 +47,7 @@ class SendSessionReminders extends Command
     protected function sendRemindersForInterval(int $minutes, string $type, string $label): int
     {
         // Find bookings starting within the reminder window (±2 minutes tolerance)
-        $targetTime = now()->addMinutes($minutes);
+        $targetTime = now()->setTimezone('UTC')->addMinutes($minutes);
         $windowStart = $targetTime->copy()->subMinutes(2);
         $windowEnd = $targetTime->copy()->addMinutes(2);
 
@@ -65,7 +65,7 @@ class SendSessionReminders extends Command
             try {
                 // Send to student
                 $booking->student->notify(new SessionReminderNotification($booking, $type, true));
-                
+
                 // Send to teacher (with delay to avoid rate limiting)
                 $booking->teacher->user->notify(
                     (new SessionReminderNotification($booking, $type, false))->delay(now()->addSeconds(10))

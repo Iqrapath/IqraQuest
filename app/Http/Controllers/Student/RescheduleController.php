@@ -76,8 +76,8 @@ class RescheduleController extends Controller
                 ],
                 'current_start_time' => $booking->start_time->toIso8601String(),
                 'current_end_time' => $booking->end_time->toIso8601String(),
-                'formatted_date' => $booking->start_time->setTimezone('UTC')->format('jS F Y'),
-                'formatted_time' => $booking->start_time->setTimezone('UTC')->format('g:i A') . ' - ' . $booking->end_time->setTimezone('UTC')->format('g:i A') . ' UTC',
+                'formatted_date' => $booking->start_time->format('jS F Y'),
+                'formatted_time' => $booking->start_time->format('g:i A') . ' - ' . $booking->end_time->format('g:i A') . ' UTC',
                 'duration_minutes' => $booking->start_time->diffInMinutes($booking->end_time),
             ],
             'teacher' => [
@@ -127,7 +127,7 @@ class RescheduleController extends Controller
         }
 
         $request->validate([
-            'new_start_time' => 'required|date|after:' . now()->subMinutes(10)->toDateTimeString(),
+            'new_start_time' => 'required|date|after:' . now()->setTimezone('UTC')->subMinutes(10)->toDateTimeString(),
             'reason' => 'nullable|string|max:500',
         ]);
 

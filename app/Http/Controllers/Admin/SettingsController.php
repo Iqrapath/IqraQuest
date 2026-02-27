@@ -8,6 +8,7 @@ use App\Models\SystemSetting;
 use App\Models\PaymentSetting;
 use App\Models\FAQ;
 use App\Models\User;
+use App\Models\Subject;
 use App\Enums\UserRole;
 use App\Constants\Permissions;
 use App\Notifications\TermsUpdatedNotification;
@@ -40,6 +41,7 @@ class SettingsController extends Controller
             'admins' => User::where('role', UserRole::ADMIN)->with('roleDetail')->get(),
             'availablePermissions' => Permissions::getAllGrouped(),
             'faqs' => FAQ::orderBy('order')->get(),
+            'subjects' => Subject::ordered()->paginate(10)->withQueryString(),
         ]);
     }
 
@@ -54,6 +56,10 @@ class SettingsController extends Controller
             'office_address' => 'nullable|string|max:500',
             'contact_number' => 'nullable|string|max:20',
             'whatsapp_number' => 'nullable|string|max:20',
+            'show_support_email' => 'boolean',
+            'show_office_address' => 'boolean',
+            'show_contact_number' => 'boolean',
+            'show_whatsapp_number' => 'boolean',
             'language' => 'nullable|string|max:10',
             'timezone' => 'nullable|string|max:50',
             'date_format' => 'nullable|string|max:20',
@@ -71,11 +77,22 @@ class SettingsController extends Controller
         $settings = array_filter($validated, fn($key) => $key !== 'logo', ARRAY_FILTER_USE_KEY);
 
         foreach ($settings as $key => $value) {
-            $group = in_array($key, ['site_name', 'support_email', 'office_address', 'contact_number', 'whatsapp_number'])
-                ? 'general'
-                : 'localization';
+            $group = in_array($key, [
+                'site_name',
+                'support_email',
+                'office_address',
+                'contact_number',
+                'whatsapp_number',
+                'show_support_email',
+                'show_office_address',
+                'show_contact_number',
+                'show_whatsapp_number'
+            ]) ? 'general' : 'localization';
 
-            SystemSetting::set($key, $value, $group);
+            $type = is_bool($value) || $value === 'true' || $value === 'false' || in_array($key, ['show_support_email', 'show_office_address', 'show_contact_number', 'show_whatsapp_number']) ? 'boolean' : 'string';
+            $valueToSave = $type === 'boolean' ? filter_var($value, FILTER_VALIDATE_BOOLEAN) : $value;
+
+            SystemSetting::set($key, $valueToSave, $group, $type);
         }
 
         return back()->with('success', 'General settings updated successfully.');
@@ -261,5 +278,70 @@ class SettingsController extends Controller
         $user->save();
 
         return back()->with('success', 'Admin status updated to ' . $user->status . '.');
+    }
+
+    /**
+     * Save/Create a Subject
+     */
+    public function saveSubject(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'nullable|exists:subjects,id',
+            'name' => 'required|string|max:100',
+            'description' => 'nullable|string|max:500',
+            'icon' => 'nullable|string|max:50',
+            'display_order' => 'required|integer',
+            'is_active' => 'boolean',
+        ]);
+
+        $subjectData = [
+            'name' => $validated['name'],
+            'slug' => \Illuminate\Support\Str::slug($validated['name']),
+            'description' => $validated['description'] ?? null,
+            'icon' => $validated['icon'] ?? null,
+            'display_order' => $validated['display_order'],
+            'is_active' => $request->boolean('is_active', true),
+        ];
+
+        if (isset($validated['id'])) {
+            $subject = Subject::findOrFail($validated['id']);
+            $subject->update($subjectData);
+            $message = 'Subject updated successfully.';
+        } else {
+            Subject::create($subjectData);
+            $message = 'Subject created successfully.';
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /**
+     * Delete a Subject
+     */
+    public function deleteSubject($id)
+    {
+        $subject = Subject::findOrFail($id);
+
+        // Prevent deletion if teachers are already linked
+        if ($subject->teachers()->exists()) {
+            return back()->with('error', 'Cannot delete a subject that is currently assigned to teachers.');
+        }
+
+        $subject->delete();
+
+        return back()->with('success', 'Subject deleted successfully.');
+    }
+
+    /**
+     * Toggle Subject Status
+     */
+    public function toggleSubjectStatus($id)
+    {
+        $subject = Subject::findOrFail($id);
+        $subject->is_active = !$subject->is_active;
+        $subject->save();
+
+        $statusName = $subject->is_active ? 'activated' : 'deactivated';
+        return back()->with('success', "Subject $statusName successfully.");
     }
 }

@@ -43,7 +43,7 @@ class BookingConfirmedNotification extends Notification implements ShouldQueue
             ->greeting('Assalamu Alaikum ' . $notifiable->name . ',')
             ->line('Your booking for a Quran class has been confirmed and payment processed.')
             ->line('**Teacher:** ' . $this->booking->teacher->user->name)
-            ->line('**Date:** ' . $this->booking->start_time->setTimezone('UTC')->format('F j, Y, g:i a') . ' UTC')
+            ->line('**Date:** ' . $this->booking->start_time->format('F j, Y, g:i a') . ' UTC')
             ->line('**Subject:** ' . ($this->booking->subject->name ?? 'Quran Study'))
             ->line('---')
             ->line('**Payment Receipt**')

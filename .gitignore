@@ -46,3 +46,5 @@ debug_timezone.php
 update_timezone.php
 repro_booking_error.php
 temp_err.txt
+CONTEXT_HANDOVER.md
+laravel.txt

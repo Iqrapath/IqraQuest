@@ -44,8 +44,8 @@ class Booking extends Model
     ];
 
     protected $casts = [
-        'start_time' => 'datetime',
-        'end_time' => 'datetime',
+        'start_time' => \App\Casts\UtcDateTime::class,
+        'end_time' => \App\Casts\UtcDateTime::class,
         'total_price' => 'decimal:2',
         'commission_rate' => 'decimal:2',
         'amount_released' => 'decimal:2',
@@ -87,7 +87,7 @@ class Booking extends Model
     {
         return $this->hasMany(Booking::class, 'parent_booking_id');
     }
-    
+
     public function rescheduleRequests()
     {
         return $this->hasMany(RescheduleRequest::class);
@@ -290,11 +290,11 @@ class Booking extends Model
     public function markSessionEnded(): void
     {
         $updates = ['session_ended_at' => now()];
-        
+
         if ($this->session_started_at) {
             $updates['actual_duration_minutes'] = $this->session_started_at->diffInMinutes(now());
         }
-        
+
         $this->update($updates);
     }
 

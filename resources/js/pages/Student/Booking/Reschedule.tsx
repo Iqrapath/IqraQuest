@@ -216,11 +216,15 @@ export default function Reschedule({ booking, teacher, booked_slots = [] }: Prop
         setIsProcessing(true);
 
         try {
-            // Construct ISO Start Time
+            // Format as timezone-naive string to preserve the exact time selected
+            // (availability times are timezone-naive, so we must not convert through local TZ)
             const [hours, minutes] = selectedTimeSlot.start.split(':').map(Number);
-            const d = new Date(selectedDate);
-            d.setHours(hours, minutes, 0, 0);
-            const isoStartTime = d.toISOString();
+            const y = selectedDate.getFullYear();
+            const mo = String(selectedDate.getMonth() + 1).padStart(2, '0');
+            const dy = String(selectedDate.getDate()).padStart(2, '0');
+            const hh = String(hours).padStart(2, '0');
+            const mm = String(minutes).padStart(2, '0');
+            const isoStartTime = `${y}-${mo}-${dy}T${hh}:${mm}:00`;
 
             // First check availability
             const checkResponse = await axios.post(`/student/booking/${booking.id}/reschedule/check-availability`, {

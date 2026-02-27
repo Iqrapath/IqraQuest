@@ -365,9 +365,18 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
     const handleFinalBooking = () => {
         if (selectedSessions.length === 0 || !selectedSubject) return;
 
-        // Helper to format date for MySQL/Laravel (Using ISO to preserve timezone)
+        // Helper to format date for MySQL/Laravel
+        // IMPORTANT: Availability times are timezone-naive (e.g. "19:00"),
+        // so we must send the exact hours/minutes the student picked
+        // without any local-to-UTC conversion that toISOString() would do.
         const formatForBackend = (date: Date) => {
-            return date.toISOString();
+            const y = date.getFullYear();
+            const mo = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            const h = String(date.getHours()).padStart(2, '0');
+            const mi = String(date.getMinutes()).padStart(2, '0');
+            const s = String(date.getSeconds()).padStart(2, '0');
+            return `${y}-${mo}-${d}T${h}:${mi}:${s}`;
         };
 
         // Process all sessions

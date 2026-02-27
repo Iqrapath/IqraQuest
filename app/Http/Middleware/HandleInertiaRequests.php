@@ -51,6 +51,10 @@ class HandleInertiaRequests extends Middleware
                     'office_address' => \App\Models\SystemSetting::get('office_address'),
                     'contact_number' => \App\Models\SystemSetting::get('contact_number'),
                     'whatsapp_number' => \App\Models\SystemSetting::get('whatsapp_number'),
+                    'show_support_email' => \App\Models\SystemSetting::get('show_support_email'),
+                    'show_office_address' => \App\Models\SystemSetting::get('show_office_address'),
+                    'show_contact_number' => \App\Models\SystemSetting::get('show_contact_number'),
+                    'show_whatsapp_number' => \App\Models\SystemSetting::get('show_whatsapp_number'),
                 ],
                 'localization' => [
                     'timezone' => \App\Models\SystemSetting::get('timezone', 'UTC'),
