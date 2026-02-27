@@ -30,7 +30,7 @@ class BookingApprovedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $sessionDate = $this->booking->start_time->format('l, M j, Y');
-        $sessionTime = $this->booking->start_time->format('h:i A') . ' - ' . $this->booking->end_time->format('h:i A') . ' UTC';
+        $sessionTime = $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('h:i A') . ' - ' . $this->booking->end_time->format('h:i A');
         $currency = $this->booking->currency ?? 'NGN';
 
         $mail = (new MailMessage)
@@ -77,7 +77,7 @@ class BookingApprovedNotification extends Notification implements ShouldQueue
                 'teacher_name' => $this->booking->teacher->user->name,
                 'subject' => $this->booking->subject->name,
                 'session_date' => $this->booking->start_time->format('M j, Y'),
-                'session_time' => $this->booking->start_time->format('h:i A') . ' UTC',
+                'session_time' => $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('h:i A'),
                 'message' => "Your {$this->booking->subject->name} class with {$this->booking->teacher->user->name} is confirmed!",
             ];
         }
@@ -88,7 +88,7 @@ class BookingApprovedNotification extends Notification implements ShouldQueue
             'student_name' => $this->booking->student->name,
             'subject' => $this->booking->subject->name,
             'session_date' => $this->booking->start_time->format('M j, Y'),
-            'session_time' => $this->booking->start_time->format('h:i A') . ' UTC',
+            'session_time' => $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('h:i A'),
             'message' => "New confirmed booking with {$this->booking->student->name} for {$this->booking->subject->name}.",
         ];
     }

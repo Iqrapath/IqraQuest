@@ -43,7 +43,7 @@ class BookingRejectedNotification extends Notification implements ShouldQueue
             ->greeting('Salaam ' . $notifiable->name . ',')
             ->line('Your booking request has been declined by the teacher.')
             ->line('**Teacher:** ' . $this->booking->teacher->user->name)
-            ->line('**Date:** ' . $this->booking->start_time->format('F j, Y, g:i a') . ' UTC')
+            ->line('**Date:** ' . $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('F j, Y, g:i a'))
             ->line('---')
             ->line('**Refund Processed**')
             ->line('The amount of ' . ($this->booking->currency === 'USD' ? '$' : '₦') . number_format($this->booking->total_price, 0) . ' has been fully refunded to your wallet.')

@@ -71,7 +71,7 @@ class DashboardController extends Controller
                         'formatted_day' => $start->format('d'),
                         'formatted_month' => $start->format('M'),
                         'formatted_start_time' => $start->format('g:i A'),
-                        'formatted_end_time' => $end->format('g:i A') . ' UTC',
+                        'formatted_end_time' => $end->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A'),
                         'status' => $booking->status,
                         'can_join' => $start->isToday() && $start->diffInMinutes(now()) <= 15, // Simple logic
                         'meeting_link' => $booking->meeting_link,
@@ -102,7 +102,7 @@ class DashboardController extends Controller
         // Stats (simplified for now directly in view or reuse card)
         $stats = [
             'active_students' => Booking::where('teacher_id', $teacher->id)
-                ->where('status', 'completed')
+                ->whereIn('status', ['completed', 'confirmed'])
                 ->distinct('user_id')
                 ->count('user_id'),
             'upcoming_sessions' => Booking::where('teacher_id', $teacher->id)
@@ -116,7 +116,7 @@ class DashboardController extends Controller
 
         // Fetch Active Students with details
         $activeStudentIds = Booking::where('teacher_id', $teacher->id)
-            ->where('status', 'completed')
+            ->whereIn('status', ['completed', 'confirmed'])
             ->distinct('user_id')
             ->pluck('user_id');
 
@@ -271,7 +271,7 @@ class DashboardController extends Controller
                     'formatted_day' => $start->format('d'),
                     'formatted_month' => $start->format('M'),
                     'formatted_start_time' => $start->format('g:i A'),
-                    'formatted_end_time' => $end->format('g:i A') . ' UTC',
+                    'formatted_end_time' => $end->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A'),
                     'status' => $booking->status,
                     'can_join' => $start->isToday() && $start->diffInMinutes(now()) <= 15,
                     'meeting_link' => $booking->meeting_link,

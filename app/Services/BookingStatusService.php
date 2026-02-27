@@ -112,8 +112,7 @@ class BookingStatusService
      */
     public function isCompleted(Booking $booking): bool
     {
-        return $booking->status === 'completed'
-            || ($booking->status === 'confirmed' && $booking->end_time->lt(now()));
+        return $booking->status === 'completed';
     }
 
     /**
@@ -155,10 +154,6 @@ class BookingStatusService
 
             if ($booking->start_time->lte($now) && $booking->end_time->gte($now)) {
                 return 'ongoing';
-            }
-
-            if ($booking->end_time->lt($now)) {
-                return 'completed';
             }
         }
 
@@ -215,19 +210,9 @@ class BookingStatusService
             ->where('end_time', '>=', $now);
     }
 
-    /**
-     * Apply completed conditions
-     * Completed = status is 'completed' OR (confirmed AND end_time < now)
-     */
     protected function applyCompletedConditions(Builder $query): Builder
     {
-        return $query->where(function ($q) {
-            $q->where('status', 'completed')
-                ->orWhere(function ($q2) {
-                    $q2->where('status', 'confirmed')
-                        ->where('end_time', '<', now());
-                });
-        });
+        return $query->where('status', 'completed');
     }
 
     /**
@@ -303,7 +288,7 @@ class BookingStatusService
             'start_time' => $booking->start_time->toIso8601String(),
             'end_time' => $booking->end_time->toIso8601String(),
             'formatted_date' => $booking->start_time->format($phpFormat),
-            'formatted_time' => $booking->start_time->format('g:i A') . ' - ' . $booking->end_time->format('g:i A') . ' UTC',
+            'formatted_time' => $booking->start_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A') . ' - ' . $booking->end_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A'),
             'duration_minutes' => $booking->start_time->diffInMinutes($booking->end_time),
             'status' => $booking->status,
             'display_status' => $this->getDisplayStatus($booking),

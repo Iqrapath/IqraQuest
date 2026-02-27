@@ -43,7 +43,7 @@ class BookingRequestedNotification extends Notification implements ShouldQueue
             ->greeting('Salaam ' . $notifiable->name . ',')
             ->line('Your booking request has been sent and is awaiting teacher approval.')
             ->line('**Teacher:** ' . $this->booking->teacher->user->name)
-            ->line('**Date:** ' . $this->booking->start_time->format('F j, Y, g:i a') . ' UTC')
+            ->line('**Date:** ' . $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('F j, Y, g:i a'))
             ->line('**Subject:** ' . ($this->booking->subject->name ?? 'Quran Study'))
             ->line('---')
             ->line('**Payment Status: Funds Held**')

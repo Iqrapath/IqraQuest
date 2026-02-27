@@ -96,7 +96,7 @@ class ScheduleController extends Controller
             'formatted_day' => $booking->start_time->format('j'),
             'formatted_month' => $booking->start_time->format('F'),
             'formatted_start_time' => $booking->start_time->format('g:i A'),
-            'formatted_end_time' => $booking->end_time->format('g:i A') . ' UTC',
+            'formatted_end_time' => $booking->end_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A'),
             'status' => $booking->status,
             'can_join' => $this->canJoinSession($booking),
             'meeting_link' => $booking->meeting_link,
@@ -150,7 +150,7 @@ class ScheduleController extends Controller
                     'name' => $booking->subject->name,
                 ],
                 'formatted_start_time' => $booking->start_time->format('g:i A'),
-                'formatted_end_time' => $booking->end_time->format('g:i A') . ' UTC',
+                'formatted_end_time' => $booking->end_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A'),
                 'can_join' => $this->canJoinSession($booking),
                 'meeting_link' => $booking->meeting_link,
             ]);

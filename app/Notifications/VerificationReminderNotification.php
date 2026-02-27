@@ -32,7 +32,7 @@ class VerificationReminderNotification extends Notification implements ShouldQue
             ->subject('Reminder: Verification Call Upcoming - IqraQuest')
             ->greeting('Hello ' . $notifiable->name . ',')
             ->line('This is a reminder that your video verification call is coming up shortly.')
-            ->line('Scheduled Time: ' . \Carbon\Carbon::parse($this->scheduledAt)->format('F j, Y, g:i A') . ' UTC')
+            ->line('Scheduled Time: ' . \Carbon\Carbon::parse($this->scheduledAt)->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('F j, Y, g:i A'))
             ->line('Please be ready to join the verification room 15 minutes prior to the scheduled time.')
             ->action('Join Verification Room', $this->joinUrl)
             ->line('If you need to reschedule, please contact support immediately.')
