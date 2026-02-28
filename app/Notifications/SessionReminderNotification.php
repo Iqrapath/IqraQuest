@@ -43,7 +43,7 @@ class SessionReminderNotification extends Notification implements ShouldQueue
 
         $otherParty = $this->isStudent
             ? $this->booking->teacher->user->name
-            : $this->booking->student->name;
+            : $this->booking->getStudentDisplayName();
 
         $role = $this->isStudent ? 'teacher' : 'student';
 
@@ -84,7 +84,7 @@ class SessionReminderNotification extends Notification implements ShouldQueue
         $timeLabel = $this->getTimeLabel();
         $otherParty = $this->isStudent
             ? $this->booking->teacher->user->name
-            : $this->booking->student->name;
+            : $this->booking->getStudentDisplayName();
 
         return [
             'type' => 'session_reminder',

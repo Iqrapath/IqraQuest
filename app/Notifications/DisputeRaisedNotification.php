@@ -44,7 +44,7 @@ class DisputeRaisedNotification extends Notification implements ShouldQueue
             $mail->line("A new dispute has been raised that requires your attention.")
                 ->line("**Booking Details:**")
                 ->line("- Booking ID: #{$this->booking->id}")
-                ->line("- Student: {$this->booking->student->name}")
+                ->line("- Student: {$this->booking->getStudentDisplayName()}")
                 ->line("- Teacher: {$this->booking->teacher->user->name}")
                 ->line("- Subject: {$this->booking->subject->name}")
                 ->line("- Date: {$this->booking->start_time->format('M j, Y')}")
@@ -55,7 +55,7 @@ class DisputeRaisedNotification extends Notification implements ShouldQueue
         } else {
             $mail->line("A student has raised a dispute for one of your sessions.")
                 ->line("**Session Details:**")
-                ->line("- Student: {$this->booking->student->name}")
+                ->line("- Student: {$this->booking->getStudentDisplayName()}")
                 ->line("- Subject: {$this->booking->subject->name}")
                 ->line("- Date: {$this->booking->start_time->format('M j, Y')}")
                 ->line("**Dispute Reason:**")
@@ -71,7 +71,7 @@ class DisputeRaisedNotification extends Notification implements ShouldQueue
         return [
             'type' => 'dispute_raised',
             'booking_id' => $this->booking->id,
-            'student_name' => $this->booking->student->name,
+            'student_name' => $this->booking->getStudentDisplayName(),
             'teacher_name' => $this->booking->teacher->user->name,
             'subject' => $this->booking->subject->name,
             'reason' => $this->booking->dispute_reason,

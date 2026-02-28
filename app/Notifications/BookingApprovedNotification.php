@@ -54,7 +54,7 @@ class BookingApprovedNotification extends Notification implements ShouldQueue
             $mail->subject("New Confirmed Booking - {$sessionDate}")
                 ->line("A booking has been confirmed for you.")
                 ->line("**Session Details:**")
-                ->line("- Student: {$this->booking->student->name}")
+                ->line("- Student: {$this->booking->getStudentDisplayName()}")
                 ->line("- Subject: {$this->booking->subject->name}")
                 ->line("- Date: {$sessionDate}")
                 ->line("- Time: {$sessionTime}")
@@ -85,11 +85,11 @@ class BookingApprovedNotification extends Notification implements ShouldQueue
         return [
             'type' => 'booking_approved',
             'booking_id' => $this->booking->id,
-            'student_name' => $this->booking->student->name,
+            'student_name' => $this->booking->getStudentDisplayName(),
             'subject' => $this->booking->subject->name,
             'session_date' => $this->booking->start_time->format('M j, Y'),
             'session_time' => $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('h:i A'),
-            'message' => "New confirmed booking with {$this->booking->student->name} for {$this->booking->subject->name}.",
+            'message' => "New confirmed booking with {$this->booking->getStudentDisplayName()} for {$this->booking->subject->name}.",
         ];
     }
 }

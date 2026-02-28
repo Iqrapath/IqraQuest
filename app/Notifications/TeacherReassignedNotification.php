@@ -54,7 +54,7 @@ class TeacherReassignedNotification extends Notification implements ShouldQueue
         } elseif ($this->recipientType === 'old_teacher') {
             $mail->subject('Class Reassignment Notice')
                 ->line('A class has been reassigned from you to another teacher.')
-                ->line('**Student:** ' . $this->booking->student->name)
+                ->line('**Student:** ' . $this->booking->getStudentDisplayName())
                 ->line('**Subject:** ' . $this->booking->subject->name)
                 ->line('**Date:** ' . $this->booking->start_time->format('F j, Y, g:i a'))
                 ->line('**New Teacher:** ' . $this->newTeacher->user->name);
@@ -68,7 +68,7 @@ class TeacherReassignedNotification extends Notification implements ShouldQueue
         } else { // new_teacher
             $mail->subject('New Class Assignment')
                 ->line('A class has been assigned to you.')
-                ->line('**Student:** ' . $this->booking->student->name)
+                ->line('**Student:** ' . $this->booking->getStudentDisplayName())
                 ->line('**Subject:** ' . $this->booking->subject->name)
                 ->line('**Date:** ' . $this->booking->start_time->format('F j, Y, g:i a'))
                 ->line('**Price:** ' . $this->booking->currency . ' ' . number_format($this->booking->total_price, 2))
@@ -83,8 +83,8 @@ class TeacherReassignedNotification extends Notification implements ShouldQueue
     {
         $messages = [
             'student' => 'Your class has been reassigned to ' . $this->newTeacher->user->name,
-            'old_teacher' => 'Your class with ' . $this->booking->student->name . ' has been reassigned',
-            'new_teacher' => 'A new class with ' . $this->booking->student->name . ' has been assigned to you',
+            'old_teacher' => 'Your class with ' . $this->booking->getStudentDisplayName() . ' has been reassigned',
+            'new_teacher' => 'A new class with ' . $this->booking->getStudentDisplayName() . ' has been assigned to you',
         ];
 
         return [
@@ -92,7 +92,7 @@ class TeacherReassignedNotification extends Notification implements ShouldQueue
             'title' => 'Teacher Reassigned',
             'old_teacher_name' => $this->oldTeacher->user->name,
             'new_teacher_name' => $this->newTeacher->user->name,
-            'student_name' => $this->booking->student->name,
+            'student_name' => $this->booking->getStudentDisplayName(),
             'start_time' => $this->booking->start_time,
             'message' => $messages[$this->recipientType] ?? 'Teacher has been reassigned for a booking',
             'type' => 'teacher_reassigned',

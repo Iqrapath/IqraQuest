@@ -35,7 +35,7 @@ class BookingCancelledByStudentNotification extends Notification implements Shou
     public function toMail(object $notifiable): MailMessage
     {
         $currency = $this->booking->currency ?? 'NGN';
-        $studentName = $this->booking->student->name;
+        $studentName = $this->booking->getStudentDisplayName();
         $sessionDate = $this->booking->start_time->format('l, M j, Y');
         $sessionTime = $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('h:i A') . ' - ' . $this->booking->end_time->format('h:i A');
 
@@ -76,13 +76,13 @@ class BookingCancelledByStudentNotification extends Notification implements Shou
         return [
             'type' => 'booking_cancelled_by_student',
             'booking_id' => $this->booking->id,
-            'student_name' => $this->booking->student->name,
+            'student_name' => $this->booking->getStudentDisplayName(),
             'subject' => $this->booking->subject->name,
             'session_date' => $this->booking->start_time->format('M j, Y'),
             'session_time' => $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('h:i A'),
             'cancellation_reason' => $this->booking->cancellation_reason,
             'compensation_amount' => $this->refundInfo['fee'],
-            'message' => "{$this->booking->student->name} cancelled their {$this->booking->subject->name} session on {$this->booking->start_time->format('M j')}.",
+            'message' => "{$this->booking->getStudentDisplayName()} cancelled their {$this->booking->subject->name} session on {$this->booking->start_time->format('M j')}.",
         ];
     }
 }

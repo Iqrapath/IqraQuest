@@ -45,9 +45,11 @@ interface Props {
     teacher: Teacher;
     booked_slots: Array<{ start: string; end: string }>;
     rebook_data?: RebookData | null;
+    initial_student_id?: number | null;
+    children_list?: Array<{ id: number; name: string; avatar: string }>;
 }
 
-export default function GuardianBookingIndex({ teacher, booked_slots = [], rebook_data }: Props) {
+export default function GuardianBookingIndex({ teacher, booked_slots = [], rebook_data, initial_student_id, children_list = [] }: Props) {
     const { auth } = usePage<any>().props;
     const userWalletBalance = auth?.wallet_balance || 0;
 
@@ -70,6 +72,7 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [userTimeZone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
     const [selectedSubject, setSelectedSubject] = useState<number | null>(rebook_data?.subject_id || null);
+    const [selectedStudentId, setSelectedStudentId] = useState<number | 'guardian'>(initial_student_id || 'guardian');
     const [isRecurring, setIsRecurring] = useState(false);
     const [occurrences, setOccurrences] = useState(4);
     const [notes, setNotes] = useState('');
@@ -412,7 +415,8 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
             currency: currency,
             payment_method: paymentMethod,
             is_recurring: isRecurring,
-            occurrences: occurrences
+            occurrences: occurrences,
+            student_id: selectedStudentId === 'guardian' ? null : selectedStudentId
         }, {
             preserveScroll: true,
             preserveState: true,
@@ -491,6 +495,10 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
                     onBack={goToPrevStep}
                     onContinue={() => setStep(3)}
                     formatTimePill={formatTimePill}
+                    // Child selection props
+                    childrenList={children_list}
+                    selectedStudentId={selectedStudentId}
+                    onStudentSelect={setSelectedStudentId}
                 />
             )}
 

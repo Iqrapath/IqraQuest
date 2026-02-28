@@ -39,6 +39,7 @@ class BookingService
 
                 $existingBooking->update([
                     'subject_id' => $data['subject_id'],
+                    'student_id' => $data['student_id'] ?? null,
                     'end_time' => $endTime,
                     'total_price' => $totalPrice,
                     'currency' => $data['currency'] ?? ($teacher->preferred_currency ?? 'USD'),
@@ -67,6 +68,7 @@ class BookingService
             $booking = Booking::create([
                 'teacher_id' => $teacher->id,
                 'user_id' => $student->id,
+                'student_id' => $data['student_id'] ?? null,
                 'subject_id' => $data['subject_id'],
                 'start_time' => $startTime,
                 'end_time' => $endTime,
@@ -156,6 +158,7 @@ class BookingService
             $previousBooking->teacher,
             [
                 'subject_id' => $previousBooking->subject_id,
+                'student_id' => $previousBooking->student_id,
                 'start_time' => $newStartTime,
                 'end_time' => $newEndTime
             ]
@@ -216,9 +219,9 @@ class BookingService
     /**
      * Create a batch of bookings, potentially each with its own recurring series.
      */
-    public function createBatchBookings(User $student, Teacher $teacher, array $sessions, bool $isRecurring = false, int $occurrences = 1, int $subjectId, ?string $notes = null, ?string $currency = 'USD')
+    public function createBatchBookings(User $student, Teacher $teacher, array $sessions, bool $isRecurring = false, int $occurrences = 1, int $subjectId, ?string $notes = null, ?string $currency = 'USD', ?int $studentId = null)
     {
-        return DB::transaction(function () use ($student, $teacher, $sessions, $isRecurring, $occurrences, $subjectId, $notes, $currency) {
+        return DB::transaction(function () use ($student, $teacher, $sessions, $isRecurring, $occurrences, $subjectId, $notes, $currency, $studentId) {
             $allBookings = collect();
             $walletService = app(WalletService::class);
 
@@ -254,6 +257,7 @@ class BookingService
 
                 $data = [
                     'subject_id' => $subjectId,
+                    'student_id' => $studentId,
                     'start_time' => $startTime->toDateTimeString(),
                     'end_time' => $endTime->toDateTimeString(),
                     'notes' => $notes,

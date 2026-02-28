@@ -118,6 +118,14 @@ export default function ChildrenDetails({ guardian_name, children, total_childre
                                                     <Icon icon="lucide:edit" className="w-5 h-5" />
                                                 </DropdownMenuItem>
 
+                                                <DropdownMenuItem
+                                                    onClick={() => router.visit(`/guardian/teachers?student_id=${child.id}`)}
+                                                    className="flex items-center justify-between p-3 rounded-xl cursor-pointer hover:bg-[#338078]/5 text-[#1a1d56]"
+                                                >
+                                                    <span className="font-medium">Book Session</span>
+                                                    <Icon icon="ph:calendar-plus-bold" className="w-5 h-5" />
+                                                </DropdownMenuItem>
+
                                                 <div className="h-px bg-gray-50 my-1" />
                                                 <DropdownMenuItem
                                                     onClick={() => handleDelete(child.id)}

@@ -40,10 +40,10 @@ class NewBookingRequestNotification extends Notification implements ShouldQueue,
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('New Booking Request from ' . $this->booking->student->name)
+            ->subject('New Booking Request from ' . $this->booking->getStudentDisplayName())
             ->greeting('Salaam ' . $notifiable->name . ',')
             ->line('You have received a new booking request.')
-            ->line('**Student:** ' . $this->booking->student->name)
+            ->line('**Student:** ' . $this->booking->getStudentDisplayName())
             ->line('**Date:** ' . $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('F j, Y, g:i a'))
             ->line('**Subject:** ' . ($this->booking->subject->name ?? 'Quran Study'))
             ->line('**Revenue:** ' . ($this->booking->currency === 'USD' ? '$' : '₦') . number_format($this->booking->total_price * 0.90, 0) . ' (est. after commission)')
@@ -62,9 +62,9 @@ class NewBookingRequestNotification extends Notification implements ShouldQueue,
         return [
             'booking_id' => $this->booking->id,
             'title' => 'New Booking Request',
-            'student_name' => $this->booking->student->name,
+            'student_name' => $this->booking->getStudentDisplayName(),
             'start_time' => $this->booking->start_time,
-            'message' => 'New request from ' . $this->booking->student->name,
+            'message' => 'New request from ' . $this->booking->getStudentDisplayName(),
             'type' => 'new_booking_request'
         ];
     }

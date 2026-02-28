@@ -99,7 +99,7 @@ class BookingController extends Controller
             abort(403, 'You do not have access to this booking.');
         }
 
-        $booking->load(['teacher.user', 'teacher.subjects', 'teacher.availability', 'student', 'subject']);
+        $booking->load(['teacher.user', 'teacher.subjects', 'teacher.availability', 'student', 'child.user', 'subject']);
 
         // Get teacher's average rating
         $teacherRating = \App\Models\Review::where('teacher_id', $booking->teacher_id)
@@ -143,7 +143,10 @@ class BookingController extends Controller
                     'total_reviews' => $totalReviews,
                     'availability_summary' => $availabilitySummary,
                 ],
-                'student' => [
+                'student' => $booking->child ? [
+                    'id' => $booking->child->id,
+                    'name' => $booking->child->user->name,
+                ] : [
                     'id' => $booking->student->id,
                     'name' => $booking->student->name,
                 ],

@@ -33,13 +33,13 @@ class RescheduleRequestedNotification extends Notification implements ShouldQueu
         $originalDate = $this->rescheduleRequest->original_start_time->format('l, F j, Y');
         $originalTime = $this->rescheduleRequest->original_start_time->format('g:i A');
         $newDate = $this->rescheduleRequest->new_start_time->format('l, F j, Y');
-        $newTime = $this->rescheduleRequest->new_start_time->format('g:i A') . ' - ' . 
-                   $this->rescheduleRequest->new_end_time->format('g:i A');
+        $newTime = $this->rescheduleRequest->new_start_time->format('g:i A') . ' - ' .
+            $this->rescheduleRequest->new_end_time->format('g:i A');
 
         return (new MailMessage)
             ->subject('Reschedule Request - ' . $subject->name)
             ->greeting('Assalamu Alaikum ' . $notifiable->name . ',')
-            ->line($student->name . ' has requested to reschedule their ' . $subject->name . ' session.')
+            ->line($booking->getStudentDisplayName() . ' has requested to reschedule their ' . $subject->name . ' session.')
             ->line('**Original Schedule:**')
             ->line($originalDate . ' at ' . $originalTime)
             ->line('**Requested New Schedule:**')
@@ -60,13 +60,13 @@ class RescheduleRequestedNotification extends Notification implements ShouldQueu
             'type' => 'reschedule_requested',
             'reschedule_request_id' => $this->rescheduleRequest->id,
             'booking_id' => $booking->id,
-            'student_name' => $booking->student->name,
+            'student_name' => $booking->getStudentDisplayName(),
             'subject_name' => $booking->subject->name,
             'original_time' => $this->rescheduleRequest->original_start_time->toIso8601String(),
             'new_start_time' => $this->rescheduleRequest->new_start_time->toIso8601String(),
             'new_end_time' => $this->rescheduleRequest->new_end_time->toIso8601String(),
             'reason' => $this->rescheduleRequest->reason,
-            'message' => $booking->student->name . ' requested to reschedule ' . $booking->subject->name,
+            'message' => $booking->getStudentDisplayName() . ' requested to reschedule ' . $booking->subject->name,
         ];
     }
 }

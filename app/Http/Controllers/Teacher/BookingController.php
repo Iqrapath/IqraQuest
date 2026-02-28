@@ -39,6 +39,7 @@ class BookingController extends Controller
             ->whereIn('status', ['awaiting_approval', 'rescheduling'])
             ->with([
                 'student',
+                'child.user',
                 'subject',
                 'rescheduleRequests' => function ($query) {
                     $query->where('status', 'pending')->latest();
@@ -54,17 +55,25 @@ class BookingController extends Controller
                     'status' => $booking->status,
                     'parent_booking_id' => $booking->parent_booking_id,
                     'student' => [
-                        'name' => $booking->student->name,
-                        'avatar' => $booking->student->avatar,
+                        'name' => $booking->getStudentDisplayName(),
+                        'avatar' => $booking->child ? ($booking->child->user->avatar ?? $booking->student->avatar) : $booking->student->avatar,
+                        'is_child' => $booking->child ? true : false,
+                        'child_name' => $booking->child ? $booking->child->user->name : null,
+                        'guardian_name' => $booking->child ? $booking->student->name : null,
                         'level' => 'Intermediate',
                     ],
                     'subject' => [
                         'name' => $booking->subject->name,
+                        'avatar' => $booking->subject->image,
+                        'description' => 'We will focus on basic Tajweed rules.',
+                    ],
+                    'notes' => $booking->notes,
+                    'price' => [
+                        'amount' => $booking->total_price,
+                        'currency' => $booking->currency,
                     ],
                     'start_time' => $booking->start_time,
                     'end_time' => $booking->end_time,
-                    'total_price' => $booking->total_price,
-                    'currency' => $booking->currency,
                     'days_requested' => $booking->start_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('l, M j'),
                     'time_range' => $booking->start_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A') . ' - ' . $booking->end_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A'),
                     // Reschedule specific data

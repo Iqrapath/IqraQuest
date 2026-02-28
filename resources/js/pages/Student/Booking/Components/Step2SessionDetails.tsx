@@ -12,8 +12,11 @@ interface Step2Props {
     onNotesChange: (notes: string) => void;
     onBack: () => void;
     onContinue: () => void;
-    // Helper
     formatTimePill: (time: string | null) => string;
+    // New props for Guardian Child Booking
+    childrenList?: Array<{ id: number; name: string; avatar: string }>;
+    selectedStudentId?: number | 'guardian';
+    onStudentSelect?: (id: number | 'guardian') => void;
 }
 
 export default function Step2SessionDetails({
@@ -25,7 +28,10 @@ export default function Step2SessionDetails({
     onNotesChange,
     onBack,
     onContinue,
-    formatTimePill
+    formatTimePill,
+    childrenList,
+    selectedStudentId,
+    onStudentSelect
 }: Step2Props) {
     const firstSession = selectedSessions[0];
 
@@ -106,6 +112,81 @@ export default function Step2SessionDetails({
                     </div>
                 </div>
             </div>
+
+            {/* Who is this booking for? Section (Visible only if children exist) */}
+            {childrenList && childrenList.length > 0 && onStudentSelect && (
+                <div className="mb-10 space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+                            <Icon icon="ph:users-bold" className="text-[#358D83]" />
+                            Who is this booking for?
+                        </h3>
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Required</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {/* Option: Guardian (Myself) */}
+                        <button
+                            onClick={() => onStudentSelect('guardian')}
+                            className={`
+                                group relative flex items-center gap-4 p-4 rounded-[1.5rem] border-2 transition-all duration-300
+                                ${selectedStudentId === 'guardian'
+                                    ? 'bg-white border-[#358D83] shadow-[0_10px_30px_rgba(53,141,131,0.1)] ring-1 ring-[#358D83]/20'
+                                    : 'bg-white border-gray-100 text-gray-600 hover:border-[#358D83]/30 hover:bg-teal-50/30'}
+                            `}
+                        >
+                            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-100 shrink-0">
+                                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                    <Icon icon="ph:user-bold" className="w-6 h-6 text-gray-400" />
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-start translate-y-[-1px]">
+                                <span className={`text-sm font-black transition-colors ${selectedStudentId === 'guardian' ? 'text-gray-900' : 'text-gray-600'}`}>
+                                    Myself
+                                </span>
+                                <span className="text-[10px] font-bold text-gray-300 uppercase tracking-tight">Guardian Profile</span>
+                            </div>
+                            {selectedStudentId === 'guardian' && (
+                                <div className="absolute top-2 right-4">
+                                    <div className="h-1.5 w-1.5 rounded-full bg-[#358D83] animate-pulse" />
+                                </div>
+                            )}
+                        </button>
+
+                        {/* Options: Children */}
+                        {childrenList.map((child: { id: number; name: string; avatar: string }) => {
+                            const isSelected = selectedStudentId === child.id;
+                            return (
+                                <button
+                                    key={child.id}
+                                    onClick={() => onStudentSelect(child.id)}
+                                    className={`
+                                        group relative flex items-center gap-4 p-4 rounded-[1.5rem] border-2 transition-all duration-300
+                                        ${isSelected
+                                            ? 'bg-white border-[#358D83] shadow-[0_10px_30px_rgba(53,141,131,0.1)] ring-1 ring-[#358D83]/20'
+                                            : 'bg-white border-gray-100 text-gray-600 hover:border-[#358D83]/30 hover:bg-teal-50/30'}
+                                    `}
+                                >
+                                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-100 shrink-0">
+                                        <img src={child.avatar} alt={child.name} className="w-full h-full object-cover" />
+                                    </div>
+                                    <div className="flex flex-col items-start translate-y-[-1px]">
+                                        <span className={`text-sm font-black transition-colors line-clamp-1 text-left ${isSelected ? 'text-gray-900' : 'text-gray-600'}`}>
+                                            {child.name}
+                                        </span>
+                                        <span className="text-[10px] font-bold text-gray-300 uppercase tracking-tight">Child Profile</span>
+                                    </div>
+                                    {isSelected && (
+                                        <div className="absolute top-2 right-4">
+                                            <div className="h-1.5 w-1.5 rounded-full bg-[#358D83] animate-pulse" />
+                                        </div>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             {/* Subject Selection Section */}
             <div className="mb-10 space-y-6">

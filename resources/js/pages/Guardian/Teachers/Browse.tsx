@@ -62,6 +62,10 @@ export default function Browse() {
     const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // Capture student_id from URL if passed via action links ("Book Session" from ChildrenDetails)
+    const studentIdParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('student_id') : null;
+    const initialStudentId = studentIdParam ? parseInt(studentIdParam, 10) : null;
+
     useEffect(() => {
         fetchSubjects();
     }, []);
@@ -221,6 +225,7 @@ export default function Browse() {
                         isOpen={isModalOpen}
                         onClose={handleCloseModal}
                         teacherId={selectedTeacherId}
+                        studentId={initialStudentId}
                     />
                 )}
             </div>

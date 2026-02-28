@@ -23,10 +23,14 @@ interface Request {
         name: string;
         avatar: string;
         level: string;
+        is_child?: boolean;
+        child_name?: string | null;
+        guardian_name?: string | null;
     };
     subject: {
         name: string;
     };
+    notes?: string | null;
     start_time: string;
     end_time: string;
     total_price: number | string;
@@ -285,9 +289,28 @@ export default function TeacherRequestsIndex({ requests, subjects }: Props) {
                                     </div>
                                 </div>
 
+                                {/* Custom Note section */}
+                                {request.notes && (
+                                    <div className="mt-6 p-4 bg-orange-50/50 rounded-2xl border border-orange-100">
+                                        <div className="flex gap-3">
+                                            <Icon icon="ph:chat-teardrop-text-bold" className="w-5 h-5 text-orange-400 shrink-0" />
+                                            <div>
+                                                <h4 className="text-xs font-black uppercase tracking-wider text-orange-800 mb-1">Note from Student</h4>
+                                                <p className="text-sm text-orange-900/80 leading-relaxed">
+                                                    "{request.notes}"
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Subject Note */}
                                 <p className="text-sm text-gray-600 mb-6 leading-relaxed flex-grow">
-                                    I need a {request.subject.name} teacher for this {request.isSeries ? 'recurring series' : 'session'}.
+                                    {request.student.is_child ? (
+                                        <>{request.student.guardian_name} is looking for a <strong>{request.subject.name}</strong> teacher for their child, <strong>{request.student.child_name}</strong>, for this {request.isSeries ? 'recurring series' : 'session'}.</>
+                                    ) : (
+                                        <>I need a <strong>{request.subject.name}</strong> teacher for this {request.isSeries ? 'recurring series' : 'session'}.</>
+                                    )}
                                 </p>
 
                                 {/* Details Grid */}

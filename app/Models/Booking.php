@@ -14,6 +14,7 @@ class Booking extends Model
     protected $fillable = [
         'teacher_id',
         'user_id',
+        'student_id',
         'subject_id',
         'start_time',
         'end_time',
@@ -41,6 +42,7 @@ class Booking extends Model
         'meeting_link',
         'cancellation_reason',
         'parent_booking_id',
+        'notes',
     ];
 
     protected $casts = [
@@ -71,6 +73,11 @@ class Booking extends Model
     public function student()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function child()
+    {
+        return $this->belongsTo(Student::class, 'student_id');
     }
 
     public function subject()
@@ -106,6 +113,20 @@ class Booking extends Model
     public function reviews()
     {
         return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Get the student's display name for notifications and emails.
+     * Shows the child's name + Guardian if booked by a Guardian.
+     */
+    public function getStudentDisplayName(): string
+    {
+        // $this->student is actually the User who paid/booked
+        if ($this->student_id && $this->child && $this->child->user) {
+            return $this->child->user->name . ' (Booked by Guardian: ' . $this->student->name . ')';
+        }
+
+        return $this->student->name;
     }
 
     /**

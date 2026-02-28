@@ -50,7 +50,7 @@ class FundsReleasedNotification extends Notification implements ShouldQueue
             ->greeting("Assalamu Alaikum, {$notifiable->name}!")
             ->line("Great news! Your earnings from the session have been released to your wallet.")
             ->line("**Session Details:**")
-            ->line("- Student: {$this->booking->student->name}")
+            ->line("- Student: {$this->booking->getStudentDisplayName()}")
             ->line("- Subject: {$this->booking->subject->name}")
             ->line("- Date: {$this->booking->start_time->format('M j, Y')}")
             ->line("- Time: {$this->booking->start_time->format('h:i A')} - {$this->booking->end_time->format('h:i A')}")
@@ -66,7 +66,7 @@ class FundsReleasedNotification extends Notification implements ShouldQueue
             'booking_id' => $this->booking->id,
             'amount' => $this->amount,
             'currency' => $this->booking->currency ?? 'NGN',
-            'student_name' => $this->booking->student->name,
+            'student_name' => $this->booking->getStudentDisplayName(),
             'subject' => $this->booking->subject->name,
             'message' => "Your earnings of {$this->booking->currency} " . number_format($this->amount, 2) . " have been released to your wallet.",
         ];

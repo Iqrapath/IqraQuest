@@ -38,7 +38,7 @@ class NoShowWarningNotification extends Notification implements ShouldQueue
         $isLearner = in_array($this->role, ['student', 'learner', 'guardian']);
         $otherParty = $isLearner
             ? $this->booking->teacher->user->name
-            : $this->booking->student->name;
+            : $this->booking->getStudentDisplayName();
 
         $otherRole = $isLearner ? 'teacher' : 'learner';
 

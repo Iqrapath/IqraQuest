@@ -59,6 +59,7 @@ export function BookingCard(props: BookingCardProps) {
     const { formatDate, formatDateTime } = useFormatDate();
 
     const isTeacher = userRole === 'teacher';
+    const isGuardian = userRole === 'guardian';
     const person = isTeacher ? booking.student : booking.teacher;
 
     const displayTime = booking.formatted_time || `${formatDate(booking.start_time, 'p')} - ${formatDate(booking.end_time, 'p')}`;
@@ -75,6 +76,11 @@ export function BookingCard(props: BookingCardProps) {
                         </h3>
                         <p className="font-['Poppins'] font-normal text-[clamp(0.75rem,1.25vw,0.875rem)] text-[#6b7280]">
                             {isTeacher ? booking.student.name : `Ustadh ${person.name}`}
+                            {isGuardian && booking.student?.name && (
+                                <span className="ml-2 pl-2 border-l border-gray-300 text-gray-500">
+                                    For: <span className="font-medium text-gray-700">{booking.student.name}</span>
+                                </span>
+                            )}
                         </p>
                     </div>
                 </div>

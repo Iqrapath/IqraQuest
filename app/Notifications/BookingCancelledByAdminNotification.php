@@ -60,7 +60,7 @@ class BookingCancelledByAdminNotification extends Notification implements Should
             // Teacher notification
             $mail->line("A scheduled class has been cancelled by the administrator.")
                 ->line("**Session Details:**")
-                ->line("- Student: {$this->booking->student->name}")
+                ->line("- Student: {$this->booking->getStudentDisplayName()}")
                 ->line("- Subject: {$this->booking->subject->name}")
                 ->line("- Date: {$sessionDate}")
                 ->line("- Time: {$sessionTime}")
@@ -93,12 +93,12 @@ class BookingCancelledByAdminNotification extends Notification implements Should
         return [
             'type' => 'booking_cancelled_by_admin',
             'booking_id' => $this->booking->id,
-            'student_name' => $this->booking->student->name,
+            'student_name' => $this->booking->getStudentDisplayName(),
             'subject' => $this->booking->subject->name,
             'session_date' => $this->booking->start_time->format('M j, Y'),
             'session_time' => $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('h:i A'),
             'reason' => $this->reason,
-            'message' => "Your class with {$this->booking->student->name} on {$this->booking->start_time->format('M j')} has been cancelled.",
+            'message' => "Your class with {$this->booking->getStudentDisplayName()} on {$this->booking->start_time->format('M j')} has been cancelled.",
         ];
     }
 }

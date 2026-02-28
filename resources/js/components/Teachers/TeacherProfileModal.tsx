@@ -48,6 +48,7 @@ interface TeacherProfileModalProps {
     onClose: () => void;
     teacherId: number;
     hideBookNow?: boolean;
+    studentId?: number | null;
 }
 
 export const TeacherProfileModal: React.FC<TeacherProfileModalProps> = ({
@@ -55,18 +56,19 @@ export const TeacherProfileModal: React.FC<TeacherProfileModalProps> = ({
     onClose,
     teacherId,
     hideBookNow = false,
+    studentId = null,
 }) => {
     const [activeTab, setActiveTab] = useState('bio');
     const [teacher, setTeacher] = useState<Teacher | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [showMessageTooltip, setShowMessageTooltip] = useState(false);
     const { auth } = usePage<any>().props;
-    
+
     // Determine booking URL based on user role
     const getBookingUrl = (teacherId: number) => {
         const role = auth?.user?.role;
         if (role === 'guardian') {
-            return `/guardian/book/${teacherId}`;
+            return studentId ? `/guardian/book/${teacherId}?student_id=${studentId}` : `/guardian/book/${teacherId}`;
         }
         return `/student/book/${teacherId}`;
     };

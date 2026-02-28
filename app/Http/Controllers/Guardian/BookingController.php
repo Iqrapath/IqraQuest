@@ -65,7 +65,23 @@ class BookingController extends Controller
             ];
         }
 
+        // Fetch Guardian's children
+        $user = $request->user();
+        $guardian = $user->guardian;
+        $children = $guardian ? $guardian->students()->with('user')->get()->map(function ($student) {
+            return [
+                'id' => $student->id,
+                'name' => $student->user->name,
+                'avatar' => $student->user->avatar_url,
+            ];
+        }) : collect([]);
+
+        // Read initial student logic if redirect from "My Children" Action Dropdown
+        $initialStudentId = $request->input('student_id') ? (int) $request->input('student_id') : null;
+
         return Inertia::render('Guardian/Booking/Index', [
+            'initial_student_id' => $initialStudentId,
+            'children_list' => $children,
             'teacher' => [
                 'id' => $teacher->id,
                 'user' => [
@@ -165,6 +181,7 @@ class BookingController extends Controller
             'recurrence_occurrences' => 'nullable|integer|min:2|max:12',
             'notes' => 'nullable|string|max:1000',
             'currency' => 'required|string|in:USD,NGN',
+            'student_id' => 'nullable|exists:students,id',
         ]);
 
         $user = $request->user();
@@ -184,7 +201,8 @@ class BookingController extends Controller
                 $request->recurrence_occurrences ?? 1,
                 $request->subject_id,
                 $request->notes,
-                $request->currency
+                $request->currency,
+                $request->student_id
             );
 
             $firstBooking = $bookings->first();

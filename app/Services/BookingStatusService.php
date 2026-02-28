@@ -167,11 +167,17 @@ class BookingStatusService
     {
         // If user is a teacher, query by teacher_id
         if ($user->teacher) {
-            return Booking::where('teacher_id', $user->teacher->id);
+            return Booking::query()->where('teacher_id', $user->teacher->id);
         }
 
         // For students and guardians, query by user_id
-        return Booking::where('user_id', $user->id);
+        // Also check student_id if the user is a child/student attendee
+        return Booking::query()->where(function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+            if ($user->student) {
+                $query->orWhere('student_id', $user->student->id);
+            }
+        });
     }
 
     /**
@@ -223,6 +229,7 @@ class BookingStatusService
         return $query->with([
             'teacher.user:id,name,avatar',
             'student:id,name,avatar',
+            'child.user:id,name,avatar',
             'subject:id,name',
         ]);
     }
@@ -284,7 +291,11 @@ class BookingStatusService
                 'name' => $booking->teacher->user->name,
                 'avatar' => $booking->teacher->user->avatar_url,
             ],
-            'student' => [
+            'student' => $booking->child ? [
+                'id' => $booking->child->id,
+                'name' => $booking->child->user->name,
+                'avatar' => $booking->child->user->avatar_url,
+            ] : [
                 'id' => $booking->student->id,
                 'name' => $booking->student->name,
                 'avatar' => $booking->student->avatar_url,
