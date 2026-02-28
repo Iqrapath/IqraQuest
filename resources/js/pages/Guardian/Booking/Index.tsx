@@ -54,10 +54,9 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
     const isRebook = !!rebook_data;
 
     const parseNaiveTime = (s: string) => {
-        const match = s.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
-        if (!match) return new Date(s);
-        const [_, y, m, d, h, min, sec] = match.map(Number);
-        return new Date(y, m - 1, d, h, min, sec);
+        // We now use new Date() directly to respect ISO 8601 timezone indicators (like 'Z')
+        // providing correct UTC-to-Local conversion for backend booked_slots.
+        return new Date(s);
     };
 
     const [step, setStep] = useState(1);
@@ -183,9 +182,10 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
                 const cartConflict = getSlotConflict(date, startStr, endStr, true);
                 const recurrenceConflicts = validateRecurrence(date, startStr, endStr);
 
-                // Check if slot is in the past
+                // Check if slot is in the past (with a 30-min buffer for processing time)
                 const now = new Date();
-                const isPast = slotStartDateTime < now;
+                const bufferTime = 30 * 60000; // 30 minutes
+                const isPast = slotStartDateTime.getTime() < (now.getTime() + bufferTime);
 
                 slots.push({
                     start: startStr,
@@ -222,15 +222,15 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
         const activeSchedule = schedule.filter(s => s.is_available);
         if (activeSchedule.length === 0) return { days: 'Not Available', time: 'Contact for details' };
 
-        const daysList = activeSchedule.map(s => s.day_of_week).filter((v, i, a) => a.indexOf(v) === i);
-        const startTimes = activeSchedule.map(s => s.start_time);
-        const endTimes = activeSchedule.map(s => s.end_time);
-
+        const days = activeSchedule.map(s => s.day_of_week).filter((v, i, a) => a.indexOf(v) === i);
         const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-        daysList.sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b));
+        days.sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b));
 
-        const daySummary = daysList.length === 7 ? 'Every Day' : (daysList.length > 2 ? `${daysList[0]} - ${daysList[daysList.length - 1]}` : daysList.join(', '));
-        const timeSummary = `${formatTimePill(startTimes[0] || '09:00')} - ${formatTimePill(endTimes[0] || '17:00')}`;
+        // Basic Summary Logic
+        const daySummary = days.length === 7 ? 'Every Day' : (days.length > 2 ? `${days[0]} - ${days[days.length - 1]}` : days.join(', '));
+        // Get times from the first available slot as a sample
+        const sample = activeSchedule[0];
+        const timeSummary = `${formatTimePill(sample.start_time)} - ${formatTimePill(sample.end_time)}`;
 
         return { days: daySummary, time: timeSummary };
     };
@@ -239,7 +239,7 @@ export default function GuardianBookingIndex({ teacher, booked_slots = [], reboo
     const hourlyRate = teacher.hourly_rate || 0;
     const sessionCostNGN = (hourlyRate / 60) * selectedDuration;
     const sessionCostUSD = convert(sessionCostNGN, 'NGN', 'USD');
-    const totalSessions = isRecurring ? occurrences : 1;
+    const totalSessions = selectedSessions.length * (isRecurring ? occurrences : 1);
     const totalCostUSD = sessionCostUSD * totalSessions;
     const totalCostNGN = sessionCostNGN * totalSessions;
 
