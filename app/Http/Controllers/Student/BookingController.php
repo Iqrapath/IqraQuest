@@ -233,12 +233,35 @@ class BookingController extends Controller
                 'hourly_rate' => $teacher->hourly_rate,
                 'average_rating' => (float) $teacher->average_rating ?: 0.0,
                 'total_reviews' => $teacher->total_reviews,
-                'availability_schedule' => $teacher->availability->map(function ($slot) {
+                'availability_schedule' => $teacher->availability->map(function ($slot) use ($teacher, $request) {
+                    $teacherTimezone = $teacher->timezone ?? config('app.timezone');
+                    $studentTimezone = $request->user()?->timezone ?? config('app.timezone');
+
+                    if (!$slot->is_available || !$slot->start_time || !$slot->end_time) {
+                        return [
+                            'day_of_week' => $slot->day_of_week,
+                            'start_time' => $slot->start_time,
+                            'end_time' => $slot->end_time,
+                            'is_available' => false,
+                        ];
+                    }
+
+                    // Shift the Teacher's local naive time structure into the Student's timezone structure
+                    $startLocal = \Carbon\Carbon::parse("Next {$slot->day_of_week} {$slot->start_time}", $teacherTimezone)
+                        ->setTimezone($studentTimezone);
+
+                    // The end time might roll over to the next day, so parse it relative to the start date
+                    $endNaive = \Carbon\Carbon::parse("Next {$slot->day_of_week} {$slot->end_time}", $teacherTimezone);
+                    if ($endNaive->copy()->format('H:i') === '00:00') {
+                        $endNaive->addDay(); // Handle midnight boundary
+                    }
+                    $endLocal = $endNaive->setTimezone($studentTimezone);
+
                     return [
-                        'day_of_week' => $slot->day_of_week,
-                        'start_time' => $slot->start_time,
-                        'end_time' => $slot->end_time,
-                        'is_available' => (bool) $slot->is_available,
+                        'day_of_week' => strtolower($startLocal->format('l')),
+                        'start_time' => $startLocal->format('H:i:s'),
+                        'end_time' => $endLocal->format('H:i:s'),
+                        'is_available' => true,
                     ];
                 }),
             ],

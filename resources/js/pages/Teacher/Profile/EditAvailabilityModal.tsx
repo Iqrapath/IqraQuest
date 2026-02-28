@@ -6,13 +6,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { Combobox } from '@/components/ui/combobox';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Icon } from '@iconify/react';
@@ -31,6 +25,11 @@ interface TimeSlot {
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const MAX_SLOTS_PER_DAY = 5;
+
+const ALL_TIMEZONES = Intl.supportedValuesOf('timeZone').map(tz => ({
+    value: tz,
+    label: tz.replace(/_/g, ' ')
+}));
 
 // Calculate duration in minutes between start and end time
 const getSlotDuration = (start: string, end: string): number => {
@@ -234,20 +233,18 @@ export default function EditAvailabilityModal({ open, onOpenChange, teacher }: P
                                     <Icon icon="mdi:earth" className="text-[#338078]" />
                                     Time Zone
                                 </label>
-                                <Select
+                                <Combobox
+                                    options={ALL_TIMEZONES}
                                     value={data.timezone}
-                                    onValueChange={(val) => setData('timezone', val)}
-                                >
-                                    <SelectTrigger className="w-full h-[54px] rounded-xl border border-[#caced7] bg-white text-sm font-['Poppins'] focus:ring-2 focus:ring-[#338078]/20">
-                                        <SelectValue placeholder="Select timezone..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Africa/Lagos">GMT+1 (Nigeria)</SelectItem>
-                                        <SelectItem value="UTC">UTC</SelectItem>
-                                        <SelectItem value="America/New_York">EST (New York)</SelectItem>
-                                        <SelectItem value="Europe/London">GMT (London)</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                    onChange={(val) => setData('timezone', val)}
+                                    placeholder="Search timezone..."
+                                    searchPlaceholder="Search cities..."
+                                    emptyText="No timezone found."
+                                    className="w-full h-[54px] rounded-xl border border-[#caced7] bg-white text-sm font-['Poppins'] focus:ring-2 focus:ring-[#338078]/20"
+                                />
+                                <p className="text-[12px] text-[#6B7280] font-['Nunito'] mt-1 leading-tight">
+                                    <span className="font-bold text-[#f59e0b]">Note:</span> Changing your timezone will automatically shift your recurring availability slots to match your new local time.
+                                </p>
                             </div>
 
                             <div className="flex flex-col gap-3">

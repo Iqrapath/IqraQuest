@@ -18,11 +18,11 @@ class BookingService
     public function createBooking(User $student, Teacher $teacher, array $data, bool $processPayment = true)
     {
         return DB::transaction(function () use ($student, $teacher, $data, $processPayment) {
-            // Parse in UTC explicitly — availability times are timezone-naive and the app
-            // timezone is overridden to Africa/Lagos by AppServiceProvider, which would
-            // cause a 1-hour shift if we let Carbon use the default timezone.
-            $startTime = Carbon::parse($data['start_time'], 'UTC');
-            $endTime = Carbon::parse($data['end_time'], 'UTC');
+            // Parse the incoming timezone-naive string assuming it was generated in the 
+            // Student's local browser timezone, then convert it definitively to UTC for storage.
+            $studentTimezone = $student->timezone ?? config('app.timezone');
+            $startTime = Carbon::parse($data['start_time'], $studentTimezone)->setTimezone('UTC');
+            $endTime = Carbon::parse($data['end_time'], $studentTimezone)->setTimezone('UTC');
 
             // 0. Smart Reuse/Deduplicate: Check if THIS user already has an active booking for EXACTLY this slot
             // We ONLY reuse/update if the existing booking is still PENDING. 

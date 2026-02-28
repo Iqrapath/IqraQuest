@@ -37,14 +37,18 @@ class BookingController extends Controller
 
         $requests = Booking::where('teacher_id', $teacher->id)
             ->whereIn('status', ['awaiting_approval', 'rescheduling'])
-            ->with(['student', 'subject', 'rescheduleRequests' => function($query) {
-                $query->where('status', 'pending')->latest();
-            }])
+            ->with([
+                'student',
+                'subject',
+                'rescheduleRequests' => function ($query) {
+                    $query->where('status', 'pending')->latest();
+                }
+            ])
             ->orderBy('start_time', 'asc')
             ->get()
             ->map(function ($booking) {
                 $reschedule = $booking->status === 'rescheduling' ? $booking->rescheduleRequests->first() : null;
-                
+
                 return [
                     'id' => $booking->id,
                     'status' => $booking->status,
@@ -61,16 +65,16 @@ class BookingController extends Controller
                     'end_time' => $booking->end_time,
                     'total_price' => $booking->total_price,
                     'currency' => $booking->currency,
-                    'days_requested' => $booking->start_time->format('l, M j'),
-                    'time_range' => $booking->start_time->format('h:i A') . ' - ' . $booking->end_time->format('h:i A'),
+                    'days_requested' => $booking->start_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('l, M j'),
+                    'time_range' => $booking->start_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A') . ' - ' . $booking->end_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A'),
                     // Reschedule specific data
                     'is_reschedule' => $booking->status === 'rescheduling',
                     'reschedule_id' => $reschedule?->id,
                     'new_start_time' => $reschedule?->new_start_time,
                     'new_end_time' => $reschedule?->new_end_time,
                     'reschedule_reason' => $reschedule?->reason,
-                    'new_days_requested' => $reschedule?->new_start_time?->format('l, M j'),
-                    'new_time_range' => $reschedule ? ($reschedule->new_start_time->format('h:i A') . ' - ' . $reschedule->new_end_time->format('h:i A')) : null,
+                    'new_days_requested' => $reschedule?->new_start_time?->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('l, M j'),
+                    'new_time_range' => $reschedule ? ($reschedule->new_start_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A') . ' - ' . $reschedule->new_end_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A')) : null,
                 ];
             });
 
@@ -345,7 +349,7 @@ class BookingController extends Controller
 
             // Notify student
             // Use existing or new notification
-             $booking->student->notify(new \App\Notifications\BookingRejectedNotification($booking));
+            $booking->student->notify(new \App\Notifications\BookingRejectedNotification($booking));
         });
 
         return back()->with('success', 'Booking cancelled successfully.');

@@ -285,7 +285,7 @@ export default function GeneralSettingsTab({ settings, localization, legalSettin
                         </Select>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    {/* <div className="flex items-center justify-between">
                         <label className="text-sm font-bold text-[#101928]">{__("Time Zone")}</label>
                         <Combobox
                             options={timezones}
@@ -294,7 +294,7 @@ export default function GeneralSettingsTab({ settings, localization, legalSettin
                             placeholder={__("Select Timezone")}
                             className="w-[280px] h-[44px] bg-white border-gray-200 rounded-[8px]"
                         />
-                    </div>
+                    </div> */}
 
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-[#101928]">{__("Date Format")}</label>

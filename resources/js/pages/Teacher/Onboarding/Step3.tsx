@@ -42,7 +42,7 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
     }
 
     const { data, setData, post, processing, errors } = useForm({
-        timezone: teacher.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timezone: (teacher.timezone && teacher.timezone !== 'UTC') ? teacher.timezone : (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'),
         teaching_mode: initialMode,
         teaching_types: teacher.teaching_types || [],
         availability: initialAvailability,
@@ -266,7 +266,7 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-8 mb-10">
                                 {/* Timezone */}
-                                <div>
+                                {/* <div>
                                     <label className="block text-[#170F49] text-[16px] font-medium mb-2" style={{ fontFamily: 'Nunito' }}>
                                         Set your Time Zone
                                     </label>
@@ -289,7 +289,7 @@ export default function Step3({ teacher, timezones = Intl.supportedValuesOf('tim
                                         </SelectContent>
                                     </Select>
                                     {errors.timezone && <p className="mt-2 text-sm text-red-600">{errors.timezone}</p>}
-                                </div>
+                                </div> */}
 
                                 {/* Teaching Mode */}
                                 <div>

@@ -266,8 +266,12 @@ class BookingStatusService
         }
 
         // Get global date format and map to PHP format
-        $globalFormat = \App\Models\SystemSetting::get('date_format', 'DD/MM/YYYY');
-        $phpFormat = str_replace(['DD', 'YYYY'], ['d', 'Y'], $globalFormat);
+        $globalFormat = \App\Models\SystemSetting::get('date_format', 'DD/MMM/YYYY');
+        $phpFormat = str_replace(
+            ['DD', 'MMMM', 'MMM', 'MM', 'YYYY', 'YY'],
+            ['d', 'F', 'M', 'm', 'Y', 'y'],
+            $globalFormat
+        );
 
         return [
             'id' => $booking->id,

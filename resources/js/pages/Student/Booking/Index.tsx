@@ -175,8 +175,13 @@ export default function BookingIndex({ teacher, booked_slots = [], rebook_data }
         for (const daySchedule of daySchedules) {
             if (!daySchedule.start_time || !daySchedule.end_time) continue;
 
-            const startTime = new Date(`2000-01-01 ${daySchedule.start_time}`);
-            let endTime = new Date(`2000-01-01 ${daySchedule.end_time}`);
+            const [sH, sM] = daySchedule.start_time.split(':').map(Number);
+            const startTime = new Date(date);
+            startTime.setHours(sH, sM, 0, 0);
+
+            const [eH, eM] = daySchedule.end_time.split(':').map(Number);
+            let endTime = new Date(date);
+            endTime.setHours(eH, eM, 0, 0);
 
             // Handle overnight wrap (e.g. 23:00 -> 00:00)
             if (endTime <= startTime) {

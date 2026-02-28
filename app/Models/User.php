@@ -251,7 +251,7 @@ class User extends Authenticatable implements MustVerifyEmail
             $otpService = app(\App\Services\OtpVerificationService::class);
             $otpCode = $otpService->generateOtp($this);
             $expiryMinutes = config('auth.verification.otp_expiry_minutes', 10);
-            
+
             $this->notify(new \App\Notifications\EmailVerificationOtpNotification($otpCode, $expiryMinutes));
         } else {
             $this->notify(new \Illuminate\Auth\Notifications\VerifyEmail);
@@ -274,11 +274,28 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get the user's specific timezone preference based on their active profile
+     */
+    public function getTimezoneAttribute(): ?string
+    {
+        if ($this->isTeacher()) {
+            return $this->teacher?->timezone;
+        } elseif ($this->isStudent()) {
+            return $this->student?->timezone;
+        } elseif ($this->isGuardian()) {
+            return $this->guardian?->timezone;
+        }
+
+        return null;
+    }
+
+    /**
      * The accessors to append to the model's array form.
      *
      * @var array
      */
     protected $appends = [
         'avatar_url',
+        'timezone',
     ];
 }
