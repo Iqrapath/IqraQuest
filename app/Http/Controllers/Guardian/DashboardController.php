@@ -29,26 +29,30 @@ class DashboardController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $guardian = $user->guardian()->first();
-        
+
         // Fetch Stats for the Guardian (direct bookings)
         $stats = $this->bookingStatusService->getStatusCounts($user);
 
         // Fetch Upcoming Classes (limit to 2 for the dashboard feed)
         $upcomingClasses = $this->bookingStatusService->getBookings(
-            $user, 
-            BookingStatusService::STATUS_UPCOMING, 
-            2, 
+            $user,
+            BookingStatusService::STATUS_UPCOMING,
+            2,
             false
         )->map(fn($booking) => $this->bookingStatusService->formatBookingForResponse($booking, $user));
 
         // Fetch Top Rated Teachers (top 5 by rating)
         $topTeachers = Teacher::with(['user', 'subjects'])
-            ->withCount(['reviews as approved_reviews_count' => function ($query) {
-                $query->where('is_approved', true);
-            }])
-            ->withAvg(['reviews as average_rating' => function ($query) {
-                $query->where('is_approved', true);
-            }], 'rating')
+            ->withCount([
+                'reviews as approved_reviews_count' => function ($query) {
+                    $query->where('is_approved', true);
+                }
+            ])
+            ->withAvg([
+                'reviews as average_rating' => function ($query) {
+                    $query->where('is_approved', true);
+                }
+            ], 'rating')
             ->where('status', 'approved')
             ->where('holiday_mode', false)
             ->orderByDesc('average_rating')
@@ -132,7 +136,7 @@ class DashboardController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $guardian = $user->guardian()->first();
-        
+
         $children = $guardian ? $guardian->students()
             ->with(['user', 'subjects'])
             ->get()
@@ -160,7 +164,7 @@ class DashboardController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        
+
         // Ensure this student belongs to this guardian
         $guardian = $user->guardian()->first();
         if (!$guardian || !$guardian->students()->where('students.id', $student->id)->exists()) {
