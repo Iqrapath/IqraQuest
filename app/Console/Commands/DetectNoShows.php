@@ -95,7 +95,7 @@ class DetectNoShows extends Command
     protected function processNoShows(): void
     {
         // Find sessions past grace period that haven't been processed
-        $graceWindow = now()->subMinutes(self::GRACE_PERIOD_MINUTES);
+        $graceWindow = now()->setTimezone('UTC')->subMinutes(self::GRACE_PERIOD_MINUTES);
 
         $bookings = Booking::where('status', 'confirmed')
             ->where('start_time', '<=', $graceWindow)

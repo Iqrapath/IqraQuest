@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
+use App\Models\ClassroomAttendance;
 
 class Booking extends Model
 {
@@ -262,7 +263,17 @@ class Booking extends Model
      */
     public function getCompletionPercentage(): float
     {
-        if (!$this->actual_duration_minutes) {
+        // First check teacher's actual time in the classroom
+        $teacherSeconds = ClassroomAttendance::where('booking_id', $this->id)
+            ->where('role', 'teacher')
+            ->sum('duration_seconds');
+
+        $teacherMinutes = floor($teacherSeconds / 60);
+
+        // Fallback to basic actual_duration_minutes if no specific classroom records exist
+        $durationToUse = $teacherMinutes > 0 ? $teacherMinutes : ($this->actual_duration_minutes ?? 0);
+
+        if (!$durationToUse) {
             return 0;
         }
 
@@ -271,7 +282,7 @@ class Booking extends Model
             return 0;
         }
 
-        return min(100, ($this->actual_duration_minutes / $expected) * 100);
+        return min(100, ($durationToUse / $expected) * 100);
     }
 
     /**
@@ -312,6 +323,15 @@ class Booking extends Model
 
         if ($this->session_started_at) {
             $updates['actual_duration_minutes'] = $this->session_started_at->diffInMinutes(now());
+        }
+
+        // Double check open attendance records and close them if they haven't been closed properly
+        $openAttendances = ClassroomAttendance::where('booking_id', $this->id)
+            ->whereNull('left_at')
+            ->get();
+
+        foreach ($openAttendances as $attendance) {
+            $attendance->recordLeave();
         }
 
         $this->update($updates);

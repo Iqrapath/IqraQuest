@@ -31,6 +31,10 @@ class PreventSqlInjection
         'terms_conditions',
         'privacy_policy',
         'answer',
+        'notes',
+        'comment',
+        'description',
+        'bio',
     ];
 
     /**

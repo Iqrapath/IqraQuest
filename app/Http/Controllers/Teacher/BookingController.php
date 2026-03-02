@@ -68,10 +68,8 @@ class BookingController extends Controller
                         'description' => 'We will focus on basic Tajweed rules.',
                     ],
                     'notes' => $booking->notes,
-                    'price' => [
-                        'amount' => $booking->total_price,
-                        'currency' => $booking->currency,
-                    ],
+                    'total_price' => $booking->total_price,
+                    'currency' => $booking->currency,
                     'start_time' => $booking->start_time,
                     'end_time' => $booking->end_time,
                     'days_requested' => $booking->start_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('l, M j'),

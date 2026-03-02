@@ -102,11 +102,11 @@ class BookingController extends Controller
         $booking->load(['teacher.user', 'teacher.subjects', 'teacher.availability', 'student', 'child.user', 'subject']);
 
         // Get teacher's average rating
-        $teacherRating = \App\Models\Review::where('teacher_id', $booking->teacher_id)
+        $teacherRating = Review::where('teacher_id', $booking->teacher_id)
             ->where('is_approved', true)
             ->avg('rating') ?? 0;
 
-        $totalReviews = \App\Models\Review::where('teacher_id', $booking->teacher_id)
+        $totalReviews = Review::where('teacher_id', $booking->teacher_id)
             ->where('is_approved', true)
             ->count();
 
@@ -321,7 +321,7 @@ class BookingController extends Controller
         if (!$user)
             abort(401);
 
-        $teacher = \App\Models\Teacher::findOrFail($request->teacher_id);
+        $teacher = Teacher::findOrFail($request->teacher_id);
 
         try {
             $bookings = $bookingService->createBatchBookings(
