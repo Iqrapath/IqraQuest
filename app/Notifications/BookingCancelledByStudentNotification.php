@@ -8,6 +8,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 
 class BookingCancelledByStudentNotification extends Notification implements ShouldQueue
 {
@@ -84,5 +85,15 @@ class BookingCancelledByStudentNotification extends Notification implements Shou
             'compensation_amount' => $this->refundInfo['fee'],
             'message' => "{$this->booking->getStudentDisplayName()} cancelled their {$this->booking->subject->name} session on {$this->booking->start_time->format('M j')}.",
         ];
+    }
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage([
+            'id' => $this->id,
+            'type' => 'booking_cancelled_by_student',
+            'title' => 'Session Cancelled',
+            'message' => "{$this->booking->getStudentDisplayName()} cancelled their {$this->booking->subject->name} session.",
+            'booking_id' => $this->booking->id,
+        ]);
     }
 }

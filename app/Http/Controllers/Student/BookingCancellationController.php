@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Notifications\BookingCancelledByStudentNotification;
+use App\Notifications\BookingCancelledByGuardianNotification;
+use App\Notifications\SessionCancelledForStudentNotification;
 use App\Services\EscrowService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -229,9 +231,22 @@ class BookingCancellationController extends Controller
             }
         }
 
-        // Notify teacher
+        // Notify relevant parties
         try {
-            $booking->teacher->user->notify(new BookingCancelledByStudentNotification($booking, $refundInfo));
+            $user = Auth::user();
+            $isGuardian = $user->hasRole('guardian');
+
+            // 1. Notify Teacher
+            if ($isGuardian) {
+                $booking->teacher->user->notify(new BookingCancelledByGuardianNotification($booking));
+            } else {
+                $booking->teacher->user->notify(new BookingCancelledByStudentNotification($booking, $refundInfo));
+            }
+
+            // 2. Notify Student (Child) if booked by Guardian
+            if ($isGuardian && $booking->child && $booking->child->user) {
+                $booking->child->user->notify(new SessionCancelledForStudentNotification($booking, 'Guardian'));
+            }
         } catch (\Exception $e) {
             \Log::error("Failed to send cancellation notification: " . $e->getMessage());
         }

@@ -162,6 +162,7 @@ class BookingController extends Controller
                 'currency' => $booking->currency,
                 'can_cancel' => $booking->canBeCancelledByStudent(),
                 'can_reschedule' => $booking->canBeRescheduled(),
+                'can_dispute' => $booking->canBeDisputed(),
                 'meeting_link' => $booking->meeting_link,
                 'meeting_platform' => 'iqraclass', // Default, can be dynamic later
                 'notes' => null,

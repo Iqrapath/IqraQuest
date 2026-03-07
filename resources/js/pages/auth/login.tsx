@@ -12,7 +12,7 @@ import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from 'sonner'; 
 
 interface LoginProps {
     status?: string;
@@ -43,7 +43,7 @@ export default function Login({
 
     return (
         <AuthLayout
-            title="Login your Account"
+            title="Login Into Your Account"
             description="Welcome back! Enter your credentials to access your account."
         >
             <Head title="Login" />
@@ -51,7 +51,7 @@ export default function Login({
             {/* Title and Description */}
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                    Login your Account
+                    Login Into Your Account
                 </h1>
                 <p className="text-sm text-gray-600">
                     Welcome back! Enter your credentials to access your account.
@@ -153,7 +153,7 @@ export default function Login({
                                 data-test="login-button"
                             >
                                 {processing && <Spinner />}
-                                Login your Account
+                                Login Into Your Account
                             </Button>
                         </div>
 

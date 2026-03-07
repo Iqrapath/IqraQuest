@@ -11,6 +11,7 @@ import Pusher from 'pusher-js';
 import { AppProvider } from './components/AppProvider';
 import { LogoutDialogProvider } from './contexts/LogoutDialogContext';
 import axios from 'axios';
+import * as Sentry from "@sentry/react";
 
 // Get CSRF token from meta tag
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -61,6 +62,23 @@ const echoInstance = new Echo(echoConfig);
 // console.log('✅ Echo configured and exposed globally:', echoInstance);
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+// Initialize Sentry
+if (import.meta.env.VITE_SENTRY_DSN) {
+    Sentry.init({
+        dsn: import.meta.env.VITE_SENTRY_DSN,
+        integrations: [
+            Sentry.browserTracingIntegration(),
+            Sentry.replayIntegration(),
+        ],
+        // Performance Monitoring
+        tracesSampleRate: 1.0,
+        // Session Replay
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1.0,
+        sendDefaultPii: true,
+    });
+}
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),

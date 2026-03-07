@@ -128,6 +128,10 @@ class BookingStatusService
             return 'completed';
         }
 
+        if ($booking->status === 'awaiting_judgment') {
+            return 'in_review';
+        }
+
         if ($booking->status === 'awaiting_approval') {
             return 'awaiting_approval';
         }
@@ -211,14 +215,24 @@ class BookingStatusService
     protected function applyOngoingConditions(Builder $query): Builder
     {
         $now = now();
-        return $query->where('status', 'confirmed')
+        return $query->where(function ($q) {
+            $q->where('status', 'ongoing')
+                ->orWhere('status', 'confirmed');
+        })
             ->where('start_time', '<=', $now)
             ->where('end_time', '>=', $now);
     }
 
     protected function applyCompletedConditions(Builder $query): Builder
     {
-        return $query->where('status', 'completed');
+        return $query->where(function ($q) {
+            $q->where('status', 'completed')
+                ->orWhere('status', 'awaiting_judgment')
+                ->orWhere(function ($sq) {
+                    $sq->whereIn('status', ['confirmed', 'ongoing'])
+                        ->where('end_time', '<', now());
+                });
+        });
     }
 
     /**
@@ -312,14 +326,64 @@ class BookingStatusService
             'currency' => $booking->currency,
             'can_cancel' => $booking->canBeCancelledByStudent(),
             'can_reschedule' => $booking->canBeRescheduled(),
+            'can_dispute' => $booking->canBeDisputed(),
             'can_join' => $this->canJoinSession($booking),
             'can_rate' => !$isTeacher && $this->isCompleted($booking) && !$this->hasRated($booking, $viewer),
             'has_review' => $existingReview !== null,
             'review' => $existingReview,
             'meeting_link' => $booking->meeting_link,
             'parent_booking_id' => $booking->parent_booking_id,
+            'judgment_reason' => $booking->judgment_reason,
+            'payment_info' => $this->getPaymentInfoForResponse($booking, $isTeacher),
             'created_at' => $booking->created_at->toIso8601String(),
         ];
+    }
+
+    /**
+     * Get detailed payment info for teacher transparency
+     */
+    protected function getPaymentInfoForResponse(Booking $booking, bool $isTeacher): array
+    {
+        $status = $booking->payment_status;
+        $bookingStatus = $booking->status;
+
+        $info = [
+            'status' => $status,
+            'label' => ucfirst($status),
+            'description' => '',
+            'color' => 'gray',
+        ];
+
+        if (!$isTeacher) {
+            return $info; // Basic info for students
+        }
+
+        // Teacher-specific descriptive labels
+        if ($status === 'held') {
+            if ($bookingStatus === 'awaiting_judgment') {
+                $info['label'] = 'In Review';
+                $info['description'] = 'Session just ended. Our system is verifying attendance...';
+                $info['color'] = 'amber';
+            } else {
+                $info['label'] = 'Secured in Escrow';
+                $info['description'] = 'Payment is locked and will be released after the session.';
+                $info['color'] = 'teal';
+            }
+        } elseif ($status === 'released') {
+            $info['label'] = 'Paid';
+            $info['description'] = 'Funds have been credited to your wallet.';
+            $info['color'] = 'green';
+        } elseif ($status === 'refunded') {
+            $info['label'] = 'Refunded';
+            $info['description'] = 'Payment was returned to the student.';
+            $info['color'] = 'red';
+        } elseif ($status === 'disputed') {
+            $info['label'] = 'Disputed';
+            $info['description'] = 'Payment is on hold due to an open dispute.';
+            $info['color'] = 'orange';
+        }
+
+        return $info;
     }
 
     /**
@@ -327,7 +391,7 @@ class BookingStatusService
      */
     public function canJoinSession(Booking $booking): bool
     {
-        if ($booking->status !== 'confirmed') {
+        if (!in_array($booking->status, ['confirmed', 'ongoing'])) {
             return false;
         }
 

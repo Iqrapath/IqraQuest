@@ -76,7 +76,7 @@ class EscrowService
         return DB::transaction(function () use ($booking, $customAmount) {
             $teacher = $booking->teacher;
             $totalAmount = $booking->total_price;
-            
+
             // Calculate amounts
             $releaseAmount = $customAmount ?? $totalAmount;
             $commissionRate = $booking->commission_rate ?? $this->getCommissionRate();
@@ -142,7 +142,7 @@ class EscrowService
             // Credit student wallet
             $this->walletService->creditWallet(
                 $student->id,
-         $refundAmount,
+                $refundAmount,
                 "Refund for booking #{$booking->id}: {$reason}",
                 [
                     'booking_id' => $booking->id,
@@ -241,6 +241,15 @@ class EscrowService
      */
     public function handleSessionCompletion(Booking $booking): void
     {
+        // Idempotency guard — only process if funds are still held
+        if ($booking->payment_status !== 'held') {
+            Log::warning("Escrow: Skipping handleSessionCompletion for booking #{$booking->id} — payment_status is '{$booking->payment_status}'");
+            return;
+        }
+
+        // ── Option B: Sync flags from actual attendance records before deciding ──
+        $this->syncAttendanceFlagsFromRecords($booking);
+
         // Update booking status
         $booking->update(['status' => 'completed']);
 
@@ -272,6 +281,35 @@ class EscrowService
                     "Session ended early ({$booking->actual_duration_minutes} minutes)"
                 );
             }
+        }
+    }
+
+    /**
+     * Sync attendance flags from actual ClassroomAttendance records.
+     * Safety net: if someone joined (has attendance records) but their flag wasn't set, fix it.
+     */
+    protected function syncAttendanceFlagsFromRecords(Booking $booking): void
+    {
+        $hasTeacher = \App\Models\ClassroomAttendance::where('booking_id', $booking->id)
+            ->where('role', 'teacher')
+            ->exists();
+
+        $hasStudent = \App\Models\ClassroomAttendance::where('booking_id', $booking->id)
+            ->where('role', 'student')
+            ->exists();
+
+        $updates = [];
+        if ($hasTeacher && !$booking->teacher_attended) {
+            $updates['teacher_attended'] = true;
+        }
+        if ($hasStudent && !$booking->student_attended) {
+            $updates['student_attended'] = true;
+        }
+
+        if (!empty($updates)) {
+            $booking->update($updates);
+            $booking->refresh();
+            Log::info("Escrow: Auto-fixed attendance flags for booking #{$booking->id}", $updates);
         }
     }
 

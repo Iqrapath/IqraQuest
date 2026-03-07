@@ -226,7 +226,11 @@ export default function Schedule({ tab, sessionTab, availability, holidayMode, s
     };
 
     const handleJoinSession = (session: Session) => {
-        if (session.meeting_link) window.open(session.meeting_link, '_blank');
+        if (session.meeting_link) {
+            window.open(session.meeting_link, '_blank');
+        } else {
+            router.visit(`/classroom/${session.id}`);
+        }
     };
 
     return (

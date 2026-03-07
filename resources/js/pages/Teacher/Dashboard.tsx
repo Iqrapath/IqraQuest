@@ -34,7 +34,7 @@ export default function Dashboard({ stats, sessions, serverDate }: DashboardProp
         },
         {
             title: 'Pending Request',
-            value: stats.pending_requests > 0 ? stats.pending_requests : '-',
+            value: stats.pending_requests,
             icon: <Icon icon="material-symbols-light:pending-outline" className="w-6 h-6" />,
             gradient: 'from-[#fffbeb] to-transparent', // Light orange/yellow
         },

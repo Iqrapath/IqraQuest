@@ -3,3 +3,4 @@ export { BookingCard, StatusBadge, type BookingData } from './BookingCard';
 export { JoinClassModal } from './JoinClassModal';
 export { SessionSummaryModal } from './SessionSummaryModal';
 export { CancelBookingModal } from './CancelBookingModal';
+export { RaiseDisputeModal } from './RaiseDisputeModal';

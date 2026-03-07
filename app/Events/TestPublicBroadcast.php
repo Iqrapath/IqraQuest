@@ -11,11 +11,7 @@ use Illuminate\Queue\SerializesModels;
 class TestPublicBroadcast implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-    
-    /**
-     * The name of the queue connection to use when broadcasting the event.
-     */
-    public $connection = 'sync';
+
 
     public string $title;
     public string $message;

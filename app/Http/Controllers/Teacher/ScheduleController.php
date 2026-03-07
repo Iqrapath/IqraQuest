@@ -108,7 +108,7 @@ class ScheduleController extends Controller
      */
     protected function canJoinSession(Booking $booking): bool
     {
-        if (!in_array($booking->status, ['confirmed', 'rescheduling', 'ongoing'])) {
+        if (!in_array($booking->status, ['confirmed', 'ongoing'])) {
             return false;
         }
 

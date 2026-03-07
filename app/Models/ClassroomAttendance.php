@@ -44,7 +44,7 @@ class ClassroomAttendance extends Model
      */
     public function recordLeave(): void
     {
-        $this->left_at = now();
+        $this->left_at = now()->setTimezone('UTC');
         $this->duration_seconds = $this->joined_at->diffInSeconds($this->left_at);
         $this->save();
     }

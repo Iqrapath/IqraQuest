@@ -52,11 +52,11 @@ Schedule::command('sessions:detect-no-shows')
     ->everyFiveMinutes()
     ->appendOutputTo(storage_path('logs/no-show-detection.log'));
 
-// Booking Status: Mark confirmed bookings as completed when session ends
-// Runs every minute for accurate status updates
-Schedule::command('bookings:complete-ended')
-    ->everyMinute()
-    ->appendOutputTo(storage_path('logs/booking-completions.log'));
+// Session Arbiter (Supreme Court): The ONLY process that makes financial decisions
+// Transitions expired sessions to awaiting_judgment, then rules after 15min cooling
+Schedule::command('sessions:arbiter')
+    ->everyFiveMinutes()
+    ->appendOutputTo(storage_path('logs/session-arbiter.log'));
 
 // Admin Notifications: Send scheduled broadcast notifications
 // Runs every minute to send notifications at their scheduled time

@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { CalendarExport } from '@/components/ui/calendar-export';
 import { useFormatDate } from '@/lib/format';
+import { useCountdown } from '@/hooks/use-countdown';
 
 export interface BookingReview {
     id: number;
@@ -33,7 +34,15 @@ export interface BookingData {
     total_price: number;
     currency: string;
     can_join: boolean;
+    can_dispute: boolean;
     meeting_link: string | null;
+    judgment_reason?: string | null;
+    payment_info?: {
+        status: string;
+        label: string;
+        description: string;
+        color: 'teal' | 'amber' | 'green' | 'red' | 'orange' | 'gray';
+    };
 }
 
 type BookingStatus = 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
@@ -52,11 +61,13 @@ interface BookingCardProps {
     onMessageTeacher?: (booking: BookingData) => void;
     onJoinClass?: (booking: BookingData) => void;
     onRebook?: (booking: BookingData) => void;
+    onRaiseDispute?: (booking: BookingData) => void;
 }
 
 export function BookingCard(props: BookingCardProps) {
     const { booking, status, userRole = 'student', showBorder = true } = props;
-    const { formatDate, formatDateTime } = useFormatDate();
+    const { formatDate } = useFormatDate();
+    const countdown = useCountdown(booking.start_time, booking.duration_minutes);
 
     const isTeacher = userRole === 'teacher';
     const isGuardian = userRole === 'guardian';
@@ -89,10 +100,30 @@ export function BookingCard(props: BookingCardProps) {
                 <div className="flex items-center gap-[clamp(0.5rem,1vw,0.75rem)] flex-wrap">
                     <DateTimeBadge date={booking.formatted_date || formatDate(booking.start_time)} time={displayTime} />
                     <StatusBadge status={booking.display_status} />
+                    {isTeacher && booking.payment_info && (
+                        <PaymentStatusBadge info={booking.payment_info} />
+                    )}
+
+                    {/* Real-time Countdown for Upcoming */}
+                    {status === 'upcoming' && countdown.isSoon && !countdown.isLive && !countdown.isExpired && (
+                        <div className="flex items-center gap-1.5 px-[clamp(0.5rem,1vw,0.75rem)] py-[clamp(0.125rem,0.25vw,0.25rem)] rounded-[clamp(0.25rem,0.5vw,0.375rem)] bg-[#338078]/10 text-[#338078] font-['Nunito'] font-bold text-[clamp(0.625rem,1vw,0.75rem)] animate-pulse">
+                            <Icon icon="solar:alarm-bold-duotone" className="w-4 h-4" />
+                            <span>Starts in: {countdown.formatted}</span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Actions Row */}
                 <Actions {...props} />
+
+                {isTeacher && booking.judgment_reason && (
+                    <div className="mt-3 p-3 bg-gray-50 rounded-xl border border-dashed border-gray-200 flex items-start gap-2 max-w-2xl">
+                        <Icon icon="solar:shield-check-bold-duotone" className="w-4 h-4 text-[#338078] mt-0.5 flex-shrink-0" />
+                        <p className="text-[clamp(0.7rem,1.1vw,0.8rem)] text-[#4b5563] leading-relaxed italic">
+                            <span className="font-bold text-[#374151] not-italic">Arbiter Ruling:</span> {booking.judgment_reason}
+                        </p>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -146,10 +177,39 @@ export function StatusBadge({ status }: { status: string }) {
     );
 }
 
+export function PaymentStatusBadge({ info }: { info: NonNullable<BookingData['payment_info']> }) {
+    const colorMap = {
+        teal: 'bg-[#e4f7f4] text-[#338078]',
+        amber: 'bg-[#fff9e9] text-[#f5ad7e]',
+        green: 'bg-[#ecfdf5] text-[#059669]',
+        red: 'bg-[#fef2f2] text-[#dc2626]',
+        orange: 'bg-[#fff7ed] text-[#ea580c]',
+        gray: 'bg-gray-100 text-gray-600',
+    };
+
+    return (
+        <div className="group relative flex items-center">
+            <span className={cn(
+                'px-[clamp(0.5rem,1vw,0.75rem)] py-[clamp(0.125rem,0.25vw,0.25rem)] rounded-[clamp(0.25rem,0.5vw,0.375rem)] font-["Nunito"] font-medium text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-1 cursor-help',
+                colorMap[info.color] || colorMap.gray
+            )}>
+                <Icon icon="solar:wallet-bold-duotone" className="w-3 h-3" />
+                {info.label}
+            </span>
+            {info.description && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-gray-900 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 text-center shadow-xl">
+                    {info.description}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                </div>
+            )}
+        </div>
+    );
+}
+
 
 function Actions(props: BookingCardProps) {
     const { booking, status, userRole = 'student' } = props;
-    const { onViewDetails, onReschedule, onCancel, onViewSummary, onRateTeacher, onMessageTeacher, onJoinClass, onRebook } = props;
+    const { onViewDetails, onReschedule, onCancel, onViewSummary, onRateTeacher, onMessageTeacher, onJoinClass, onRebook, onRaiseDispute } = props;
     const isTeacher = userRole === 'teacher';
 
     const handleCancel = () => {
@@ -274,6 +334,14 @@ function Actions(props: BookingCardProps) {
                                 className="font-['Nunito'] font-normal text-[clamp(0.75rem,1.25vw,0.875rem)] text-[#338078] hover:text-[#2a6b64] hover:underline cursor-pointer"
                             >
                                 Rate Teacher
+                            </button>
+                        )}
+                        {booking.can_dispute && (
+                            <button
+                                onClick={() => onRaiseDispute?.(booking)}
+                                className="font-['Nunito'] font-normal text-[clamp(0.75rem,1.25vw,0.875rem)] text-[#dc2626] hover:text-[#b91c1c] hover:underline cursor-pointer"
+                            >
+                                Raise Dispute
                             </button>
                         )}
                     </>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Services\WalletService;
+use App\Models\Booking;
 use App\Models\Transaction;
 use App\Models\PlatformEarning;
 use Illuminate\Http\Request;
@@ -33,8 +34,19 @@ class EarningsController extends Controller
         $pendingPayouts = $teacher->payouts()
             ->whereIn('status', ['pending', 'approved', 'processing'])
             ->sum('amount');
-        
+
         $availableBalance = max(0, $balance - $pendingPayouts);
+
+        // Calculate "Funds in Escrow" (held for live or recently ended sessions)
+        $escrowBalance = Booking::where('teacher_id', $teacher->id)
+            ->where('payment_status', 'held')
+            ->whereNotIn('status', ['pending', 'awaiting_approval']) // Only show for accepted/confirmed bookings
+            ->get()
+            ->sum(function ($booking) {
+                // Return total price minus estimated commission
+                $commission = $booking->calculatePlatformCommission();
+                return $booking->total_price - $commission;
+            });
 
         // Get earnings stats
         $totalEarnings = Transaction::where('user_id', $userId)
@@ -60,6 +72,7 @@ class EarningsController extends Controller
         return Inertia::render('Teacher/Earnings/Index', [
             'balance' => $balance,
             'availableBalance' => $availableBalance,
+            'escrowBalance' => (float) $escrowBalance,
             'pendingPayouts' => $pendingPayouts,
             'totalEarnings' => $totalEarnings,
             'thisMonthEarnings' => $thisMonthEarnings,
@@ -126,7 +139,7 @@ class EarningsController extends Controller
     protected function getEarningsChartData(int $userId): array
     {
         $data = [];
-        
+
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
             $monthEarnings = Transaction::where('user_id', $userId)
@@ -151,7 +164,7 @@ class EarningsController extends Controller
     public function transactions(Request $request)
     {
         $userId = auth()->id();
-        
+
         $filters = [
             'type' => $request->input('type'),
             'from_date' => $request->input('from_date'),
@@ -174,7 +187,7 @@ class EarningsController extends Controller
     {
         $userId = auth()->id();
         $month = $request->input('month', now()->format('Y-m'));
-        
+
         [$year, $monthNum] = explode('-', $month);
 
         // Get transactions for the month

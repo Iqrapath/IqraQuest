@@ -25,52 +25,57 @@ class PayoutService
      */
     public function requestPayout(int $teacherId, float $amount, int $paymentMethodId): Payout
     {
-        $teacher = Teacher::findOrFail($teacherId);
+        return DB::transaction(function () use ($teacherId, $amount, $paymentMethodId) {
+            // Lock the teacher record to prevent concurrent payout requests
+            $teacher = Teacher::where('id', $teacherId)->lockForUpdate()->findOrFail($teacherId);
 
-        // Check daily payout limit (24 hours since last request)
-        if ($teacher->last_payout_requested_at && 
-            $teacher->last_payout_requested_at->gt(now()->subDay())) {
-            $nextAvailable = $teacher->last_payout_requested_at->addDay();
-            throw new \Exception(
-                "You can only request one payout per day. Next available: " . 
-                $nextAvailable->diffForHumans() . " (" . $nextAvailable->format('M d, Y g:i A') . ")"
-            );
-        }
+            // Check daily payout limit (24 hours since last request)
+            if (
+                $teacher->last_payout_requested_at &&
+                $teacher->last_payout_requested_at->gt(now()->subDay())
+            ) {
+                $nextAvailable = $teacher->last_payout_requested_at->addDay();
+                throw new \Exception(
+                    "You can only request one payout per day. Next available: " .
+                    $nextAvailable->diffForHumans() . " (" . $nextAvailable->format('M d, Y g:i A') . ")"
+                );
+            }
 
-        $availableBalance = $this->calculateAvailableBalance($teacherId);
+            $availableBalance = $this->calculateAvailableBalance($teacherId);
 
-        if ($amount > $availableBalance) {
-            throw new \Exception('Insufficient available balance for payout');
-        }
+            if ($amount > $availableBalance) {
+                throw new \Exception('Insufficient available balance for payout');
+            }
 
-        $settings = PaymentSetting::first();
-        $minAmount = $settings->min_withdrawal_amount ?? 10000;
-        $verificationEnabled = $settings->bank_verification_enabled ?? true;
+            $settings = PaymentSetting::first();
+            $minAmount = $settings->min_withdrawal_amount ?? 10000;
+            $verificationEnabled = $settings->bank_verification_enabled ?? true;
 
-        if ($amount < $minAmount) {
-            throw new \Exception("Minimum payout amount is ₦" . number_format($minAmount, 2));
-        }
+            if ($amount < $minAmount) {
+                throw new \Exception("Minimum payout amount is ₦" . number_format($minAmount, 2));
+            }
 
-        $paymentMethod = $teacher->paymentMethods()->findOrFail($paymentMethodId);
+            $paymentMethod = $teacher->paymentMethods()->findOrFail($paymentMethodId);
 
-        if ($verificationEnabled && !$paymentMethod->is_verified) {
-            throw new \Exception('Payment method must be verified before requesting payout');
-        }
+            if ($verificationEnabled && !$paymentMethod->is_verified) {
+                throw new \Exception('Payment method must be verified before requesting payout');
+            }
 
-        $payout = Payout::create([
-            'teacher_id' => $teacherId,
-            'amount' => $amount,
-            'currency' => 'NGN',
-            'status' => 'pending',
-            'payment_method_id' => $paymentMethodId,
-            'gateway' => $paymentMethod->payment_type === 'paypal' ? 'paypal' : 'paystack',
-            'requested_at' => now(),
-        ]);
+            $payout = Payout::create([
+                'teacher_id' => $teacherId,
+                'amount' => $amount,
+                'currency' => 'NGN',
+                'status' => 'pending',
+                'payment_method_id' => $paymentMethodId,
+                'gateway' => $paymentMethod->payment_type === 'paypal' ? 'paypal' : 'paystack',
+                'requested_at' => now(),
+            ]);
 
-        // Update teacher's last payout request timestamp
-        $teacher->update(['last_payout_requested_at' => now()]);
+            // Update teacher's last payout request timestamp
+            $teacher->update(['last_payout_requested_at' => now()]);
 
-        return $payout;
+            return $payout;
+        });
     }
 
     /**
@@ -193,7 +198,7 @@ class PayoutService
 
         // Initiate transfer
         $reference = 'PAYOUT-' . $payout->id . '-' . time();
-        
+
         $transferResult = $this->paystackService->transferToBank(
             $paymentMethod->recipient_code,
             $payout->amount,
@@ -224,10 +229,10 @@ class PayoutService
     public function calculateAvailableBalance(int $teacherId): float
     {
         $teacher = Teacher::findOrFail($teacherId);
-        
+
         // Get wallet balance
         $walletBalance = $this->walletService->getBalance($teacher->user_id);
-        
+
         // Subtract pending payouts
         $pendingPayouts = Payout::where('teacher_id', $teacherId)
             ->whereIn('status', ['pending', 'approved', 'processing'])

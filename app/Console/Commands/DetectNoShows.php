@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Booking;
+use App\Models\ClassroomAttendance;
 use App\Notifications\NoShowWarningNotification;
 use App\Notifications\NoShowDetectedNotification;
 use App\Services\EscrowService;
@@ -65,6 +66,14 @@ class DetectNoShows extends Command
 
         foreach ($bookings as $booking) {
             try {
+                // ── Option B: Cross-check flags from actual attendance records ──
+                $this->syncAttendanceFlagsFromRecords($booking);
+
+                // Skip if both have actually attended (flags were just out of sync)
+                if ($booking->teacher_attended && $booking->student_attended) {
+                    continue;
+                }
+
                 $minutesLate = now()->diffInMinutes($booking->start_time);
 
                 // Warn student if they haven't joined
@@ -101,7 +110,7 @@ class DetectNoShows extends Command
             ->where('start_time', '<=', $graceWindow)
             ->where('payment_status', 'held')
             ->where(function ($query) {
-                // At least one party is a no-show
+                // At least one party is a no-show (based on flags)
                 $query->where('teacher_attended', false)
                     ->orWhere('student_attended', false);
             })
@@ -110,11 +119,50 @@ class DetectNoShows extends Command
 
         foreach ($bookings as $booking) {
             try {
+                // ── Option B: Cross-check against actual attendance records ──
+                $this->syncAttendanceFlagsFromRecords($booking);
+
+                // Re-check after syncing — if both actually attended, skip no-show
+                if ($booking->teacher_attended && $booking->student_attended) {
+                    $this->line("  ℹ️ Booking #{$booking->id} - Both attended (flags auto-corrected), skipping no-show");
+                    continue;
+                }
+
                 $this->processNoShow($booking);
             } catch (\Exception $e) {
                 Log::error("Failed to process no-show for booking #{$booking->id}: " . $e->getMessage());
                 $this->error("  ✗ Failed for Booking #{$booking->id}: " . $e->getMessage());
             }
+        }
+    }
+
+    /**
+     * Sync attendance flags from actual ClassroomAttendance records.
+     * If someone joined (has an attendance record) but their flag wasn't set, fix it.
+     */
+    protected function syncAttendanceFlagsFromRecords(Booking $booking): void
+    {
+        $hasTeacher = ClassroomAttendance::where('booking_id', $booking->id)
+            ->where('role', 'teacher')
+            ->exists();
+
+        $hasStudent = ClassroomAttendance::where('booking_id', $booking->id)
+            ->where('role', 'student')
+            ->exists();
+
+        $updates = [];
+        if ($hasTeacher && !$booking->teacher_attended) {
+            $updates['teacher_attended'] = true;
+        }
+        if ($hasStudent && !$booking->student_attended) {
+            $updates['student_attended'] = true;
+        }
+
+        if (!empty($updates)) {
+            $booking->update($updates);
+            $booking->refresh();
+            Log::info("DetectNoShows: Auto-fixed attendance flags for booking #{$booking->id}", $updates);
+            $this->line("  🔧 Auto-fixed attendance flags for Booking #{$booking->id}");
         }
     }
 
@@ -143,10 +191,10 @@ class DetectNoShows extends Command
      */
     protected function handleBothNoShow(Booking $booking): void
     {
-        $this->escrowService->refundFunds($booking, null, 'Session not attended by either party');
-
+        // Defer to the Arbiter — just flag the no-show type
         $booking->update([
-            'status' => 'cancelled',
+            'status' => 'awaiting_judgment',
+            'judgment_at' => now(),
             'cancellation_reason' => 'Both parties no-show',
         ]);
 
@@ -156,8 +204,8 @@ class DetectNoShows extends Command
             (new NoShowDetectedNotification($booking, 'both', false))->delay(now()->addSeconds(10))
         );
 
-        $this->info("  ✓ Both no-show for Booking #{$booking->id} - Full refund to student");
-        Log::info("No-show: Both parties for booking #{$booking->id}");
+        $this->info("  ✓ Both no-show for Booking #{$booking->id} — submitted to Arbiter");
+        Log::info("No-show: Both parties for booking #{$booking->id} — deferred to Arbiter");
     }
 
     /**
@@ -165,10 +213,10 @@ class DetectNoShows extends Command
      */
     protected function handleTeacherNoShow(Booking $booking): void
     {
-        $this->escrowService->refundFunds($booking, null, 'Teacher did not attend the session');
-
+        // Defer to the Arbiter — just flag the no-show type
         $booking->update([
-            'status' => 'cancelled',
+            'status' => 'awaiting_judgment',
+            'judgment_at' => now(),
             'cancellation_reason' => 'Teacher no-show',
         ]);
 
@@ -178,8 +226,8 @@ class DetectNoShows extends Command
             (new NoShowDetectedNotification($booking, 'teacher', false))->delay(now()->addSeconds(10))
         );
 
-        $this->info("  ✓ Teacher no-show for Booking #{$booking->id} - Full refund to student");
-        Log::info("No-show: Teacher for booking #{$booking->id}");
+        $this->info("  ✓ Teacher no-show for Booking #{$booking->id} — submitted to Arbiter");
+        Log::info("No-show: Teacher for booking #{$booking->id} — deferred to Arbiter");
     }
 
     /**
@@ -187,8 +235,12 @@ class DetectNoShows extends Command
      */
     protected function handleStudentNoShow(Booking $booking): void
     {
-        // Teacher gets 50% (configurable in EscrowService)
-        $this->escrowService->handleStudentNoShow($booking);
+        // Defer to the Arbiter — just flag the no-show type
+        $booking->update([
+            'status' => 'awaiting_judgment',
+            'judgment_at' => now(),
+            'cancellation_reason' => 'Student no-show',
+        ]);
 
         // Notify both parties
         $booking->student->notify(new NoShowDetectedNotification($booking, 'student', true));
@@ -196,7 +248,7 @@ class DetectNoShows extends Command
             (new NoShowDetectedNotification($booking, 'student', false))->delay(now()->addSeconds(10))
         );
 
-        $this->info("  ✓ Student no-show for Booking #{$booking->id} - 50% to teacher");
-        Log::info("No-show: Student for booking #{$booking->id}");
+        $this->info("  ✓ Student no-show for Booking #{$booking->id} — submitted to Arbiter");
+        Log::info("No-show: Student for booking #{$booking->id} — deferred to Arbiter");
     }
 }

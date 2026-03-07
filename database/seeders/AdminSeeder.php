@@ -14,15 +14,17 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create Admin User
-        User::create([
-            'name' => 'Official IqraQuest Admin',
-            'email' => 'Officialiqraquest@gmail.com',
-            'password' => Hash::make('Iqraquest2025'),
-            'role' => UserRole::ADMIN,
-            'status' => 'active',
-            'email_verified_at' => now(),
-        ]);
+        // Create or update Admin User
+        User::updateOrCreate(
+            ['email' => 'Officialiqraquest@gmail.com'],
+            [
+                'name' => 'Official IqraQuest Admin',
+                'password' => Hash::make('Iqraquest2025'),
+                'role' => UserRole::ADMIN,
+                'status' => 'active',
+                'email_verified_at' => now(),
+            ]
+        );
 
         $this->command->info('✅ Admin User created successfully!');
     }

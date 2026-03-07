@@ -13,7 +13,6 @@ class PayoutStatusUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $connection = 'sync';
 
     public int $userId;
     public int $payoutId;

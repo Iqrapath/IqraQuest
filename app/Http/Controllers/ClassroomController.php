@@ -26,51 +26,27 @@ class ClassroomController extends Controller
     {
         $user = Auth::user();
 
-        // 1. Policy Check: Is the user a participant?
-        $isTeacher = $booking->teacher_id === $user->id; // Assuming user->id maps to teacher via some relation or direct check
-        // Correct logic: teacher_id refers to Teacher model, but auth is User.
-        // We need to resolve User -> Teacher/Student identity.
-        // For MVP, if Auth ID matches booking->student_id (User) or booking->teacher->user_id?
-        // Let's assume standard IqraQuest relation:
-        // Student = User.
-        // Teacher = User (or User hasOne Teacher).
-        
-        // Let's verify relation.
-        // Student is a User (booking->student_id might be User ID or Student Profile ID).
-        // Let's check Booking model to be sure.
-        
-        // Assuming strict checks for now. 
-        // Admin override:
-        $isAdmin = $user->isAdmin(); 
-
-        $isStudent = $booking->user_id === $user->id; 
-        
-        // Check Teacher relation
-        // We need to check if $user->teacher->id === $booking->teacher_id
-        $isTeacherParticipant = false;
-        if ($user->teacher && $user->teacher->id === $booking->teacher_id) {
-            $isTeacherParticipant = true;
-        }
-
-        if (!$isStudent && !$isTeacherParticipant && !$isAdmin) {
+        // 1. Participant Check
+        $isAdmin = $user->isAdmin();
+        if (!$booking->isParticipant($user)) {
             abort(403, 'You are not a participant of this class.');
         }
 
         // 2. Status Check
-        if ($booking->status !== 'confirmed') {
-            abort(403, 'This class is not confirmed.');
+        if (!in_array($booking->status, ['confirmed', 'ongoing'])) {
+            abort(403, 'This class is not confirmed or ongoing.');
         }
 
         // 3. Time Check (Allow 15 min early)
         $now = Carbon::now();
         $start = Carbon::parse($booking->start_time);
         $end = Carbon::parse($booking->end_time);
-        
+
         // Can join 15 minutes before start until session ends
         if ($now->lt($start->copy()->subMinutes(15))) {
             abort(403, 'Class has not started yet. You can join 15 minutes before the scheduled time.');
         }
-        
+
         if ($now->gt($end)) {
             abort(403, 'This class has already ended.');
         }
@@ -81,8 +57,8 @@ class ClassroomController extends Controller
         $participantName = $user->name;
 
         $token = $this->liveKitService->generateToken(
-            $roomName, 
-            $participantIdentity, 
+            $roomName,
+            $participantIdentity,
             $participantName,
             $isAdmin
         );
@@ -103,8 +79,8 @@ class ClassroomController extends Controller
             'booking' => $booking->load(['student', 'teacher.user', 'subject']),
             'token' => $token,
             'roomName' => $roomName,
-            'isTeacher' => $isTeacherParticipant,
-            'isAdmin' => $isAdmin,
+            'isTeacher' => $booking->getAttendeeRole($user) === 'teacher',
+            'isAdmin' => $user->isAdmin(),
             'liveKitUrl' => config('services.livekit.url'),
             'materials' => $materials,
         ]);
@@ -116,43 +92,55 @@ class ClassroomController extends Controller
     public function recordJoin(Request $request, Booking $booking)
     {
         $user = Auth::user();
-        
-        // Determine role
-        $isTeacher = $user->teacher && $user->teacher->id === $booking->teacher_id;
-        $role = $isTeacher ? 'teacher' : 'student';
+        $role = $booking->getAttendeeRole($user);
 
-        // Check if there's an existing open attendance record (no left_at)
-        $existingAttendance = ClassroomAttendance::where('booking_id', $booking->id)
-            ->where('user_id', $user->id)
-            ->whereNull('left_at')
-            ->first();
+        \Illuminate\Support\Facades\Log::debug("[Classroom] User #{$user->id} joining booking #{$booking->id} as {$role}");
 
-        if ($existingAttendance) {
-            // Return existing record
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($user, $booking, $role, $request) {
+            // 1. Record individual attendance record if not exists
+            $attendance = ClassroomAttendance::firstOrCreate([
+                'booking_id' => $booking->id,
+                'user_id' => $user->id,
+                'left_at' => null,
+            ], [
+                'role' => $role,
+                'joined_at' => now()->setTimezone('UTC'),
+                'metadata' => [
+                    'user_agent' => $request->userAgent(),
+                    'ip' => $request->ip(),
+                ]
+            ]);
+
+            // 2. Set attendance flags on the Booking
+            if ($role === 'teacher') {
+                $booking->recordTeacherAttendance();
+            } else {
+                $booking->recordStudentAttendance();
+            }
+
+            // 3. Mark session as started on the first join
+            $booking->markSessionStarted();
+
+            // 4. Refresh and handle status transition
+            $booking->refresh();
+            if ($booking->teacher_attended && $booking->student_attended && $booking->status === 'confirmed') {
+                $affected = Booking::where('id', $booking->id)
+                    ->where('status', 'confirmed')
+                    ->where('teacher_attended', true)
+                    ->where('student_attended', true)
+                    ->update(['status' => 'ongoing']);
+
+                if ($affected) {
+                    \Illuminate\Support\Facades\Log::info("[Classroom] Booking #{$booking->id} transitioned to ONGOING");
+                }
+            }
+
             return response()->json([
                 'success' => true,
-                'attendance_id' => $existingAttendance->id,
-                'message' => 'Existing attendance record found'
+                'attendance_id' => $attendance->id,
+                'message' => 'Attendance recorded'
             ]);
-        }
-
-        // Create new attendance record
-        $attendance = ClassroomAttendance::create([
-            'booking_id' => $booking->id,
-            'user_id' => $user->id,
-            'role' => $role,
-            'joined_at' => now(),
-            'metadata' => [
-                'user_agent' => $request->userAgent(),
-                'ip' => $request->ip(),
-            ]
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'attendance_id' => $attendance->id,
-            'message' => 'Attendance recorded'
-        ]);
+        });
     }
 
     /**
@@ -177,12 +165,17 @@ class ClassroomController extends Controller
         }
 
         // Record leave time and calculate duration
+        \Illuminate\Support\Facades\Log::debug("[Classroom] User #{$user->id} leaving booking #{$booking->id}");
         $attendance->recordLeave();
 
         // Optionally update connection quality from request
         if ($request->has('connection_quality')) {
             $attendance->update(['connection_quality' => $request->connection_quality]);
         }
+
+        // ── Option C: Event-driven session completion ──
+        // Check if everyone has left and trigger completion immediately
+        $this->checkAndCompleteSession($booking);
 
         return response()->json([
             'success' => true,
@@ -192,16 +185,94 @@ class ClassroomController extends Controller
     }
 
     /**
+     * Check if session should be submitted for judgment.
+     * Called when a participant leaves the room.
+     *
+     * NOTE: This method ONLY transitions the booking to 'awaiting_judgment'.
+     * It does NOT make any financial decisions — that is the SessionArbiter's job.
+     */
+    protected function checkAndCompleteSession(Booking $booking): void
+    {
+        // Only process if session is still active (confirmed or ongoing)
+        if (!in_array($booking->status, ['confirmed', 'ongoing'])) {
+            return;
+        }
+
+        // Check if anyone is still in the room
+        $activeParticipants = ClassroomAttendance::where('booking_id', $booking->id)
+            ->whereNull('left_at')
+            ->count();
+
+        if ($activeParticipants > 0) {
+            return; // Someone is still in the room
+        }
+
+        // Everyone has left — check if end time has passed
+        $endTime = Carbon::parse($booking->end_time);
+        $now = Carbon::now();
+
+        if ($now->gte($endTime)) {
+            // End time passed and room is empty → submit for judgment
+            $booking->markSessionEnded();
+
+            // Sync attendance flags from actual records
+            $this->syncAttendanceFlags($booking);
+
+            // Transition to awaiting_judgment — the Arbiter will handle financials
+            $booking->update([
+                'status' => 'awaiting_judgment',
+                'judgment_at' => now(),
+            ]);
+
+            \Illuminate\Support\Facades\Log::info(
+                "Classroom: Booking #{$booking->id} submitted for judgment (room emptied after end_time)"
+            );
+        }
+    }
+
+    /**
+     * Sync attendance flags from actual ClassroomAttendance records.
+     * Safety net ensuring flags match reality even if they weren't set earlier.
+     */
+    protected function syncAttendanceFlags(Booking $booking): void
+    {
+        $hasTeacher = ClassroomAttendance::where('booking_id', $booking->id)
+            ->where('role', 'teacher')
+            ->exists();
+
+        $hasStudent = ClassroomAttendance::where('booking_id', $booking->id)
+            ->where('role', 'student')
+            ->exists();
+
+        $updates = [];
+        if ($hasTeacher && !$booking->teacher_attended) {
+            $updates['teacher_attended'] = true;
+        }
+        if ($hasStudent && !$booking->student_attended) {
+            $updates['student_attended'] = true;
+        }
+
+        if (!empty($updates)) {
+            $booking->update($updates);
+            $booking->refresh();
+            \Illuminate\Support\Facades\Log::info(
+                "Classroom: Auto-fixed attendance flags for booking #{$booking->id}",
+                $updates
+            );
+        }
+    }
+
+    /**
      * Get attendance records for a booking (teacher/admin only)
      */
     public function getAttendance(Booking $booking)
     {
         $user = Auth::user();
-        
+
         // Check authorization
         $isTeacher = $user->teacher && $user->teacher->id === $booking->teacher_id;
         $isAdmin = $user->isAdmin();
-        
+
         if (!$isTeacher && !$isAdmin) {
             abort(403, 'Unauthorized');
         }

@@ -4,7 +4,7 @@ import { Icon } from '@iconify/react';
 import { toast } from 'sonner';
 import StudentLayout from '@/layouts/StudentLayout';
 import { Button } from '@/components/ui/button';
-import { BookingTabs, BookingCard, JoinClassModal, SessionSummaryModal, CancelBookingModal, defaultBookingTabs, type BookingData } from '@/components/bookings';
+import { BookingTabs, BookingCard, JoinClassModal, SessionSummaryModal, CancelBookingModal, RaiseDisputeModal, defaultBookingTabs, type BookingData } from '@/components/bookings';
 import { SharedData } from '@/types';
 
 interface PaginationLink {
@@ -38,6 +38,7 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
     const [joinModalOpen, setJoinModalOpen] = useState(false);
     const [summaryModalOpen, setSummaryModalOpen] = useState(false);
     const [cancelModalOpen, setCancelModalOpen] = useState(false);
+    const [disputeModalOpen, setDisputeModalOpen] = useState(false);
     const [isCancelling, setIsCancelling] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState<BookingData | null>(null);
 
@@ -131,6 +132,11 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
     const handleCancelBooking = (booking: BookingData) => {
         setSelectedBooking(booking);
         setCancelModalOpen(true);
+    };
+
+    const handleRaiseDispute = (booking: BookingData) => {
+        setSelectedBooking(booking);
+        setDisputeModalOpen(true);
     };
 
     const handleConfirmCancel = (reason?: string, cancelSeries?: boolean) => {
@@ -254,6 +260,7 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
                                     onRateTeacher={handleRateTeacher}
                                     onMessageTeacher={handleMessageTeacher}
                                     onJoinClass={handleJoinClass}
+                                    onRaiseDispute={handleRaiseDispute}
                                 />
                             ))}
                         </div>
@@ -294,6 +301,17 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
                     dateTime={formatDateTime(selectedBooking)}
                     isLoading={isCancelling}
                     userRole="student"
+                />
+            )}
+
+            {/* Raise Dispute Modal */}
+            {selectedBooking && (
+                <RaiseDisputeModal
+                    open={disputeModalOpen}
+                    onOpenChange={setDisputeModalOpen}
+                    bookingId={selectedBooking.id}
+                    subjectName={selectedBooking.subject.name}
+                    teacherName={selectedBooking.teacher.name}
                 />
             )}
         </StudentLayout>

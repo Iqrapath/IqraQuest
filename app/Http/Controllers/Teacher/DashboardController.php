@@ -9,6 +9,13 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
+    protected $statusService;
+
+    public function __construct(\App\Services\BookingStatusService $statusService)
+    {
+        $this->statusService = $statusService;
+    }
+
     /**
      * Display the teacher dashboard.
      */
@@ -17,6 +24,7 @@ class DashboardController extends Controller
         /** @var \App\Models\User $user */
         $user = auth()->user();
         $teacher = $user->teacher; // Assuming relationship exists
+        $isTeacher = true; // Context for service
 
         $stats = [
             'active_students' => 0,
@@ -49,7 +57,7 @@ class DashboardController extends Controller
                 ->orderBy('start_time', 'asc')
                 ->limit(20) // Limit for dashboard performance
                 ->get()
-                ->map(function ($booking) {
+                ->map(function ($booking) use ($user) {
                     $start = \Carbon\Carbon::parse($booking->start_time);
                     $end = \Carbon\Carbon::parse($booking->end_time);
 
@@ -73,7 +81,8 @@ class DashboardController extends Controller
                         'formatted_start_time' => $start->format('g:i A'),
                         'formatted_end_time' => $end->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A'),
                         'status' => $booking->status,
-                        'can_join' => $start->isToday() && $start->diffInMinutes(now()) <= 15, // Simple logic
+                        'payment_info' => $this->statusService->formatBookingForResponse($booking, $user)['payment_info'] ?? null,
+                        'can_join' => now()->gte($start->copy()->subMinutes(15)) && now()->lte($end),
                         'meeting_link' => $booking->meeting_link,
                         'notes' => null, // Placeholder as notes column was not confirmed
                     ];
@@ -89,7 +98,7 @@ class DashboardController extends Controller
     /**
      * Display the teacher quick start page (active students, etc).
      */
-    public function quickStart(): Response
+    public function quickStart(): Response|\Illuminate\Http\RedirectResponse
     {
         /** @var \App\Models\User $user */
         $user = auth()->user();
@@ -249,7 +258,7 @@ class DashboardController extends Controller
             ->orderBy('start_time', 'asc')
             ->limit(50)
             ->get()
-            ->map(function ($booking) {
+            ->map(function ($booking) use ($user) {
                 $start = \Carbon\Carbon::parse($booking->start_time);
                 $end = \Carbon\Carbon::parse($booking->end_time);
 
@@ -273,7 +282,8 @@ class DashboardController extends Controller
                     'formatted_start_time' => $start->format('g:i A'),
                     'formatted_end_time' => $end->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A'),
                     'status' => $booking->status,
-                    'can_join' => $start->isToday() && $start->diffInMinutes(now()) <= 15,
+                    'payment_info' => $this->statusService->formatBookingForResponse($booking, $user)['payment_info'] ?? null,
+                    'can_join' => now()->gte($start->copy()->subMinutes(15)) && now()->lte($end),
                     'meeting_link' => $booking->meeting_link,
                     'notes' => null,
                 ];

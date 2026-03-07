@@ -10,6 +10,8 @@ use App\Notifications\BookingConfirmedNotification;
 use App\Notifications\BookingRejectedNotification;
 use App\Notifications\RescheduleApprovedNotification;
 use App\Notifications\RescheduleRejectedNotification;
+use App\Notifications\BookingCancelledByTeacherNotification;
+use App\Notifications\SessionCancelledForStudentNotification;
 use App\Services\BookingStatusService;
 use App\Services\EscrowService;
 use App\Services\WalletService;
@@ -354,9 +356,13 @@ class BookingController extends Controller
             // Refund student
             $this->escrowService->refundFunds($booking, null, 'Teacher cancelled the session');
 
-            // Notify student
-            // Use existing or new notification
-            $booking->student->notify(new \App\Notifications\BookingRejectedNotification($booking));
+            // Notify student/guardian (the one who booked)
+            $booking->student->notify(new BookingCancelledByTeacherNotification($booking));
+
+            // Notify child (if applicable)
+            if ($booking->child && $booking->child->user) {
+                $booking->child->user->notify(new SessionCancelledForStudentNotification($booking, 'Teacher'));
+            }
         });
 
         return back()->with('success', 'Booking cancelled successfully.');

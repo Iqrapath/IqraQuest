@@ -4,12 +4,12 @@ namespace App\Notifications;
 
 use App\Models\AdminBroadcast;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class AdminBroadcastNotification extends Notification implements ShouldBroadcastNow
+class AdminBroadcastNotification extends Notification implements ShouldBroadcast
 {
     use Queueable;
 
@@ -25,11 +25,11 @@ class AdminBroadcastNotification extends Notification implements ShouldBroadcast
     public function via(object $notifiable): array
     {
         $channels = ['broadcast', 'database'];
-        
+
         if ($this->sendEmail) {
             $channels[] = 'mail';
         }
-        
+
         return $channels;
     }
 
@@ -59,7 +59,7 @@ class AdminBroadcastNotification extends Notification implements ShouldBroadcast
     {
         $title = $this->replaceTemplateVariables($this->broadcast->title, $notifiable);
         $message = $this->replaceTemplateVariables($this->broadcast->message, $notifiable);
-        
+
         return (new MailMessage)
             ->subject($title)
             ->greeting('Hello ' . ($notifiable->name ?? 'there') . '!')

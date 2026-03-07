@@ -11,6 +11,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Support\Facades\Route;
+use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -56,10 +57,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
             'onboarding.completed' => \App\Http\Middleware\EnsureOnboardingCompleted::class,
             'teacher.approved' => \App\Http\Middleware\EnsureTeacherApproved::class,
-            'throttle.strict' => \Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1',
+            'throttle.strict' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        Integration::handles($exceptions);
+
         // Render custom Inertia error pages
         $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response) {
             // Temporarily allow in local environment to preview error pages

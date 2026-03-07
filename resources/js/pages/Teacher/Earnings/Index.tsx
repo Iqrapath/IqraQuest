@@ -15,6 +15,7 @@ import PaymentMethodTab from './Components/PaymentMethodTab';
 interface Props {
     balance: number;
     availableBalance: number;
+    escrowBalance: number;
     pendingPayouts: number;
     totalEarnings: number;
     thisMonthEarnings: number;
@@ -26,6 +27,7 @@ interface Props {
 function Index({
     balance,
     availableBalance,
+    escrowBalance,
     pendingPayouts,
     totalEarnings,
     thisMonthEarnings,
@@ -85,6 +87,8 @@ function Index({
                     <EarningsTab
                         totalEarnings={totalEarnings}
                         availableBalance={availableBalance}
+                        escrowBalance={escrowBalance}
+                        pendingPayouts={pendingPayouts}
                         recentTransactions={recentTransactions}
                         automaticPayouts={automaticPayouts}
                         paymentMethods={paymentMethods}

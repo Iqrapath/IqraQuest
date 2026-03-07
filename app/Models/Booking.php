@@ -39,6 +39,8 @@ class Booking extends Model
         'actual_duration_minutes',
         'session_started_at',
         'session_ended_at',
+        'judgment_at',
+        'judgment_reason',
         'no_show_warning_sent_at',
         'meeting_link',
         'cancellation_reason',
@@ -60,6 +62,7 @@ class Booking extends Model
         'dispute_resolved_at' => 'datetime',
         'session_started_at' => 'datetime',
         'session_ended_at' => 'datetime',
+        'judgment_at' => 'datetime',
         'no_show_warning_sent_at' => 'datetime',
         'teacher_attended' => 'boolean',
         'student_attended' => 'boolean',
@@ -228,8 +231,8 @@ class Booking extends Model
      */
     public function canBeDisputed(): bool
     {
-        // Can only dispute if funds are held
-        if ($this->payment_status !== 'held') {
+        // Can only dispute if funds are held or partially released
+        if (!in_array($this->payment_status, ['held', 'partial'])) {
             return false;
         }
 
@@ -263,12 +266,25 @@ class Booking extends Model
      */
     public function getCompletionPercentage(): float
     {
-        // First check teacher's actual time in the classroom
-        $teacherSeconds = ClassroomAttendance::where('booking_id', $this->id)
+        // Sum closed attendance records (those with duration_seconds)
+        $closedSeconds = ClassroomAttendance::where('booking_id', $this->id)
             ->where('role', 'teacher')
+            ->whereNotNull('left_at')
             ->sum('duration_seconds');
 
-        $teacherMinutes = floor($teacherSeconds / 60);
+        // Add live time for any STILL-ACTIVE attendance records
+        $activeRecords = ClassroomAttendance::where('booking_id', $this->id)
+            ->where('role', 'teacher')
+            ->whereNull('left_at')
+            ->get();
+
+        $activeSeconds = 0;
+        foreach ($activeRecords as $record) {
+            $activeSeconds += $record->joined_at->diffInSeconds(now());
+        }
+
+        $totalSeconds = $closedSeconds + $activeSeconds;
+        $teacherMinutes = floor($totalSeconds / 60);
 
         // Fallback to basic actual_duration_minutes if no specific classroom records exist
         $durationToUse = $teacherMinutes > 0 ? $teacherMinutes : ($this->actual_duration_minutes ?? 0);
@@ -417,6 +433,41 @@ class Booking extends Model
         }
 
         return true;
+    }
+
+    /**
+     * Check if a user is a participant of this booking.
+     * Roles: Teacher, Booker (Guardian/Student), or Child Student.
+     */
+    public function isParticipant(User $user): bool
+    {
+        // 1. Teacher check
+        if ($user->teacher && $user->teacher->id === $this->teacher_id) {
+            return true;
+        }
+
+        // 2. Booker check (Guardian or Direct Student)
+        if ($user->id === $this->user_id) {
+            return true;
+        }
+
+        // 3. Child Student check
+        if ($this->student_id && $user->student && $user->student->id === $this->student_id) {
+            return true;
+        }
+
+        return $user->isAdmin();
+    }
+
+    /**
+     * Get the role of a user for this specific booking.
+     */
+    public function getAttendeeRole(User $user): string
+    {
+        if ($user->teacher && $user->teacher->id === $this->teacher_id) {
+            return 'teacher';
+        }
+        return 'student';
     }
 
     /**

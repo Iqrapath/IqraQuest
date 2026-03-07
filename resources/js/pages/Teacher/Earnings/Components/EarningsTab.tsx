@@ -18,6 +18,8 @@ declare let route: any;
 interface EarningsTabProps {
     totalEarnings: number;
     availableBalance: number;
+    escrowBalance: number;
+    pendingPayouts: number;
     recentTransactions: any;
     automaticPayouts: boolean;
     paymentMethods: any[];
@@ -26,6 +28,8 @@ interface EarningsTabProps {
 export default function EarningsTab({
     totalEarnings,
     availableBalance,
+    escrowBalance,
+    pendingPayouts,
     recentTransactions,
     automaticPayouts,
     paymentMethods,
@@ -149,23 +153,61 @@ export default function EarningsTab({
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
                     {/* Total Earnings */}
-                    <div className="flex flex-col items-center justify-center gap-3 pl-6 pr-4 py-2 rounded-[55px] bg-gradient-to-r from-transparent to-[#c0b7e8]/30 border border-white/20 min-w-[200px] w-full max-w-[280px] md:w-auto">
-                        <p className="text-gray-500 mb-3 font-medium">Total Earnings</p>
-                        <p className="text-3xl font-bold text-[#1F1F1F]">{formatCurrency(totalEarnings)}</p>
+                    <div className="flex flex-col items-center justify-center gap-2 p-4 rounded-[55px] bg-gradient-to-r from-transparent to-[#c0b7e8]/30 border border-white/20 min-h-[140px]">
+                        <div className="flex items-center gap-1.5 text-gray-500 font-medium text-sm mb-1">
+                            <span>Total Earnings</span>
+                            <div className="group relative">
+                                <Icon icon="solar:info-circle-bold" className="w-4 h-4 text-gray-400 cursor-help" />
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-gray-900 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                                    Sum of all successfully completed and paid sessions.
+                                </div>
+                            </div>
+                        </div>
+                        <p className="text-2xl font-bold text-[#1F1F1F]">{formatCurrency(totalEarnings)}</p>
                     </div>
 
-                    {/* Available Balance (Student Gradient Style) */}
-                    <div className="flex flex-col items-center justify-center gap-3 pl-6 pr-4 py-2 rounded-[55px] bg-gradient-to-r from-transparent to-[#E9FFFD]/30 border border-white/20 min-w-[200px] w-full max-w-[280px] md:w-auto shadow-sm transform md:scale-105 z-10 transition-transform">
-                        <p className="text-gray-500 mb-3 font-medium">Available Balance</p>
-                        <p className="text-4xl font-bold text-[#2D7A70]">{formatCurrency(availableBalance)}</p>
+                    {/* Available Balance */}
+                    <div className="flex flex-col items-center justify-center gap-2 p-4 rounded-[55px] bg-gradient-to-r from-transparent to-[#E9FFFD]/30 border border-white/20 min-h-[140px] shadow-sm transform scale-105 z-10 transition-transform">
+                        <div className="flex items-center gap-1.5 text-[#2D7A70] font-bold text-sm mb-1">
+                            <span>Available Balance</span>
+                            <div className="group relative">
+                                <Icon icon="solar:info-circle-bold" className="w-4 h-4 text-[#2D7A70]/60 cursor-help" />
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-gray-900 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                                    Funds you can withdraw now. This excludes money currently in escrow or processing.
+                                </div>
+                            </div>
+                        </div>
+                        <p className="text-3xl font-bold text-[#2D7A70]">{formatCurrency(availableBalance)}</p>
+                    </div>
+
+                    {/* Funds in Escrow */}
+                    <div className="flex flex-col items-center justify-center gap-2 p-4 rounded-[55px] bg-gradient-to-r from-transparent to-[#FFF9E9]/40 border border-white/20 min-h-[140px]">
+                        <div className="flex items-center gap-1.5 text-[#F5AD7E] font-medium text-sm mb-1">
+                            <span>Funds in Escrow</span>
+                            <div className="group relative">
+                                <Icon icon="solar:info-circle-bold" className="w-4 h-4 text-[#F5AD7E]/60 cursor-help" />
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-gray-900 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 font-normal">
+                                    Money tied to live or recently ended sessions. Released to balance after the 24h dispute window.
+                                </div>
+                            </div>
+                        </div>
+                        <p className="text-2xl font-bold text-[#1F1F1F]">{formatCurrency(escrowBalance)}</p>
                     </div>
 
                     {/* Pending Payout */}
-                    <div className="flex flex-col items-center justify-center gap-3 pl-6 pr-4 py-2 rounded-[55px] bg-gradient-to-r from-transparent to-[#FFF9E9]/30 border border-white/20 min-w-[200px] w-full max-w-[280px] md:w-auto">
-                        <p className="text-gray-500 mb-3 font-medium">Pending Payout</p>
-                        <p className="text-3xl font-bold text-[#1F1F1F]">{formatCurrency(0)}</p>
+                    <div className="flex flex-col items-center justify-center gap-2 p-4 rounded-[55px] bg-gradient-to-r from-transparent to-gray-200/20 border border-white/20 min-h-[140px]">
+                        <div className="flex items-center gap-1.5 text-gray-500 font-medium text-sm mb-1">
+                            <span>Pending Payout</span>
+                            <div className="group relative">
+                                <Icon icon="solar:info-circle-bold" className="w-4 h-4 text-gray-400 cursor-help" />
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-gray-900 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                                    Withdrawals currently being processed via your payment method.
+                                </div>
+                            </div>
+                        </div>
+                        <p className="text-2xl font-bold text-[#1F1F1F]">{formatCurrency(pendingPayouts)}</p>
                     </div>
                 </div>
 

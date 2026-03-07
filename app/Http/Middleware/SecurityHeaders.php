@@ -32,7 +32,9 @@ class SecurityHeaders
             // Relaxed CSP for development (includes Paystack and classroom materials)
             $csp = implode('; ', [
                 "default-src 'self'",
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' http: https: blob: https://js.paystack.co https://checkout.paystack.com",
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' http: https: blob: https://js.paystack.co https://checkout.paystack.com https://checkout.gointerpay.net https://checkout.rch.io",
+                "script-src-elem 'self' 'unsafe-inline' http: https: blob: https://js.paystack.co https://checkout.paystack.com https://checkout.gointerpay.net https://checkout.rch.io https://www.googletagmanager.com https://s3-eu-west-1.amazonaws.com https://applepay.cdn-apple.com",
+                "worker-src 'self' blob:",
                 "style-src 'self' 'unsafe-inline' http: https: https://paystack.com https://checkout.paystack.com",
                 "font-src 'self' https://fonts.bunny.net https://fonts.gstatic.com https://fonts.googleapis.com data:",
                 "img-src 'self' data: https: http: blob:",
@@ -46,7 +48,9 @@ class SecurityHeaders
             // Strict CSP for production (includes Paystack and classroom materials)
             $csp = implode('; ', [
                 "default-src 'self'",
-               "script-src 'self' 'unsafe-inline' blob: https://js.paystack.co https://checkout.paystack.com",
+                "script-src 'self' 'unsafe-inline' blob: https://js.paystack.co https://checkout.paystack.com https://checkout.gointerpay.net https://checkout.rch.io",
+                "script-src-elem 'self' 'unsafe-inline' blob: https://js.paystack.co https://checkout.paystack.com https://checkout.gointerpay.net https://checkout.rch.io https://www.googletagmanager.com https://s3-eu-west-1.amazonaws.com https://applepay.cdn-apple.com",
+                "worker-src 'self' blob:",
                 "style-src 'self' 'unsafe-inline' https://fonts.bunny.net https://fonts.googleapis.com https://paystack.com",
                 "font-src 'self' https://fonts.bunny.net https://fonts.gstatic.com https://fonts.googleapis.com data:",
                 "img-src 'self' data: https: blob:",

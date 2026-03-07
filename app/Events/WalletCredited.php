@@ -14,7 +14,6 @@ class WalletCredited implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $connection = 'sync';
 
     public int $userId;
     public float $amount;

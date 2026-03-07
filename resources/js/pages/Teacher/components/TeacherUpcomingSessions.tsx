@@ -3,7 +3,9 @@ import { Icon } from '@iconify/react';
 import { cn } from '@/lib/utils';
 import { Link } from '@inertiajs/react';
 import { useFormatDate } from '@/lib/format';
+import { useCountdown } from '@/hooks/use-countdown';
 import SessionDetailsModal from './SessionDetailsModal';
+import { PaymentStatusBadge } from '@/components/bookings/BookingCard';
 
 interface Session {
     id: number;
@@ -19,6 +21,12 @@ interface Session {
     formatted_start_time: string;
     formatted_end_time: string;
     status: string;
+    payment_info?: {
+        status: string;
+        label: string;
+        description: string;
+        color: 'teal' | 'amber' | 'green' | 'red' | 'orange' | 'gray';
+    };
     can_join: boolean;
     meeting_link: string | null;
     notes?: string | null;
@@ -133,41 +141,9 @@ export default function TeacherUpcomingSessions({ sessions, serverDate }: Teache
                         <p className="font-['Nunito'] text-sm text-[#6b7280]">No sessions scheduled for this day</p>
                     </div>
                 ) : (
-                    dailySessions.map(session => (
-                        <div key={session.id} className="flex items-center gap-4">
-                            {/* Date Box */}
-                            <div className="flex flex-col items-center justify-center bg-[#fdf8e8] text-[#92400e] rounded-xl w-16 h-16 shrink-0">
-                                <span className="text-[10px] uppercase font-bold">{formatDate(session.start_time, 'MMM')}</span>
-                                <span className="text-xl font-bold leading-none">{formatDate(session.start_time, 'd')}</span>
-                            </div>
-
-                            {/* Session Details */}
-                            <div className="flex-1 flex items-center justify-between">
-                                <div>
-                                    <h4 className="font-bold text-gray-900 text-lg">{session.student.name}</h4>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <div className="px-2 py-0.5 rounded border border-gray-300 text-xs font-medium text-gray-600 bg-white">
-                                            {session.formatted_time || `${formatDate(session.start_time, 'p')} - ${formatDate(session.end_time, 'p')}`}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    {session.can_join && (
-                                        <a
-                                            href={`/classroom/${session.id}`}
-                                            className="px-4 py-2 bg-[#338078] text-white text-sm font-medium rounded-full hover:bg-[#2b6b64] transition-colors shadow-sm animate-pulse"
-                                        >
-                                            Join Class
-                                        </a>
-                                    )}
-                                    <button
-                                        className="text-[#2c7870] hover:text-[#236158] font-medium text-sm hover:underline cursor-pointer"
-                                        onClick={() => setSelectedSession(session)}
-                                    >View Details</button>
-                                </div>
-                            </div>
-                        </div>
-                    ))
+                    dailySessions.map(session => {
+                        return <SessionRow key={session.id} session={session} onViewDetails={() => setSelectedSession(session)} />;
+                    })
                 )}
             </div>
 
@@ -180,3 +156,81 @@ export default function TeacherUpcomingSessions({ sessions, serverDate }: Teache
         </div>
     );
 }
+
+function SessionRow({ session, onViewDetails }: { session: Session; onViewDetails: () => void }) {
+    const countdown = useCountdown(session.start_time, 60); // Assuming 60 min session
+    const { formatDate } = useFormatDate();
+
+    // Show countdown if starting within 24 hours
+    const showCountdown = countdown.isSoon && !countdown.isLive && !countdown.isExpired;
+
+    return (
+        <div className="flex items-center gap-4 group">
+            {/* Date Box */}
+            <div className={cn(
+                "flex flex-col items-center justify-center rounded-xl w-16 h-16 shrink-0 transition-colors",
+                countdown.isLive ? "bg-[#338078] text-white" : "bg-[#fdf8e8] text-[#92400e]"
+            )}>
+                <span className={cn("text-[10px] uppercase font-bold", countdown.isLive ? "text-white/80" : "text-[#92400e]/70")}>
+                    {formatDate(session.start_time, 'MMM')}
+                </span>
+                <span className="text-xl font-bold leading-none">{formatDate(session.start_time, 'd')}</span>
+            </div>
+
+            {/* Session Details */}
+            <div className="flex-1 flex items-center justify-between border-b border-gray-100 pb-4 group-last:border-0 group-last:pb-0">
+                <div>
+                    <h4 className="font-bold text-gray-900 text-lg flex items-center gap-2">
+                        {session.student.name}
+                        {countdown.isLive && (
+                            <span className="flex h-2 w-2 rounded-full bg-red-500 animate-pulse" title="Live Now" />
+                        )}
+                        {session.payment_info && (
+                            <div className="scale-90 origin-left">
+                                <PaymentStatusBadge info={session.payment_info} />
+                            </div>
+                        )}
+                    </h4>
+                    <div className="flex flex-col gap-1 mt-1">
+                        <div className="flex items-center gap-2">
+                            <div className="px-2 py-0.5 rounded border border-gray-200 text-xs font-medium text-gray-600 bg-gray-50">
+                                {session.formatted_time || `${formatDate(session.start_time, 'p')} - ${formatDate(session.end_time, 'p')}`}
+                            </div>
+                            {showCountdown && (
+                                <div className="flex items-center gap-1 text-[11px] font-bold text-[#338078] animate-pulse">
+                                    <Icon icon="solar:alarm-bold-duotone" className="w-3.5 h-3.5" />
+                                    <span>Starts in: {countdown.formatted}</span>
+                                </div>
+                            )}
+                        </div>
+                        {countdown.isLive && (
+                            <span className="text-[11px] font-bold text-red-600 uppercase tracking-wider">
+                                Class is ongoing • {countdown.formatted} remaining
+                            </span>
+                        )}
+                    </div>
+                </div>
+                <div className="flex items-center gap-4">
+                    {(session.can_join || countdown.isLive) && (
+                        <a
+                            href={`/classroom/${session.id}`}
+                            className={cn(
+                                "px-4 py-2 text-sm font-medium rounded-full transition-all shadow-sm",
+                                countdown.isLive
+                                    ? "bg-red-600 text-white hover:bg-red-700 animate-pulse"
+                                    : "bg-[#338078] text-white hover:bg-[#2b6b64]"
+                            )}
+                        >
+                            {countdown.isLive ? 'Join Live Class' : 'Join Class'}
+                        </a>
+                    )}
+                    <button
+                        className="text-[#2c7870] hover:text-[#236158] font-medium text-sm hover:underline cursor-pointer"
+                        onClick={onViewDetails}
+                    >View Details</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+

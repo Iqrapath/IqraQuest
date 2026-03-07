@@ -24,45 +24,50 @@ class SendScheduledNotifications extends Command
         }
 
         foreach ($broadcasts as $broadcast) {
-            $this->info("Sending broadcast: {$broadcast->title}");
-            
-            $users = $broadcast->getTargetUsers();
-            
-            $broadcast->update([
-                'total_recipients' => $users->count(),
-                'sent_at' => now(),
-                'status' => 'sent',
-            ]);
-            
-            Notification::send($users, new AdminBroadcastNotification($broadcast));
-            
-            $broadcast->update(['delivered_count' => $users->count()]);
-            
-            $this->info("Sent to {$users->count()} users.");
-            
-            // Handle recurring notifications
-            if ($broadcast->frequency !== 'one_time') {
-                $nextSchedule = match ($broadcast->frequency) {
-                    'daily' => now()->addDay(),
-                    'weekly' => now()->addWeek(),
-                    default => null,
-                };
-                
-                if ($nextSchedule) {
-                    AdminBroadcast::create([
-                        'title' => $broadcast->title,
-                        'message' => $broadcast->message,
-                        'type' => $broadcast->type,
-                        'target_audience' => $broadcast->target_audience,
-                        'target_user_ids' => $broadcast->target_user_ids,
-                        'frequency' => $broadcast->frequency,
-                        'scheduled_at' => $nextSchedule,
-                        'status' => 'scheduled',
-                        'created_by' => $broadcast->created_by,
-                    ]);
-                    
-                    $this->info("Next occurrence scheduled for: {$nextSchedule}");
+            try {
+                $this->info("Sending broadcast: {$broadcast->title}");
+
+                $users = $broadcast->getTargetUsers();
+
+                $broadcast->update([
+                    'total_recipients' => $users->count(),
+                    'sent_at' => now(),
+                    'status' => 'sent',
+                ]);
+
+                Notification::send($users, new AdminBroadcastNotification($broadcast));
+
+                $broadcast->update(['delivered_count' => $users->count()]);
+
+                $this->info("Sent to {$users->count()} users.");
+
+                // Handle recurring notifications
+                if ($broadcast->frequency !== 'one_time') {
+                    $nextSchedule = match ($broadcast->frequency) {
+                        'daily' => now()->addDay(),
+                        'weekly' => now()->addWeek(),
+                        default => null,
+                    };
+
+                    if ($nextSchedule) {
+                        AdminBroadcast::create([
+                            'title' => $broadcast->title,
+                            'message' => $broadcast->message,
+                            'type' => $broadcast->type,
+                            'target_audience' => $broadcast->target_audience,
+                            'target_user_ids' => $broadcast->target_user_ids,
+                            'frequency' => $broadcast->frequency,
+                            'scheduled_at' => $nextSchedule,
+                            'status' => 'scheduled',
+                            'created_by' => $broadcast->created_by,
+                        ]);
+
+                        $this->info("Next occurrence scheduled for: {$nextSchedule}");
+                    }
                 }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to send scheduled broadcast #{$broadcast->id}: " . $e->getMessage());
+                $this->error("  ✗ Failed to process broadcast #{$broadcast->id}");
             }
         }
 

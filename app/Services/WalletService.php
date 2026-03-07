@@ -33,7 +33,10 @@ class WalletService
         ?string $gatewayReference = null
     ): Transaction {
         return DB::transaction(function () use ($userId, $amount, $description, $metadata, $gateway, $gatewayReference) {
-            $wallet = $this->getOrCreateWallet($userId);
+            $wallet = Wallet::where('user_id', $userId)->lockForUpdate()->firstOrCreate(
+                ['user_id' => $userId],
+                ['currency' => 'NGN', 'balance' => 0]
+            );
 
             // Create transaction
             $transaction = Transaction::create([
@@ -67,9 +70,12 @@ class WalletService
         ?string $gateway = null
     ): Transaction {
         return DB::transaction(function () use ($userId, $amount, $description, $metadata, $gateway) {
-            $wallet = $this->getOrCreateWallet($userId);
+            $wallet = Wallet::where('user_id', $userId)->lockForUpdate()->firstOrCreate(
+                ['user_id' => $userId],
+                ['currency' => 'NGN', 'balance' => 0]
+            );
 
-            if (!$this->canDebit($userId, $amount)) {
+            if ($wallet->balance < $amount) {
                 throw new \Exception('Insufficient wallet balance');
             }
 
@@ -175,7 +181,7 @@ class WalletService
                 // Fixed amount commission
                 $platformCommission = min($commissionRate, $amount); // Don't exceed payment amount
             }
-            
+
             $teacherEarnings = $amount - $platformCommission;
 
             // Credit teacher wallet
@@ -199,9 +205,9 @@ class WalletService
             if ($teacher && $teacher->automatic_payouts) {
                 $settings = PaymentSetting::first();
                 $threshold = $settings?->auto_payout_threshold ?? 50000;
-                
+
                 $newBalance = $this->getBalance($teacherId);
-                
+
                 if ($newBalance >= $threshold) {
                     // Dispatch job to queue (non-blocking)
                     \App\Jobs\ProcessAutoPayoutJob::dispatch($teacher->id)
