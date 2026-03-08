@@ -21,6 +21,7 @@ class BookingStatusService
     public const STATUS_ONGOING = 'ongoing';
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_IN_REVIEW = 'in_review';
     public const STATUS_ALL = 'all';
 
     /**
@@ -82,6 +83,7 @@ class BookingStatusService
         return [
             'upcoming' => (clone $baseQuery)->where(fn($q) => $this->applyUpcomingConditions($q))->count(),
             'ongoing' => (clone $baseQuery)->where(fn($q) => $this->applyOngoingConditions($q))->count(),
+            'in_review' => (clone $baseQuery)->where(fn($q) => $this->applyInReviewConditions($q))->count(),
             'completed' => (clone $baseQuery)->where(fn($q) => $this->applyCompletedConditions($q))->count(),
             'cancelled' => (clone $baseQuery)->where('status', 'cancelled')->count(),
         ];
@@ -192,6 +194,7 @@ class BookingStatusService
         return match ($status) {
             self::STATUS_UPCOMING => $query->where(fn($q) => $this->applyUpcomingConditions($q)),
             self::STATUS_ONGOING => $query->where(fn($q) => $this->applyOngoingConditions($q)),
+            self::STATUS_IN_REVIEW => $query->where(fn($q) => $this->applyInReviewConditions($q)),
             self::STATUS_COMPLETED => $query->where(fn($q) => $this->applyCompletedConditions($q)),
             self::STATUS_CANCELLED => $query->where('status', 'cancelled'),
             default => $query,
@@ -223,11 +226,15 @@ class BookingStatusService
             ->where('end_time', '>=', $now);
     }
 
+    protected function applyInReviewConditions(Builder $query): Builder
+    {
+        return $query->whereIn('status', ['awaiting_judgment', 'disputed']);
+    }
+
     protected function applyCompletedConditions(Builder $query): Builder
     {
         return $query->where(function ($q) {
             $q->where('status', 'completed')
-                ->orWhere('status', 'awaiting_judgment')
                 ->orWhere(function ($sq) {
                     $sq->whereIn('status', ['confirmed', 'ongoing'])
                         ->where('end_time', '<', now());
@@ -327,6 +334,7 @@ class BookingStatusService
             'can_cancel' => $booking->canBeCancelledByStudent(),
             'can_reschedule' => $booking->canBeRescheduled(),
             'can_dispute' => $booking->canBeDisputed(),
+            'can_confirm_release' => !$isTeacher && $booking->payment_status === 'held' && in_array($booking->status, ['completed', 'awaiting_judgment']),
             'can_join' => $this->canJoinSession($booking),
             'can_rate' => !$isTeacher && $this->isCompleted($booking) && !$this->hasRated($booking, $viewer),
             'has_review' => $existingReview !== null,
@@ -366,7 +374,7 @@ class BookingStatusService
                 $info['color'] = 'amber';
             } else {
                 $info['label'] = 'Secured in Escrow';
-                $info['description'] = 'Payment is locked and will be released after the session.';
+                $info['description'] = 'Payment is locked and will be released 2 hours after the session (Dispute Window).';
                 $info['color'] = 'teal';
             }
         } elseif ($status === 'released') {

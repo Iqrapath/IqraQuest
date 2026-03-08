@@ -15,7 +15,7 @@ class EscrowService
     protected WalletService $walletService;
 
     // Configuration defaults (can be overridden by PaymentSettings)
-    const DEFAULT_DISPUTE_WINDOW_HOURS = 24;
+    const DEFAULT_DISPUTE_WINDOW_HOURS = 2; // Reduced from 24
     const DEFAULT_MIN_COMPLETION_PERCENTAGE = 80;
     const DEFAULT_NO_SHOW_WAIT_MINUTES = 15;
     const DEFAULT_NO_SHOW_TEACHER_PERCENTAGE = 50;
@@ -270,9 +270,15 @@ class EscrowService
             $minCompletion = $this->getMinCompletionPercentage();
 
             if ($completionPercentage >= $minCompletion) {
-                // Full payment - but wait for dispute window
-                // Funds will be released by scheduled job after 24h
-                Log::info("Escrow: Booking #{$booking->id} completed, awaiting dispute window");
+                // Check if teacher is VIP for instant release
+                if ($booking->teacher->isVip()) {
+                    $this->releaseFunds($booking);
+                    Log::info("Escrow: Booking #{$booking->id} completed, instant release for VIP teacher");
+                } else {
+                    // Full payment - but wait for dispute window
+                    // Funds will be released by scheduled job after 2h
+                    Log::info("Escrow: Booking #{$booking->id} completed, awaiting 2h dispute window");
+                }
             } else {
                 // Pro-rated payment based on actual duration
                 $this->processPartialPayment(

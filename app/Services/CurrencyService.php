@@ -19,7 +19,7 @@ class CurrencyService
         }
 
         $rate = $this->getExchangeRate($fromCurrency, $toCurrency);
-        
+
         // Simple conversion without Money package
         // Round to 2 decimal places
         return round($amount * $rate, 2);
@@ -30,52 +30,60 @@ class CurrencyService
      */
     public function getExchangeRate(string $from, string $to): float
     {
-        $cacheKey = "exchange_rate_{$from}_{$to}";
+        if ($from === $to) {
+            return 1.0;
+        }
 
-        return Cache::remember($cacheKey, now()->addHours(6), function () use ($from, $to) {
-            return $this->fetchExchangeRate($from, $to);
-        });
+        $rates = $this->getAllRates();
+
+        if ($rates && isset($rates[$from]) && isset($rates[$to])) {
+            $rate = $rates[$to] / $rates[$from];
+
+            // Only log if not frequently spamming
+            if (app()->environment('local')) {
+                Log::info('Exchange rate calculated', [
+                    'from' => $from,
+                    'to' => $to,
+                    'rate' => $rate,
+                ]);
+            }
+
+            return (float) $rate;
+        }
+
+        return $this->getFallbackRate($from, $to);
     }
 
     /**
-     * Fetch exchange rate from API
+     * Fetch all exchange rates from API and cache them
      */
-    protected function fetchExchangeRate(string $from, string $to): float
+    protected function getAllRates(): ?array
     {
+        $cachedRates = Cache::get('exchange_rates_base_usd');
+        if ($cachedRates) {
+            return $cachedRates;
+        }
+
         try {
             // Use same API as frontend for consistency (https://open.er-api.com/v6/latest/USD)
             $response = Http::timeout(5)->get("https://open.er-api.com/v6/latest/USD");
 
             if ($response->successful()) {
                 $rates = $response->json()['rates'];
-                
-                // If we have both rates (relative to USD)
-                if (isset($rates[$from]) && isset($rates[$to])) {
-                    // Calculate cross rate
-                    // Formula: Rate(From->To) = Rate(USD->To) / Rate(USD->From)
-                    $rate = $rates[$to] / $rates[$from];
 
-                    Log::info('Exchange rate fetched successfully', [
-                        'from' => $from,
-                        'to' => $to,
-                        'rate' => $rate,
-                    ]);
+                // Cache for 6 hours
+                Cache::put('exchange_rates_base_usd', $rates, now()->addHours(6));
 
-                    return (float) $rate;
-                }
+                Log::info('Fetched all exchange rates from API successfully');
+                return $rates;
             }
-
-            // Fallback to default rates if API fails
-            return $this->getFallbackRate($from, $to);
         } catch (\Exception $e) {
-            Log::error('Failed to fetch exchange rate', [
-                'from' => $from,
-                'to' => $to,
+            Log::error('Failed to fetch exchange rates', [
                 'error' => $e->getMessage(),
             ]);
-
-            return $this->getFallbackRate($from, $to);
         }
+
+        return null;
     }
 
     /**

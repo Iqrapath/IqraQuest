@@ -7,16 +7,59 @@ use App\Models\Teacher;
 use App\Models\Booking;
 use App\Models\Review;
 use App\Services\BookingStatusService;
+use App\Services\EscrowService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class BookingController extends Controller
 {
     protected BookingStatusService $bookingStatusService;
+    protected EscrowService $escrowService;
 
-    public function __construct(BookingStatusService $bookingStatusService)
+    public function __construct(BookingStatusService $bookingStatusService, EscrowService $escrowService)
     {
         $this->bookingStatusService = $bookingStatusService;
+        $this->escrowService = $escrowService;
+    }
+
+    /**
+     * Confirm a session and release funds immediately
+     */
+    public function confirmAndRelease(Request $request, Booking $booking)
+    {
+        $user = $request->user();
+
+        // Verify ownership (Must be the student/guardian)
+        if ($booking->user_id !== $user->id) {
+            abort(403, 'You do not have permission to confirm this booking.');
+        }
+
+        // Must have funds held and be completed/awaiting judgment
+        if ($booking->payment_status !== 'held') {
+            return back()->withErrors(['error' => 'Funds for this session are not in escrow.']);
+        }
+
+        if (!in_array($booking->status, ['completed', 'awaiting_judgment'])) {
+            return back()->withErrors(['error' => 'This session cannot be confirmed yet.']);
+        }
+
+        try {
+            // 1. Mark as completed if it was awaiting judgment
+            if ($booking->status === 'awaiting_judgment') {
+                $booking->update([
+                    'status' => 'completed',
+                    'judgment_reason' => 'Manually confirmed by student.',
+                ]);
+            }
+
+            // 2. Release funds
+            $this->escrowService->releaseFunds($booking);
+
+            return back()->with('success', 'Thank you! Funds have been released to the teacher.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Manual release failed for booking #{$booking->id}: " . $e->getMessage());
+            return back()->withErrors(['error' => 'Failed to release funds. Please try again later.']);
+        }
     }
 
     /**
@@ -29,7 +72,7 @@ class BookingController extends Controller
         $perPage = $request->get('per_page', 10);
 
         // Validate status
-        $validStatuses = ['upcoming', 'ongoing', 'completed', 'cancelled', 'all'];
+        $validStatuses = ['upcoming', 'ongoing', 'in_review', 'completed', 'cancelled', 'all'];
         if (!in_array($status, $validStatuses)) {
             $status = 'upcoming';
         }
@@ -163,6 +206,7 @@ class BookingController extends Controller
                 'can_cancel' => $booking->canBeCancelledByStudent(),
                 'can_reschedule' => $booking->canBeRescheduled(),
                 'can_dispute' => $booking->canBeDisputed(),
+                'can_confirm_release' => $booking->payment_status === 'held' && in_array($booking->status, ['completed', 'awaiting_judgment']),
                 'meeting_link' => $booking->meeting_link,
                 'meeting_platform' => 'iqraclass', // Default, can be dynamic later
                 'notes' => null,
@@ -329,9 +373,9 @@ class BookingController extends Controller
                 $user,
                 $teacher,
                 $request->sessions,
+                $request->subject_id,
                 $request->is_recurring ?? false,
                 $request->recurrence_occurrences ?? 1,
-                $request->subject_id,
                 $request->notes,
                 $request->currency
             );

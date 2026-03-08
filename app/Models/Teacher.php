@@ -287,4 +287,20 @@ class Teacher extends Model
     {
         return $query->whereIn('teacher_type', ['freelance', 'hybrid']);
     }
+
+    /**
+     * Check if teacher has VIP status (Accelerated Payouts)
+     * Criteria: >50 completed bookings AND 0 disputes
+     */
+    public function isVip(): bool
+    {
+        $stats = \App\Models\Booking::where('teacher_id', $this->id)
+            ->selectRaw("
+                COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_count,
+                COUNT(CASE WHEN dispute_raised_at IS NOT NULL THEN 1 END) as dispute_count
+            ")
+            ->first();
+
+        return ($stats->completed_count > 50) && ($stats->dispute_count == 0);
+    }
 }

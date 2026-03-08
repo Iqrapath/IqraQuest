@@ -197,9 +197,9 @@ class BookingController extends Controller
                 $user,
                 $teacher,
                 $request->sessions,
+                $request->subject_id,
                 $request->is_recurring ?? false,
                 $request->recurrence_occurrences ?? 1,
-                $request->subject_id,
                 $request->notes,
                 $request->currency,
                 $request->student_id

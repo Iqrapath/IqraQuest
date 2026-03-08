@@ -27,6 +27,7 @@ interface Props {
     counts: {
         upcoming: number;
         ongoing: number;
+        in_review: number;
         completed: number;
         cancelled: number;
     };
@@ -135,7 +136,9 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
                 {/* Subheader */}
                 <div className="flex justify-between items-center mb-0">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900 capitalize">{activeTab} Classes</h2>
+                        <h2 className="text-xl font-bold text-gray-900">
+                            {defaultTeacherBookingTabs.find(t => t.key === activeTab)?.label || 'Upcoming'} Classes
+                        </h2>
                         <p className="text-gray-500 text-sm mt-1">{bookings.total} Sessions found</p>
                     </div>
                 </div>
@@ -284,6 +287,11 @@ function EmptyState({ status }: { status: string }) {
             icon: 'ph:check-circle-bold',
             title: 'No completed classes',
             description: 'History of your finished classes will be kept here.',
+        },
+        in_review: {
+            icon: 'ph:scales-bold',
+            title: 'No classes in review',
+            description: 'Classes awaiting administrative judgment or missing attendance will appear here.',
         },
         cancelled: {
             icon: 'ph:prohibit-bold',

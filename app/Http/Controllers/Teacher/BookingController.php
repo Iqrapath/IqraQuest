@@ -105,7 +105,7 @@ class BookingController extends Controller
         $perPage = $request->get('per_page', 10);
 
         // Validate status
-        $validStatuses = ['upcoming', 'ongoing', 'completed', 'cancelled', 'all'];
+        $validStatuses = ['upcoming', 'ongoing', 'in_review', 'completed', 'cancelled', 'all'];
         if (!in_array($status, $validStatuses)) {
             $status = 'upcoming';
         }

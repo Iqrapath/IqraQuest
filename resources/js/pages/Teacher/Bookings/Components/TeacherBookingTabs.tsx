@@ -59,6 +59,7 @@ export const TeacherBookingTabs: React.FC<TeacherBookingTabsProps> = ({
 export const defaultTeacherBookingTabs = [
     { key: 'upcoming', label: 'Upcoming' },
     { key: 'ongoing', label: 'Ongoing' },
+    { key: 'in_review', label: 'In Review' },
     { key: 'completed', label: 'Completed' },
     { key: 'cancelled', label: 'Cancelled' },
 ];

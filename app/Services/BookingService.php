@@ -219,7 +219,7 @@ class BookingService
     /**
      * Create a batch of bookings, potentially each with its own recurring series.
      */
-    public function createBatchBookings(User $student, Teacher $teacher, array $sessions, bool $isRecurring = false, int $occurrences = 1, int $subjectId, ?string $notes = null, ?string $currency = 'USD', ?int $studentId = null)
+    public function createBatchBookings(User $student, Teacher $teacher, array $sessions, int $subjectId, bool $isRecurring = false, int $occurrences = 1, ?string $notes = null, ?string $currency = 'USD', ?int $studentId = null)
     {
         return DB::transaction(function () use ($student, $teacher, $sessions, $isRecurring, $occurrences, $subjectId, $notes, $currency, $studentId) {
             $allBookings = collect();

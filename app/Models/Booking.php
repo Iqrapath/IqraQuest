@@ -173,7 +173,7 @@ class Booking extends Model
         return $query->where('payment_status', 'held')
             ->where('status', 'completed')
             ->whereNull('dispute_raised_at')
-            ->where('end_time', '<=', now()->setTimezone('UTC')->subHours(24)); // 24h dispute window passed
+            ->where('end_time', '<=', now()->setTimezone('UTC')->subHours(2)); // 2h dispute window passed
     }
 
     public function scopeDisputed(Builder $query): Builder
@@ -219,7 +219,7 @@ class Booking extends Model
             return false;
         }
 
-        if ($this->end_time->gt(now()->setTimezone('UTC')->subHours(24))) {
+        if ($this->end_time->gt(now()->setTimezone('UTC')->subHours(2))) {
             return false;
         }
 
@@ -241,7 +241,7 @@ class Booking extends Model
             return false;
         }
 
-        if ($this->end_time->lt(now()->setTimezone('UTC')->subHours(24))) {
+        if ($this->end_time->lt(now()->setTimezone('UTC')->subHours(2))) {
             return false;
         }
 

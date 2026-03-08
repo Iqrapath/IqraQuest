@@ -35,6 +35,7 @@ export interface BookingData {
     currency: string;
     can_join: boolean;
     can_dispute: boolean;
+    can_confirm_release?: boolean;
     meeting_link: string | null;
     judgment_reason?: string | null;
     payment_info?: {
@@ -62,6 +63,7 @@ interface BookingCardProps {
     onJoinClass?: (booking: BookingData) => void;
     onRebook?: (booking: BookingData) => void;
     onRaiseDispute?: (booking: BookingData) => void;
+    onConfirmRelease?: (booking: BookingData) => void;
 }
 
 export function BookingCard(props: BookingCardProps) {
@@ -164,6 +166,7 @@ export function StatusBadge({ status }: { status: string }) {
         completed: { bg: 'bg-[#e4f7f4]', text: 'text-[#338078]', label: 'Completed' },
         cancelled: { bg: 'bg-[#fde8e8]', text: 'text-[#771d1d]', label: 'Cancelled' },
         awaiting_approval: { bg: 'bg-[#fff9e9]', text: 'text-[#f5ad7e]', label: 'Awaiting Approval' },
+        in_review: { bg: 'bg-[#fff9e9]', text: 'text-[#f5ad7e]', label: 'In Review' },
         disputed: { bg: 'bg-[#fde8e8]', text: 'text-[#771d1d]', label: 'Disputed' },
         rescheduling: { bg: 'bg-[#fff9e9]', text: 'text-[#f5ad7e]', label: 'Rescheduling' },
     };
@@ -209,7 +212,7 @@ export function PaymentStatusBadge({ info }: { info: NonNullable<BookingData['pa
 
 function Actions(props: BookingCardProps) {
     const { booking, status, userRole = 'student' } = props;
-    const { onViewDetails, onReschedule, onCancel, onViewSummary, onRateTeacher, onMessageTeacher, onJoinClass, onRebook, onRaiseDispute } = props;
+    const { onViewDetails, onReschedule, onCancel, onViewSummary, onRateTeacher, onMessageTeacher, onJoinClass, onRebook, onRaiseDispute, onConfirmRelease } = props;
     const isTeacher = userRole === 'teacher';
 
     const handleCancel = () => {
@@ -334,6 +337,15 @@ function Actions(props: BookingCardProps) {
                                 className="font-['Nunito'] font-normal text-[clamp(0.75rem,1.25vw,0.875rem)] text-[#338078] hover:text-[#2a6b64] hover:underline cursor-pointer"
                             >
                                 Rate Teacher
+                            </button>
+                        )}
+                        {booking.can_confirm_release && onConfirmRelease && (
+                            <button
+                                onClick={() => onConfirmRelease?.(booking)}
+                                className="font-['Nunito'] font-normal text-[clamp(0.75rem,1.25vw,0.875rem)] text-[#f5ad7e] hover:text-[#e49b6d] hover:underline cursor-pointer flex items-center gap-1"
+                            >
+                                <Icon icon="solar:wallet-bold-duotone" className="w-4 h-4" />
+                                Release Funds
                             </button>
                         )}
                         {booking.can_dispute && (

@@ -25,6 +25,7 @@ interface Props {
     counts: {
         upcoming: number;
         ongoing: number;
+        in_review: number;
         completed: number;
         cancelled: number;
     };
@@ -137,6 +138,25 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
     const handleRaiseDispute = (booking: BookingData) => {
         setSelectedBooking(booking);
         setDisputeModalOpen(true);
+    };
+
+    const handleConfirmRelease = (booking: BookingData) => {
+        if (confirm('Are you sure you want to release the funds to the teacher? This action cannot be undone.')) {
+            router.post(
+                `/student/bookings/${booking.id}/confirm-and-release`,
+                {},
+                {
+                    preserveScroll: true,
+                    only: ['bookings', 'counts'],
+                    onSuccess: () => {
+                        toast.success('Funds released successfully!');
+                    },
+                    onError: () => {
+                        toast.error('Failed to release funds. Please try again.');
+                    }
+                }
+            );
+        }
     };
 
     const handleConfirmCancel = (reason?: string, cancelSeries?: boolean) => {
@@ -261,6 +281,7 @@ export default function MyBookings({ bookings, counts, currentStatus }: Props) {
                                     onMessageTeacher={handleMessageTeacher}
                                     onJoinClass={handleJoinClass}
                                     onRaiseDispute={handleRaiseDispute}
+                                    onConfirmRelease={handleConfirmRelease}
                                 />
                             ))}
                         </div>
