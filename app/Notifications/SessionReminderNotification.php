@@ -93,7 +93,7 @@ class SessionReminderNotification extends Notification implements ShouldQueue
             'subject' => $this->booking->subject->name,
             'other_party' => $otherParty,
             'session_date' => $this->booking->start_time->format('M j, Y'),
-            'session_time' => $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('h:i A'),
+            'session_time' => $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('h:i A'),
             'message' => "Your {$this->booking->subject->name} session starts {$timeLabel}.",
         ];
     }

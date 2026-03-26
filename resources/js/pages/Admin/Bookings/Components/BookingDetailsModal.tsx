@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 interface Booking {
     id: number;
     student: { id: number; name: string; email: string; avatar: string | null };
-    teacher: { id: number; name: string; avatar: string | null };
+    teacher: { id: number; name: string; email: string; avatar: string | null };
     subject: { id: number; name: string };
     formatted_date: string;
     formatted_time: string;
@@ -99,7 +99,10 @@ export default function BookingDetailsModal({ isOpen, onClose, booking, onResche
                         
                         <div className="flex items-center">
                             <span className="w-[140px] text-gray-600 font-['Nunito'] font-medium">Teacher</span>
-                            <span className="font-['Nunito'] text-gray-800">{booking.teacher.name}</span>
+                            <div className="flex flex-col">
+                                <span className="font-['Nunito'] text-gray-800">{booking.teacher.name}</span>
+                                <span className="text-xs text-gray-400 font-['Nunito']">{booking.teacher.email}</span>
+                            </div>
                             {booking.status === 'awaiting_approval' && (
                                 <span className="ml-2 text-orange-400 text-sm font-['Nunito'] italic">unavailable</span>
                             )}

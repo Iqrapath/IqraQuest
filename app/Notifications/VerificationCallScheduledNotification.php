@@ -40,7 +40,7 @@ class VerificationCallScheduledNotification extends Notification implements Shou
     public function toMail(object $notifiable): MailMessage
     {
         // Force UTC timezone for display
-        $scheduledDate = Carbon::parse($this->scheduledAt)->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('M d, Y \a\t h:i A');
+        $scheduledDate = Carbon::parse($this->scheduledAt)->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('M d, Y \a\t h:i A');
 
         return (new MailMessage)
             ->subject('Video Verification Call Scheduled - IqraQuest')
@@ -57,7 +57,7 @@ class VerificationCallScheduledNotification extends Notification implements Shou
     {
         return [
             'title' => 'Verification Call Scheduled',
-            'message' => 'Your verification call is scheduled for ' . Carbon::parse($this->scheduledAt)->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('M d, Y h:i A'),
+            'message' => 'Your verification call is scheduled for ' . Carbon::parse($this->scheduledAt)->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('M d, Y h:i A'),
             'type' => 'verification_call',
             'scheduled_at' => $this->scheduledAt,
             'room_url' => $this->roomUrl,
@@ -69,7 +69,7 @@ class VerificationCallScheduledNotification extends Notification implements Shou
     {
         return new BroadcastMessage([
             'title' => 'Verification Call Scheduled',
-            'message' => 'Your verification call is scheduled for ' . Carbon::parse($this->scheduledAt)->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('M d, Y h:i A'),
+            'message' => 'Your verification call is scheduled for ' . Carbon::parse($this->scheduledAt)->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('M d, Y h:i A'),
             'type' => 'verification_call',
             'room_url' => $this->roomUrl,
         ]);

@@ -31,7 +31,7 @@ class BookingCancelledByAdminNotification extends Notification implements Should
     public function toMail(object $notifiable): MailMessage
     {
         $sessionDate = $this->booking->start_time->format('l, M j, Y');
-        $sessionTime = $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('h:i A') . ' - ' . $this->booking->end_time->format('h:i A');
+        $sessionTime = $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('h:i A') . ' - ' . $this->booking->end_time->format('h:i A');
         $currency = $this->booking->currency ?? 'NGN';
 
         $mail = (new MailMessage)
@@ -83,7 +83,7 @@ class BookingCancelledByAdminNotification extends Notification implements Should
                 'teacher_name' => $this->booking->teacher->user->name,
                 'subject' => $this->booking->subject->name,
                 'session_date' => $this->booking->start_time->format('M j, Y'),
-                'session_time' => $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('h:i A'),
+                'session_time' => $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('h:i A'),
                 'reason' => $this->reason,
                 'refunded' => $this->booking->payment_status === 'refunded',
                 'message' => "Your {$this->booking->subject->name} class on {$this->booking->start_time->format('M j')} has been cancelled.",
@@ -96,7 +96,7 @@ class BookingCancelledByAdminNotification extends Notification implements Should
             'student_name' => $this->booking->getStudentDisplayName(),
             'subject' => $this->booking->subject->name,
             'session_date' => $this->booking->start_time->format('M j, Y'),
-            'session_time' => $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('h:i A'),
+            'session_time' => $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('h:i A'),
             'reason' => $this->reason,
             'message' => "Your class with {$this->booking->getStudentDisplayName()} on {$this->booking->start_time->format('M j')} has been cancelled.",
         ];

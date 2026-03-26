@@ -46,8 +46,8 @@ class VerificationRoomController extends Controller
         $lateJoinMinutes = 60;   // Can still join up to 60 minutes late
 
         if ($now->lt($scheduledAt->copy()->subMinutes($earlyJoinMinutes))) {
-            $canJoinAt = $scheduledAt->copy()->subMinutes($earlyJoinMinutes)->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('h:i A');
-            $scheduledTime = $scheduledAt->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('h:i A');
+            $canJoinAt = $scheduledAt->copy()->subMinutes($earlyJoinMinutes)->setTimezone(request()->user()?->timezone ?? config('app.display_timezone'))->format('h:i A');
+            $scheduledTime = $scheduledAt->setTimezone(request()->user()?->timezone ?? config('app.display_timezone'))->format('h:i A');
             $message = "The room opens 15 minutes early at {$canJoinAt} (Scheduled: {$scheduledTime}). Please come back then.";
 
 

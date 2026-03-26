@@ -77,7 +77,7 @@ class RescheduleController extends Controller
                 'current_start_time' => $booking->start_time->toIso8601String(),
                 'current_end_time' => $booking->end_time->toIso8601String(),
                 'formatted_date' => $booking->start_time->format('jS F Y'),
-                'formatted_time' => $booking->start_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A') . ' - ' . $booking->end_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A'),
+                'formatted_time' => $booking->start_time->setTimezone(request()->user()?->timezone ?? config('app.display_timezone'))->setTimezone(request()->user()?->timezone ?? config('app.display_timezone'))->format('g:i A') . ' - ' . $booking->end_time->setTimezone(request()->user()?->timezone ?? config('app.display_timezone'))->format('g:i A'),
                 'duration_minutes' => $booking->start_time->diffInMinutes($booking->end_time),
             ],
             'teacher' => [

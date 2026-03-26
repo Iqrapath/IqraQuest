@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 interface Booking {
     id: number;
     student: { name: string };
-    teacher: { name: string };
+    teacher: { name: string; email: string };
     subject: { name: string };
     formatted_date: string;
     formatted_time: string;
@@ -68,9 +68,12 @@ export default function CancelBookingModal({ isOpen, onClose, booking }: Props) 
                             <span className="text-gray-500 font-['Nunito']">Student:</span>
                             <span className="font-medium font-['Nunito']">{booking.student.name}</span>
                         </div>
-                        <div className="flex justify-between">
+                        <div className="flex justify-between items-center">
                             <span className="text-gray-500 font-['Nunito']">Teacher:</span>
-                            <span className="font-medium font-['Nunito']">{booking.teacher.name}</span>
+                            <div className="text-right">
+                                <p className="font-medium font-['Nunito']">{booking.teacher.name}</p>
+                                <p className="text-xs text-gray-400 font-['Nunito']">{booking.teacher.email}</p>
+                            </div>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-gray-500 font-['Nunito']">Subject:</span>

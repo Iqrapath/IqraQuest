@@ -46,7 +46,7 @@ export interface BookingData {
     };
 }
 
-type BookingStatus = 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+type BookingStatus = 'upcoming' | 'ongoing' | 'completed' | 'cancelled' | 'in_review' | 'disputed' | 'rescheduling' | 'awaiting_approval';
 type UserRole = 'student' | 'guardian' | 'teacher';
 
 interface BookingCardProps {
@@ -310,8 +310,8 @@ function Actions(props: BookingCardProps) {
         );
     }
 
-    // Completed: View Summary (filled), Rebook (outline), Rate Teacher (text link)
-    if (status === 'completed') {
+    // Completed & In Review: View Summary (filled), Rebook (outline), Rate Teacher (text link)
+    if (status === 'completed' || status === 'in_review') {
         return (
             <div className="flex items-center gap-[clamp(0.5rem,1vw,0.75rem)] flex-wrap">
                 <Button

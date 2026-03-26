@@ -20,7 +20,7 @@ class BookingService
         return DB::transaction(function () use ($student, $teacher, $data, $processPayment) {
             // Parse the incoming timezone-naive string assuming it was generated in the 
             // Student's local browser timezone, then convert it definitively to UTC for storage.
-            $studentTimezone = $student->timezone ?? config('app.timezone');
+            $studentTimezone = $student->timezone ?? config('app.display_timezone');
             $startTime = Carbon::parse($data['start_time'], $studentTimezone)->setTimezone('UTC');
             $endTime = Carbon::parse($data['end_time'], $studentTimezone)->setTimezone('UTC');
 

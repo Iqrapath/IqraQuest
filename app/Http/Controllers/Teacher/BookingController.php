@@ -74,16 +74,16 @@ class BookingController extends Controller
                     'currency' => $booking->currency,
                     'start_time' => $booking->start_time,
                     'end_time' => $booking->end_time,
-                    'days_requested' => $booking->start_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('l, M j'),
-                    'time_range' => $booking->start_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A') . ' - ' . $booking->end_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A'),
+                    'days_requested' => $booking->start_time->setTimezone(request()->user()?->timezone ?? config('app.display_timezone'))->format('l, M j'),
+                    'time_range' => $booking->start_time->setTimezone(request()->user()?->timezone ?? config('app.display_timezone'))->format('g:i A') . ' - ' . $booking->end_time->setTimezone(request()->user()?->timezone ?? config('app.display_timezone'))->format('g:i A'),
                     // Reschedule specific data
                     'is_reschedule' => $booking->status === 'rescheduling',
                     'reschedule_id' => $reschedule?->id,
                     'new_start_time' => $reschedule?->new_start_time,
                     'new_end_time' => $reschedule?->new_end_time,
                     'reschedule_reason' => $reschedule?->reason,
-                    'new_days_requested' => $reschedule?->new_start_time?->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('l, M j'),
-                    'new_time_range' => $reschedule ? ($reschedule->new_start_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A') . ' - ' . $reschedule->new_end_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A')) : null,
+                    'new_days_requested' => $reschedule?->new_start_time?->setTimezone(request()->user()?->timezone ?? config('app.display_timezone'))->format('l, M j'),
+                    'new_time_range' => $reschedule ? ($reschedule->new_start_time->setTimezone(request()->user()?->timezone ?? config('app.display_timezone'))->format('g:i A') . ' - ' . $reschedule->new_end_time->setTimezone(request()->user()?->timezone ?? config('app.display_timezone'))->format('g:i A')) : null,
                 ];
             });
 

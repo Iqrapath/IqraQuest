@@ -20,7 +20,7 @@ interface Teacher {
 interface Booking {
     id: number;
     student: { name: string };
-    teacher: { id: number; name: string };
+    teacher: { id: number; name: string; email: string };
     subject: { id: number; name: string };
     formatted_date: string;
     formatted_time: string;
@@ -111,9 +111,12 @@ export default function ReassignTeacherModal({ isOpen, onClose, booking, teacher
                             <span className="text-gray-500 font-['Nunito']">Student:</span>
                             <span className="font-medium font-['Nunito']">{booking.student.name}</span>
                         </div>
-                        <div className="flex justify-between">
+                        <div className="flex justify-between items-center">
                             <span className="text-gray-500 font-['Nunito']">Current Teacher:</span>
-                            <span className="font-medium font-['Nunito']">{booking.teacher.name}</span>
+                            <div className="text-right">
+                                <p className="font-medium font-['Nunito']">{booking.teacher.name}</p>
+                                <p className="text-xs text-gray-400 font-['Nunito']">{booking.teacher.email}</p>
+                            </div>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-gray-500 font-['Nunito']">Subject:</span>

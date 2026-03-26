@@ -38,7 +38,7 @@ class BookingCancelledByStudentNotification extends Notification implements Shou
         $currency = $this->booking->currency ?? 'NGN';
         $studentName = $this->booking->getStudentDisplayName();
         $sessionDate = $this->booking->start_time->format('l, M j, Y');
-        $sessionTime = $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('h:i A') . ' - ' . $this->booking->end_time->format('h:i A');
+        $sessionTime = $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('h:i A') . ' - ' . $this->booking->end_time->format('h:i A');
 
         $mail = (new MailMessage)
             ->subject("Session Cancelled - {$sessionDate}")
@@ -80,7 +80,7 @@ class BookingCancelledByStudentNotification extends Notification implements Shou
             'student_name' => $this->booking->getStudentDisplayName(),
             'subject' => $this->booking->subject->name,
             'session_date' => $this->booking->start_time->format('M j, Y'),
-            'session_time' => $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('h:i A'),
+            'session_time' => $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('h:i A'),
             'cancellation_reason' => $this->booking->cancellation_reason,
             'compensation_amount' => $this->refundInfo['fee'],
             'message' => "{$this->booking->getStudentDisplayName()} cancelled their {$this->booking->subject->name} session on {$this->booking->start_time->format('M j')}.",

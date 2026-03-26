@@ -69,6 +69,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Display Timezone
+    |--------------------------------------------------------------------------
+    |
+    | The timezone used when formatting dates/times for display in the UI.
+    | This is separate from the application timezone (which should remain UTC
+    | for storage). Set DISPLAY_TIMEZONE in .env to match your users' locale.
+    |
+    */
+
+    'display_timezone' => env('DISPLAY_TIMEZONE', 'Africa/Lagos'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |

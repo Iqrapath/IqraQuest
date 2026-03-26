@@ -99,8 +99,8 @@ class BookingController extends Controller
                 'average_rating' => (float) $teacher->average_rating ?: 0.0,
                 'total_reviews' => $teacher->total_reviews,
                 'availability_schedule' => $teacher->availability->map(function ($slot) use ($teacher, $request) {
-                    $teacherTimezone = $teacher->timezone ?? config('app.timezone');
-                    $guardianTimezone = $request->user()?->timezone ?? config('app.timezone');
+                    $teacherTimezone = $teacher->timezone ?? config('app.display_timezone');
+                    $guardianTimezone = $request->user()?->timezone ?? config('app.display_timezone');
 
                     if (!$slot->is_available || !$slot->start_time || !$slot->end_time) {
                         return [

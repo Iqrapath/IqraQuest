@@ -35,7 +35,7 @@ class SessionCancelledForStudentNotification extends Notification implements Sho
     public function toMail(object $notifiable): MailMessage
     {
         $sessionDate = $this->booking->start_time->format('l, M j, Y');
-        $sessionTime = $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('h:i A');
+        $sessionTime = $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('h:i A');
 
         return (new MailMessage)
             ->subject("Session Cancelled - {$sessionDate}")

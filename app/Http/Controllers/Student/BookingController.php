@@ -196,7 +196,7 @@ class BookingController extends Controller
                 'start_time' => $booking->start_time->toIso8601String(),
                 'end_time' => $booking->end_time->toIso8601String(),
                 'formatted_date' => $booking->start_time->format('jS F Y'),
-                'formatted_time' => $booking->start_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A') . ' - ' . $booking->end_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A'),
+                'formatted_time' => $booking->start_time->setTimezone(request()->user()?->timezone ?? config('app.display_timezone'))->setTimezone(request()->user()?->timezone ?? config('app.display_timezone'))->format('g:i A') . ' - ' . $booking->end_time->setTimezone(request()->user()?->timezone ?? config('app.display_timezone'))->format('g:i A'),
                 'duration_minutes' => $booking->start_time->diffInMinutes($booking->end_time),
                 'status' => $booking->status,
                 'display_status' => $this->bookingStatusService->getDisplayStatus($booking),
@@ -282,8 +282,8 @@ class BookingController extends Controller
                 'average_rating' => (float) $teacher->average_rating ?: 0.0,
                 'total_reviews' => $teacher->total_reviews,
                 'availability_schedule' => $teacher->availability->map(function ($slot) use ($teacher, $request) {
-                    $teacherTimezone = $teacher->timezone ?? config('app.timezone');
-                    $studentTimezone = $request->user()?->timezone ?? config('app.timezone');
+                    $teacherTimezone = $teacher->timezone ?? config('app.display_timezone');
+                    $studentTimezone = $request->user()?->timezone ?? config('app.display_timezone');
 
                     if (!$slot->is_available || !$slot->start_time || !$slot->end_time) {
                         return [

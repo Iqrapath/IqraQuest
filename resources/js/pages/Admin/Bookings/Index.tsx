@@ -26,7 +26,7 @@ import BookingDetailsModal from './Components/BookingDetailsModal';
 interface Booking {
     id: number;
     student: { id: number; name: string; email: string; avatar: string | null };
-    teacher: { id: number; name: string; avatar: string | null };
+    teacher: { id: number; name: string; email: string; avatar: string | null };
     subject: { id: number; name: string };
     formatted_date: string;
     formatted_time: string;
@@ -105,6 +105,8 @@ export default function BookingsIndex({ bookings, teachers, subjects, counts, fi
             pending: { color: 'text-yellow-600', bgColor: 'bg-yellow-500', dot: true },
             awaiting_approval: { color: 'text-amber-600', bgColor: 'bg-amber-500', icon: 'mdi:clock-outline', label: 'Awaiting Approval' },
             rescheduling: { color: 'text-purple-600', bgColor: 'bg-purple-600', icon: 'mdi:calendar-clock' },
+            in_review: { color: 'text-amber-600', bgColor: 'bg-amber-500', icon: 'mdi:clock-outline', label: 'In Review' },
+            disputed: { color: 'text-red-500', bgColor: 'bg-red-500', icon: 'mdi:close-circle', label: 'Disputed' },
         };
         const c = config[displayStatus] || { color: 'text-gray-500', bgColor: 'bg-gray-500' };
         const label = c.label || displayStatus.replace('_', ' ');
@@ -222,7 +224,10 @@ export default function BookingsIndex({ bookings, teachers, subjects, counts, fi
                                                     <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
                                                         {booking.teacher.avatar ? <img src={booking.teacher.avatar} alt="" className="w-full h-full object-cover" /> : <Icon icon="mdi:account" className="w-5 h-5 text-gray-400" />}
                                                     </div>
-                                                    <p className="font-['Nunito'] font-medium text-gray-900">{booking.teacher.name}</p>
+                                                    <div>
+                                                        <p className="font-['Nunito'] font-medium text-gray-900">{booking.teacher.name}</p>
+                                                        <p className="font-['Nunito'] text-sm text-gray-500">{booking.teacher.email}</p>
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4"><span className="font-['Nunito'] text-gray-700">{booking.subject.name}</span></td>

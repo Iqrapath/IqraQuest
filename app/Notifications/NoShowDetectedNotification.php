@@ -46,7 +46,7 @@ class NoShowDetectedNotification extends Notification implements ShouldQueue
             $mail->line("Unfortunately, neither party joined the scheduled session.")
                 ->line("**Session Details:**")
                 ->line("- Subject: {$this->booking->subject->name}")
-                ->line("- Scheduled: {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('M j, Y')} at {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('g:i A')}");
+                ->line("- Scheduled: {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('M j, Y')} at {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('g:i A')}");
 
             if ($this->isLearner) {
                 $mail->line("---")
@@ -58,7 +58,7 @@ class NoShowDetectedNotification extends Notification implements ShouldQueue
                     ->line("**Session Details:**")
                     ->line("- Subject: {$this->booking->subject->name}")
                     ->line("- Teacher: {$this->booking->teacher->user->name}")
-                    ->line("- Scheduled: {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('M j, Y')} at {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('g:i A')}")
+                    ->line("- Scheduled: {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('M j, Y')} at {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('g:i A')}")
                     ->line("---")
                     ->line("**Full Refund:** {$currency} {$amount} has been credited to your wallet.")
                     ->line("We sincerely apologize for this inconvenience.");
@@ -67,7 +67,7 @@ class NoShowDetectedNotification extends Notification implements ShouldQueue
                     ->line("**Session Details:**")
                     ->line("- Subject: {$this->booking->subject->name}")
                     ->line("- Booked by: {$this->booking->getStudentDisplayName()}")
-                    ->line("- Scheduled: {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('M j, Y')} at {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('g:i A')}")
+                    ->line("- Scheduled: {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('M j, Y')} at {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('g:i A')}")
                     ->line("---")
                     ->line("**Consequence:** A full refund has been issued.")
                     ->line("Please ensure you join sessions on time to maintain your reputation.");
@@ -82,7 +82,7 @@ class NoShowDetectedNotification extends Notification implements ShouldQueue
                     ->line("**Session Details:**")
                     ->line("- Subject: {$this->booking->subject->name}")
                     ->line("- Teacher: {$this->booking->teacher->user->name}")
-                    ->line("- Scheduled: {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('M j, Y')} at {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('g:i A')}")
+                    ->line("- Scheduled: {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('M j, Y')} at {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('g:i A')}")
                     ->line("---")
                     ->line("**No-Show Policy Applied:**")
                     ->line("- 50% refund: {$currency} " . number_format($refundAmount, 2) . " credited to your wallet")
@@ -94,7 +94,7 @@ class NoShowDetectedNotification extends Notification implements ShouldQueue
                     ->line("**Session Details:**")
                     ->line("- Subject: {$this->booking->subject->name}")
                     ->line("- Booked by: {$this->booking->getStudentDisplayName()}")
-                    ->line("- Scheduled: {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('M j, Y')} at {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('g:i A')}")
+                    ->line("- Scheduled: {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('M j, Y')} at {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('g:i A')}")
                     ->line("---")
                     ->line("**Compensation:** {$currency} " . number_format($teacherEarnings, 2) . " has been credited to your wallet (50% of session fee, after commission).")
                     ->line("Thank you for being ready for the session.");
@@ -121,7 +121,7 @@ class NoShowDetectedNotification extends Notification implements ShouldQueue
             'booking_id' => $this->booking->id,
             'no_show_type' => $this->noShowType,
             'subject' => $this->booking->subject->name,
-            'session_date' => $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('M j, Y'),
+            'session_date' => $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('M j, Y'),
             'message' => $message,
         ];
     }

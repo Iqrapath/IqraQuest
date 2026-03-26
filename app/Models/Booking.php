@@ -236,8 +236,8 @@ class Booking extends Model
             return false;
         }
 
-        // Can only dispute completed sessions
-        if (!in_array($this->status, ['completed', 'confirmed'])) {
+        // Can only dispute completed, confirmed (for no-shows), or awaiting_judgment sessions
+        if (!in_array($this->status, ['completed', 'confirmed', 'awaiting_judgment'])) {
             return false;
         }
 

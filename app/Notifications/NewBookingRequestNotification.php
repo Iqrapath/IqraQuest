@@ -44,7 +44,7 @@ class NewBookingRequestNotification extends Notification implements ShouldQueue,
             ->greeting('Salaam ' . $notifiable->name . ',')
             ->line('You have received a new booking request.')
             ->line('**Student:** ' . $this->booking->getStudentDisplayName())
-            ->line('**Date:** ' . $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.timezone'))->format('F j, Y, g:i a'))
+            ->line('**Date:** ' . $this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('F j, Y, g:i a'))
             ->line('**Subject:** ' . ($this->booking->subject->name ?? 'Quran Study'))
             ->line('**Revenue:** ' . ($this->booking->currency === 'USD' ? '$' : '₦') . number_format($this->booking->total_price * 0.90, 0) . ' (est. after commission)')
             ->line('---')

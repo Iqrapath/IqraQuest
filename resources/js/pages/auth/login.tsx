@@ -171,7 +171,7 @@ export default function Login({
                         <div className="grid gap-3">
                             <button
                                 type="button"
-                                className="flex items-center justify-center gap-3 w-full h-12 px-4 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
+                                className="flex items-center justify-center gap-3 w-full h-12 px-4 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors cursor-pointer"
                                 onClick={() => window.location.href = '/auth/google/redirect'}
                             >
                                 <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -197,7 +197,7 @@ export default function Login({
 
                             <button
                                 type="button"
-                                className="flex items-center justify-center gap-3 w-full h-12 px-4 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
+                                className="flex items-center justify-center gap-3 w-full h-12 px-4 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors cursor-pointer"
                                 onClick={() => window.location.href = '/auth/facebook/redirect'}
                             >
                                 <svg className="h-5 w-5" fill="#1877F2" viewBox="0 0 24 24">

@@ -70,25 +70,28 @@ class BookingController extends Controller
         // Sort by date (newest first by default)
         $query->orderBy('start_time', 'desc');
 
+        $tz = request()->user()?->timezone ?? config('app.display_timezone');
+
         $bookings = $query->paginate(15)->through(fn($booking) => [
             'id' => $booking->id,
             'student' => [
                 'id' => $booking->student->id,
                 'name' => $booking->student->name,
                 'email' => $booking->student->email,
-                'avatar' => $booking->student->avatar,
+                'avatar' => $booking->student->avatar_url,
             ],
             'teacher' => [
                 'id' => $booking->teacher->id,
                 'name' => $booking->teacher->user->name,
-                'avatar' => $booking->teacher->user->avatar,
+                'email' => $booking->teacher->user->email,
+                'avatar' => $booking->teacher->user->avatar_url,
             ],
             'subject' => [
                 'id' => $booking->subject->id,
                 'name' => $booking->subject->name,
             ],
-            'formatted_date' => $booking->start_time->format('M j'),
-            'formatted_time' => $booking->start_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A'),
+            'formatted_date' => $booking->start_time->setTimezone($tz)->format('M j'),
+            'formatted_time' => $booking->start_time->setTimezone($tz)->format('g:i A') . ' - ' . $booking->end_time->setTimezone($tz)->format('g:i A'),
             'start_time' => $booking->start_time->toIso8601String(),
             'end_time' => $booking->end_time->toIso8601String(),
             'status' => $booking->status,
@@ -149,14 +152,14 @@ class BookingController extends Controller
                     'id' => $booking->student->id,
                     'name' => $booking->student->name,
                     'email' => $booking->student->email,
-                    'avatar' => $booking->student->avatar,
+                    'avatar' => $booking->student->avatar_url,
                     'phone' => $booking->student->phone,
                 ],
                 'teacher' => [
                     'id' => $booking->teacher->id,
                     'name' => $booking->teacher->user->name,
                     'email' => $booking->teacher->user->email,
-                    'avatar' => $booking->teacher->user->avatar,
+                    'avatar' => $booking->teacher->user->avatar_url,
                 ],
                 'subject' => [
                     'id' => $booking->subject->id,
@@ -164,8 +167,8 @@ class BookingController extends Controller
                 ],
                 'start_time' => $booking->start_time->toIso8601String(),
                 'end_time' => $booking->end_time->toIso8601String(),
-                'formatted_date' => $booking->start_time->format('jS F Y'),
-                'formatted_time' => $booking->start_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A') . ' - ' . $booking->end_time->setTimezone(request()->user()?->timezone ?? config('app.timezone'))->format('g:i A'),
+                'formatted_date' => $booking->start_time->setTimezone(request()->user()?->timezone ?? config('app.display_timezone'))->format('jS F Y'),
+                'formatted_time' => $booking->start_time->setTimezone(request()->user()?->timezone ?? config('app.display_timezone'))->format('g:i A') . ' - ' . $booking->end_time->setTimezone(request()->user()?->timezone ?? config('app.display_timezone'))->format('g:i A'),
                 'duration_minutes' => $booking->start_time->diffInMinutes($booking->end_time),
                 'status' => $booking->status,
                 'display_status' => $this->getDisplayStatus($booking),
@@ -428,7 +431,7 @@ class BookingController extends Controller
             'cancelled' => 'cancelled',
             'no_show' => 'missed',
             'rescheduling' => 'rescheduling',
-            'disputed' => 'disputed',
+            'awaiting_judgment', 'disputed' => 'in_review',
             default => $booking->status,
         };
     }
