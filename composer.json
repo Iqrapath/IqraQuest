@@ -21,6 +21,8 @@
         "laravel/wayfinder": "^0.1.9",
         "sentry/sentry-laravel": "^4.21",
         "tightenco/ziggy": "^2.6",
+        "paypal/paypal-checkout-sdk": "1.0.2",
+        "paypal/paypal-payouts-sdk": "1.0.1",
         "yabacon/paystack-php": "^2.2"
     },
     "require-dev": {
