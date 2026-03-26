@@ -939,6 +939,22 @@ sudo systemctl start iqraquest-worker
 
 ### Recent Updates
 
+#### 2026-03-26 - Timezone Standardization & "In Review" Lifecycle 🆕
+- ✅ **Platform-Wide Timezone Support**
+  - Standardized all UI displays to use `Africa/Lagos` (WAT) as secondary local fallback.
+  - Decoupled UTC database storage from user-facing local time calculations.
+  - Updated all dashboard notifications (Student/Teacher/Admin) to use fixed WAT offsets for consistency.
+
+- ✅ **"In Review" Booking Management**
+  - New "In Review" tab implemented for both Student and Teacher dashboards.
+  - Groups `awaiting_judgment` and `disputed` bookings for easier tracking during the 2-hour post-session window.
+  - Enabled "Release Funds" and "Raise Dispute" actions for students during this period.
+
+- ✅ **Admin Dashboard Refinements**
+  - Fixed broken avatar images by using the standardized `avatar_url` accessor.
+  - Refined bookings table to show teacher emails and full session durations (Start - End time).
+  - Aligned Admin terminology to "In Review" to match student/teacher views.
+
 #### 2025-12-31 - AI Teacher Matching & System Settings 🆕
 - ✅ **AI-Powered Teacher Matching**
   - Gemini integration for intelligent teacher recommendations
