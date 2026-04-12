@@ -31,7 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->validateCsrfTokens(except: [
+        $middleware->preventRequestForgery(except: [
             'webhooks/*', // Allow webhooks without CSRF token
         ]);
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
