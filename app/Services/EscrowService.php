@@ -250,20 +250,26 @@ class EscrowService
         // ── Option B: Sync flags from actual attendance records before deciding ──
         $this->syncAttendanceFlagsFromRecords($booking);
 
-        // Update booking status
-        $booking->update(['status' => 'completed']);
-
-        // Determine payment based on attendance
+        // Determine payment based on attendance (set terminal status per branch)
         if (!$booking->teacher_attended && !$booking->student_attended) {
             // Both no-show - full refund to student
             $this->refundFunds($booking, null, 'Session not attended by either party');
+            $booking->update([
+                'status' => 'cancelled',
+                'cancellation_reason' => 'Session not attended by either party',
+            ]);
         } elseif (!$booking->teacher_attended) {
             // Teacher no-show - full refund
             $this->refundFunds($booking, null, 'Teacher did not attend the session');
+            $booking->update([
+                'status' => 'cancelled',
+                'cancellation_reason' => 'Teacher did not attend the session',
+            ]);
         } elseif (!$booking->student_attended) {
-            // Student no-show - teacher gets partial payment after wait time
+            // Student no-show - teacher gets partial payment (present for the slot)
             $noShowPercentage = $this->getNoShowTeacherPercentage();
             $this->processPartialPayment($booking, $noShowPercentage, 'Student no-show');
+            $booking->update(['status' => 'completed']);
         } else {
             // Both attended - check completion percentage
             $completionPercentage = $booking->getCompletionPercentage();
@@ -279,6 +285,7 @@ class EscrowService
                     // Funds will be released by scheduled job after 2h
                     Log::info("Escrow: Booking #{$booking->id} completed, awaiting 2h dispute window");
                 }
+                $booking->update(['status' => 'completed']);
             } else {
                 // Pro-rated payment based on actual duration
                 $this->processPartialPayment(
@@ -286,6 +293,7 @@ class EscrowService
                     $completionPercentage,
                     "Session ended early ({$booking->actual_duration_minutes} minutes)"
                 );
+                $booking->update(['status' => 'completed']);
             }
         }
     }

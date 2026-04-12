@@ -228,18 +228,21 @@ class BookingStatusService
 
     protected function applyInReviewConditions(Builder $query): Builder
     {
-        return $query->whereIn('status', ['awaiting_judgment', 'disputed']);
-    }
-
-    protected function applyCompletedConditions(Builder $query): Builder
-    {
+        // Awaiting arbiter / disputes, plus sessions whose end time has passed but the
+        // booking row is still confirmed/ongoing (scheduler will move them to awaiting_judgment).
+        // These must not appear under "Completed" until status is actually `completed`.
         return $query->where(function ($q) {
-            $q->where('status', 'completed')
+            $q->whereIn('status', ['awaiting_judgment', 'disputed'])
                 ->orWhere(function ($sq) {
                     $sq->whereIn('status', ['confirmed', 'ongoing'])
                         ->where('end_time', '<', now());
                 });
         });
+    }
+
+    protected function applyCompletedConditions(Builder $query): Builder
+    {
+        return $query->where('status', 'completed');
     }
 
     /**
