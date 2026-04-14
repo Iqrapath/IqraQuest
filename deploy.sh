@@ -21,6 +21,9 @@ composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 log "Installing Node dependencies..."
 npm ci
 
+log "Generating Wayfinder TypeScript routes (required for Vite build)..."
+php artisan wayfinder:generate --with-form --no-interaction
+
 # 3) Build assets
 log "Building frontend assets..."
 npm run build

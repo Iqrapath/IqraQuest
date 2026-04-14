@@ -65,17 +65,18 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @php
-        $reverb = config('broadcasting.connections.reverb');
-        $reverbHost = $reverb['options']['host'] ?? null;
+        $reverb = config('broadcasting.connections.reverb', []);
+        $reverbOptions = is_array($reverb) ? ($reverb['options'] ?? []) : [];
+        $reverbHost = $reverbOptions['host'] ?? null;
         if (!$reverbHost) {
             $reverbHost = parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'localhost';
         }
     @endphp
     <meta name="reverb-client" content="@json([
-        'key' => $reverb['key'] ?? '',
+        'key' => is_array($reverb) ? ($reverb['key'] ?? '') : '',
         'host' => $reverbHost,
-        'port' => (int) ($reverb['options']['port'] ?? 443),
-        'scheme' => $reverb['options']['scheme'] ?? 'https',
+        'port' => (int) ($reverbOptions['port'] ?? 443),
+        'scheme' => $reverbOptions['scheme'] ?? 'https',
     ])">
 
     @viteReactRefresh
