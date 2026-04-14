@@ -1,29 +1,59 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# 1. Pull the latest code
-git pull origin main
+set -euo pipefail
 
-# 2. Install dependencies (Backend & Frontend)
-composer install --no-dev --optimize-autoloader
-npm install
+log() {
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
+}
 
-# 3. Build React Assets (The fix for your current issue!)
+log "Starting deployment..."
+
+# 0) Safety check: do not deploy from dirty working tree.
+if [[ -n "$(git status --porcelain)" ]]; then
+  log "Deployment aborted: working tree has local changes."
+  log "Commit or stash changes, then rerun deploy."
+  exit 1
+fi
+
+# 1) Pull latest code
+log "Pulling latest code from origin/main..."
+git pull --rebase origin main
+
+# 2) Install dependencies (Backend & Frontend)
+log "Installing PHP dependencies..."
+composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+log "Installing Node dependencies..."
+npm ci
+
+# 3) Build assets
+log "Building frontend assets..."
 npm run build
 
-# 4. Update Database
+# 4) Update database
+log "Running migrations..."
 php artisan migrate --force
 
-# 5. Clear All Caches
+# 5) Clear/refresh caches
+log "Optimizing Laravel caches..."
 php artisan optimize:clear
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 
-# 6. Restart Background Processes
-# This makes sure the Queues and Reverb use the NEW code
+# 6) Restart background processes
+log "Restarting queue/reverb workers..."
 php artisan queue:restart
 php artisan reverb:restart
-# (Note: We do not need to restart 'schedule:run', Cron handles it)
 
-# 7. Reload PHP to clear OPcache
-sudo systemctl reload php8.3-fpm
-# (Change 8.3 to your actual PHP version)
+# 7) Reload PHP-FPM to clear OPcache (best-effort service detection)
+log "Reloading PHP-FPM..."
+if systemctl list-units --type=service --all | rg -q "php8\\.3-fpm\\.service"; then
+  systemctl reload php8.3-fpm
+elif systemctl list-units --type=service --all | rg -q "php-fpm\\.service"; then
+  systemctl reload php-fpm
+else
+  log "Warning: PHP-FPM service not detected; skipping reload."
+fi
 
-echo "🚀 Deployment Complete!"
+log "Deployment complete."
