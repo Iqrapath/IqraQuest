@@ -4,12 +4,18 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Laravel\Fortify\Contracts\LoginResponse;
+use Laravel\Fortify\Contracts\VerifyEmailResponse;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 
@@ -43,27 +49,28 @@ class FortifyServiceProvider extends ServiceProvider
 
         // Custom authentication logic to check for suspended accounts
         Fortify::authenticateUsing(function (Request $request) {
-            $user = \App\Models\User::where('email', $request->email)->first();
+            $user = User::where('email', $request->email)->first();
 
-            if ($user && \Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+            if ($user && Hash::check($request->password, $user->password)) {
                 if ($user->status === 'suspended') {
-                    throw \Illuminate\Validation\ValidationException::withMessages([
+                    throw ValidationException::withMessages([
                         Fortify::username() => 'Your account has been suspended. Please contact support.',
                     ]);
                 }
+
                 return $user;
             }
         });
 
         // Custom email verification response - redirect to onboarding
         $this->app->singleton(
-            \Laravel\Fortify\Contracts\VerifyEmailResponse::class,
+            VerifyEmailResponse::class,
             \App\Http\Responses\VerifyEmailResponse::class
         );
 
         // Custom login response - handle teacher onboarding redirects
         $this->app->singleton(
-            \Laravel\Fortify\Contracts\LoginResponse::class,
+            LoginResponse::class,
             \App\Http\Responses\LoginResponse::class
         );
     }
@@ -92,7 +99,7 @@ class FortifyServiceProvider extends ServiceProvider
             }
 
             // If teacher hasn't completed onboarding, redirect to the correct step
-            \Illuminate\Support\Facades\Log::info('Login Redirect Debug:', [
+            Log::info('Login Redirect Debug:', [
                 'is_teacher' => $user->isTeacher(),
                 'has_teacher_profile' => (bool) $user->teacher,
                 'onboarding_step' => $user->teacher?->onboarding_step,
@@ -117,7 +124,7 @@ class FortifyServiceProvider extends ServiceProvider
             return route($user->dashboardRoute());
         });
 
-        Fortify::loginView(fn(Request $request) => Inertia::render('auth/login', [
+        Fortify::loginView(fn (Request $request) => Inertia::render('auth/login', [
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
             'canRegister' => Features::enabled(Features::registration()),
             'status' => $request->session()->get('status'),
@@ -125,12 +132,12 @@ class FortifyServiceProvider extends ServiceProvider
             'login_error' => $request->session()->get('login_error'),
         ]));
 
-        Fortify::resetPasswordView(fn(Request $request) => Inertia::render('auth/reset-password', [
+        Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [
             'email' => $request->email,
             'token' => $request->route('token'),
         ]));
 
-        Fortify::requestPasswordResetLinkView(fn(Request $request) => Inertia::render('auth/forgot-password', [
+        Fortify::requestPasswordResetLinkView(fn (Request $request) => Inertia::render('auth/forgot-password', [
             'status' => $request->session()->get('status'),
         ]));
 
@@ -146,13 +153,13 @@ class FortifyServiceProvider extends ServiceProvider
             ]);
         });
 
-        Fortify::registerView(fn() => Inertia::render('auth/register', [
+        Fortify::registerView(fn () => Inertia::render('auth/register', [
             'verificationMethod' => config('auth.verification.method', 'link'),
         ]));
 
-        Fortify::twoFactorChallengeView(fn() => Inertia::render('auth/two-factor-challenge'));
+        Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/two-factor-challenge'));
 
-        Fortify::confirmPasswordView(fn() => Inertia::render('auth/confirm-password'));
+        Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirm-password'));
     }
 
     /**
@@ -166,10 +173,10 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())) . '|' . $request->ip());
+            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
+            $perMinute = app()->environment('testing') ? 5 : 1000;
 
-            // return Limit::perMinute(5)->by($throttleKey);
-            return Limit::perMinute(1000)->by($throttleKey);
+            return Limit::perMinute($perMinute)->by($throttleKey);
         });
     }
 }

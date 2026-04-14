@@ -86,7 +86,8 @@ Route::post('/register/teacher', [TeacherRegistrationController::class, 'store']
 
 // Override default Fortify registration to prevent auto-login and show success modal
 Route::post('/register', [RegisterController::class, 'store'])
-    ->middleware('guest');
+    ->middleware('guest')
+    ->name('register.store');
 
 // Role Selection Routes (After Email Verification)
 Route::get('/select-role', [RoleSelectionController::class, 'show'])

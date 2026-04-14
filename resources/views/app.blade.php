@@ -71,13 +71,15 @@
         if (!$reverbHost) {
             $reverbHost = parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'localhost';
         }
+        // Build in PHP — @json([...]) breaks when the array contains $var['key'] (] closes the Blade directive early).
+        $reverbClient = [
+            'key' => is_array($reverb) ? ($reverb['key'] ?? '') : '',
+            'host' => $reverbHost,
+            'port' => (int) ($reverbOptions['port'] ?? 443),
+            'scheme' => $reverbOptions['scheme'] ?? 'https',
+        ];
     @endphp
-    <meta name="reverb-client" content="@json([
-        'key' => is_array($reverb) ? ($reverb['key'] ?? '') : '',
-        'host' => $reverbHost,
-        'port' => (int) ($reverbOptions['port'] ?? 443),
-        'scheme' => $reverbOptions['scheme'] ?? 'https',
-    ])">
+    <meta name="reverb-client" content="@json($reverbClient)">
 
     @viteReactRefresh
     @vite(['resources/js/app.tsx'])

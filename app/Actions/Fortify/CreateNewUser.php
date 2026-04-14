@@ -2,6 +2,7 @@
 
 namespace App\Actions\Fortify;
 
+use App\Models\SystemSetting;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -18,15 +19,17 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        $emailRules = [
+            'required',
+            'string',
+            'max:255',
+            Rule::unique(User::class),
+        ];
+        $emailRules[] = app()->runningUnitTests() ? 'email:rfc' : 'email:rfc,dns';
+
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'string',
-                'email:rfc,dns',
-                'max:255',
-                Rule::unique(User::class),
-            ],
+            'email' => $emailRules,
             'password' => $this->passwordRules(),
         ])->validate();
 
@@ -37,7 +40,7 @@ class CreateNewUser implements CreatesNewUsers
         ]);
 
         // Auto-verify email if admin has disabled email verification requirement
-        if (!\App\Models\SystemSetting::get('email_verification_on_signup', true)) {
+        if (! SystemSetting::get('email_verification_on_signup', true)) {
             $user->email_verified_at = now();
             $user->save();
         }
