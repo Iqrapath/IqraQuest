@@ -9,6 +9,18 @@ use Illuminate\Support\Facades\Log;
 class CurrencyService
 {
     /**
+     * Log without failing the request if the log file is not writable.
+     */
+    private function safeLog(string $level, string $message, array $context = []): void
+    {
+        try {
+            Log::log($level, $message, $context);
+        } catch (\Throwable) {
+            //
+        }
+    }
+
+    /**
      * Convert amount from one currency to another
      */
     public function convert(float $amount, string $fromCurrency, string $toCurrency): float
@@ -40,7 +52,7 @@ class CurrencyService
 
             // Only log if not frequently spamming
             if (app()->environment('local')) {
-                Log::info('Exchange rate calculated', [
+                $this->safeLog('info', 'Exchange rate calculated', [
                     'from' => $from,
                     'to' => $to,
                     'rate' => $rate,
@@ -71,7 +83,7 @@ class CurrencyService
                 $payload = $response->json();
                 $rates = is_array($payload) ? ($payload['rates'] ?? null) : null;
                 if (! is_array($rates) || $rates === []) {
-                    Log::warning('Exchange rate API returned no rates', ['payload_keys' => is_array($payload) ? array_keys($payload) : null]);
+                    $this->safeLog('warning', 'Exchange rate API returned no rates', ['payload_keys' => is_array($payload) ? array_keys($payload) : null]);
 
                     return null;
                 }
@@ -79,12 +91,12 @@ class CurrencyService
                 // Cache for 6 hours
                 Cache::put('exchange_rates_base_usd', $rates, now()->addHours(6));
 
-                Log::info('Fetched all exchange rates from API successfully');
+                $this->safeLog('info', 'Fetched all exchange rates from API successfully');
 
                 return $rates;
             }
         } catch (\Exception $e) {
-            Log::error('Failed to fetch exchange rates', [
+            $this->safeLog('error', 'Failed to fetch exchange rates', [
                 'error' => $e->getMessage(),
             ]);
         }
@@ -111,7 +123,7 @@ class CurrencyService
         ];
 
         if (isset($fallbackRates[$from][$to])) {
-            Log::warning('Using fallback exchange rate', [
+            $this->safeLog('warning', 'Using fallback exchange rate', [
                 'from' => $from,
                 'to' => $to,
                 'rate' => $fallbackRates[$from][$to],
@@ -121,7 +133,7 @@ class CurrencyService
         }
 
         // Default to 1:1 if no rate found
-        Log::error('No exchange rate found, defaulting to 1:1', [
+        $this->safeLog('error', 'No exchange rate found, defaulting to 1:1', [
             'from' => $from,
             'to' => $to,
         ]);
