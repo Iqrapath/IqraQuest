@@ -27,9 +27,8 @@ class LiveKitWebhookController extends Controller
     {
         $rawBody = $request->getContent();
 
+        // 1. Verify webhook signature at the absolute top (no logging before this)
         if (! $this->webhookVerifier->verify($rawBody, $request->header('Authorization'))) {
-            Log::warning('LiveKit webhook rejected: invalid signature or missing credentials');
-
             return response()->json(['status' => 'unauthorized'], 401);
         }
 

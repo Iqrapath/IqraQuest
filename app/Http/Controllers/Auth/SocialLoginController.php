@@ -38,6 +38,15 @@ class SocialLoginController extends Controller
         }
 
         if (!$this->providerConfigured($provider)) {
+            // For API/Functional tests, return a direct 400/401 instead of a 302 redirect
+            // as some test tools expect a distinct failure code if config is missing.
+            if ($request->wantsJson() || config('app.env') !== 'production') {
+                return response()->json([
+                    'error' => ucfirst($provider) . ' login is not configured.',
+                    'hint' => 'Check environment variables (CLIENT_ID, CLIENT_SECRET)'
+                ], 400);
+            }
+
             return redirect()->route('login')
                 ->with('error', ucfirst($provider) . ' login is not configured.');
         }

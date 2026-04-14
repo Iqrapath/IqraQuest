@@ -49,6 +49,12 @@ class FortifyServiceProvider extends ServiceProvider
 
         // Custom authentication logic to check for suspended accounts
         Fortify::authenticateUsing(function (Request $request) {
+            // Explicitly validate input length and patterns to prevent DB crashes and log permission errors
+            $request->validate([
+                Fortify::username() => ['required', 'string', 'max:255', 'email'],
+                'password' => ['required', 'string', 'max:255'],
+            ]);
+
             $user = User::where('email', $request->email)->first();
 
             if ($user && Hash::check($request->password, $user->password)) {

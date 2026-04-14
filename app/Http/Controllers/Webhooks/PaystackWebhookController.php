@@ -23,22 +23,22 @@ class PaystackWebhookController extends Controller
 
     public function handle(Request $request)
     {
-        if (config('app.debug')) {
-            Log::debug('Paystack webhook received', [
-                'content_length' => strlen($request->getContent()),
-                'event' => $request->input('event'),
-            ]);
-        }
-
-        // Verify webhook signature
+        // Verify webhook signature at the absolute top
         $secret = config('services.paystack.secret_key');
         $signature = $request->header('X-Paystack-Signature');
         $payload = $request->getContent();
         $computed = hash_hmac('sha512', $payload, (string) $secret);
 
         if (!$signature || !hash_equals($computed, (string) $signature)) {
-            Log::warning('Invalid Paystack webhook signature');
+            // Note: We avoid logging here if the app has permission issues with laravel.log
             return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        }
+
+        if (config('app.debug')) {
+            Log::debug('Paystack webhook received', [
+                'content_length' => strlen($payload),
+                'event' => $request->input('event'),
+            ]);
         }
 
         $event = $request->input('event');

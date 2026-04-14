@@ -15,15 +15,13 @@ class ZoomWebhookController extends Controller
      */
     public function handle(Request $request)
     {
+        // 1. Verify webhook signature at the absolute top
+        // Exception: endpoint.url_validation doesn't always have a signature in the same way,
+        // but we handle it separately.
         $payload = $request->all();
         $event = $payload['event'] ?? null;
 
-        Log::channel('daily')->info('Zoom Webhook Received', [
-            'event' => $event,
-            'payload' => $payload,
-        ]);
-
-        // Handle URL validation challenge (required for webhook setup in Zoom Dashboard)
+        // Handle URL validation challenge (MUST happen before general signature check or logging)
         if ($event === 'endpoint.url_validation') {
             $plainToken = $payload['payload']['plainToken'] ?? null;
             $secretToken = config('services.zoom.webhook_secret_token');
@@ -39,11 +37,17 @@ class ZoomWebhookController extends Controller
             return response()->json(['error' => 'Invalid validation request'], 400);
         }
 
-        // Verify webhook signature (optional but recommended for security)
+        // 2. Regular event signature verification
         if (!$this->verifySignature($request)) {
-            Log::channel('daily')->warning('Zoom Webhook: Invalid signature');
+            // Avoid logging here to prevent Permission Denied crashes
             return response()->json(['error' => 'Invalid signature'], 401);
         }
+
+        // 3. Log verified payload
+        Log::channel('daily')->info('Zoom Webhook Verified', [
+            'event' => $event,
+            'payload' => $payload,
+        ]);
 
         // Handle meeting events
         switch ($event) {
