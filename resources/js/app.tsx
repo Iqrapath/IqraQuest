@@ -83,9 +83,10 @@ if (import.meta.env.VITE_SENTRY_DSN) {
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     resolve: (name) => {
+        const normalized = name.replace(/^pages\//i, '');
         return resolvePageComponent(
-            `./Pages/${name}.tsx`,
-            import.meta.glob('./Pages/**/*.tsx'),
+            `./pages/${normalized}.tsx`,
+            import.meta.glob('./pages/**/*.tsx'),
         );
     },
     setup({ el, App, props }) {
