@@ -2,8 +2,14 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Booking;
+use App\Models\Message;
+use App\Models\Payout;
+use App\Models\SystemSetting;
+use App\Models\Teacher;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -40,34 +46,34 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
-            'site_name' => $siteName = \App\Models\SystemSetting::get('site_name', config('app.name')),
-            'site_logo' => \App\Models\SystemSetting::get('site_logo')
-                ? asset('storage/' . \App\Models\SystemSetting::get('site_logo'))
+            'site_name' => $siteName = SystemSetting::get('site_name', config('app.name')),
+            'site_logo' => SystemSetting::get('site_logo')
+                ? asset('storage/'.SystemSetting::get('site_logo'))
                 : null,
             'name' => $siteName,
             'settings' => [
                 'general' => [
-                    'support_email' => \App\Models\SystemSetting::get('support_email'),
-                    'office_address' => \App\Models\SystemSetting::get('office_address'),
-                    'contact_number' => \App\Models\SystemSetting::get('contact_number'),
-                    'whatsapp_number' => \App\Models\SystemSetting::get('whatsapp_number'),
-                    'show_support_email' => \App\Models\SystemSetting::get('show_support_email'),
-                    'show_office_address' => \App\Models\SystemSetting::get('show_office_address'),
-                    'show_contact_number' => \App\Models\SystemSetting::get('show_contact_number'),
-                    'show_whatsapp_number' => \App\Models\SystemSetting::get('show_whatsapp_number'),
+                    'support_email' => SystemSetting::get('support_email'),
+                    'office_address' => SystemSetting::get('office_address'),
+                    'contact_number' => SystemSetting::get('contact_number'),
+                    'whatsapp_number' => SystemSetting::get('whatsapp_number'),
+                    'show_support_email' => SystemSetting::get('show_support_email'),
+                    'show_office_address' => SystemSetting::get('show_office_address'),
+                    'show_contact_number' => SystemSetting::get('show_contact_number'),
+                    'show_whatsapp_number' => SystemSetting::get('show_whatsapp_number'),
                 ],
                 'localization' => [
-                    'timezone' => \App\Models\SystemSetting::get('timezone', 'UTC'),
-                    'date_format' => \App\Models\SystemSetting::get('date_format', 'DD/MM/YYYY'),
+                    'timezone' => SystemSetting::get('timezone', 'UTC'),
+                    'date_format' => SystemSetting::get('date_format', 'DD/MM/YYYY'),
                 ],
             ],
             'locale' => app()->getLocale(),
             'translations' => array_merge(
-                \Illuminate\Support\Facades\File::exists(lang_path('en.json'))
-                ? json_decode(\Illuminate\Support\Facades\File::get(lang_path('en.json')), true)
+                File::exists(lang_path('en.json'))
+                ? json_decode(File::get(lang_path('en.json')), true)
                 : [],
-                \Illuminate\Support\Facades\File::exists(lang_path(app()->getLocale() . '.json'))
-                ? json_decode(\Illuminate\Support\Facades\File::get(lang_path(app()->getLocale() . '.json')), true)
+                File::exists(lang_path(app()->getLocale().'.json'))
+                ? json_decode(File::get(lang_path(app()->getLocale().'.json')), true)
                 : []
             ),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
@@ -76,7 +82,7 @@ class HandleInertiaRequests extends Middleware
                 'permissions' => $request->user()?->isAdmin()
                     ? ($request->user()->isSuperAdmin() ? ['*'] : ($request->user()->roleDetail->permissions ?? []))
                     : [],
-                'wallet_balance' => $request->user()?->wallet()->value('balance') ?? 0,
+                'wallet_balance' => (float) ($request->user()?->wallet?->balance ?? 0),
                 'wallet_currency' => $request->user()?->wallet?->currency ?? 'NGN',
                 'payment_gateways_currencies' => [
                     'paystack' => config('services.paystack.currency', 'NGN'),
@@ -108,7 +114,7 @@ class HandleInertiaRequests extends Middleware
                 ? $request->user()->unreadNotifications()->count()
                 : 0,
             'unreadMessagesCount' => $request->user()
-                ? \App\Models\Message::whereHas('conversation', function ($q) use ($request) {
+                ? Message::whereHas('conversation', function ($q) use ($request) {
                     $q->where('user_one_id', $request->user()->id)
                         ->orWhere('user_two_id', $request->user()->id);
                 })
@@ -117,38 +123,38 @@ class HandleInertiaRequests extends Middleware
                     ->count()
                 : 0,
             'pendingRequestsCount' => ($request->user() && $request->user()->isTeacher() && $request->user()->teacher)
-                ? \App\Models\Booking::where('teacher_id', $request->user()->teacher->id)
+                ? Booking::where('teacher_id', $request->user()->teacher->id)
                     ->whereIn('status', ['awaiting_approval', 'rescheduling'])
                     ->count()
                 : 0,
             'dueSessionsCount' => ($request->user() && $request->user()->isTeacher() && $request->user()->teacher)
-                ? \App\Models\Booking::where('teacher_id', $request->user()->teacher->id)
+                ? Booking::where('teacher_id', $request->user()->teacher->id)
                     ->where('status', 'confirmed') // Only confirmed sessions can be "due"
                     ->where('start_time', '<=', now()->addMinutes(15))
                     ->where('end_time', '>=', now())
                     ->count()
                 : 0,
             'studentDueSessionsCount' => ($request->user() && $request->user()->isStudent())
-                ? \App\Models\Booking::where('user_id', $request->user()->id)
+                ? Booking::where('user_id', $request->user()->id)
                     ->whereIn('status', ['confirmed', 'rescheduling'])
                     ->where('start_time', '<=', now()->addMinutes(15))
                     ->where('end_time', '>=', now())
                     ->count()
                 : 0,
             'guardianDueSessionsCount' => ($request->user() && $request->user()->isGuardian() && $request->user()->guardian)
-                ? \App\Models\Booking::whereIn('user_id', $request->user()->guardian->students()->pluck('user_id'))
+                ? Booking::whereIn('user_id', $request->user()->guardian->students()->pluck('user_id'))
                     ->whereIn('status', ['confirmed', 'rescheduling'])
                     ->where('start_time', '<=', now()->addMinutes(15))
                     ->where('end_time', '>=', now())
                     ->count()
                 : 0,
             'pendingTeacherApplicationsCount' => ($request->user() && $request->user()->isAdmin())
-                ? \App\Models\Teacher::where('status', 'pending')->count()
+                ? Teacher::where('status', 'pending')->count()
                 : 0,
             'pendingPayoutsCount' => ($request->user() && $request->user()->isAdmin())
-                ? \App\Models\Payout::where('status', 'pending')->count()
+                ? Payout::where('status', 'pending')->count()
                 : 0,
-            'sidebarOpen' => !$request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
 }

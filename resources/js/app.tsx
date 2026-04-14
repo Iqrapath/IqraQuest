@@ -16,18 +16,53 @@ import * as Sentry from "@sentry/react";
 // Get CSRF token from meta tag
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
+function parseReverbClientMeta(): {
+    key?: string;
+    host?: string;
+    port?: number;
+    scheme?: string;
+} | null {
+    const raw = document.querySelector('meta[name="reverb-client"]')?.getAttribute('content');
+    if (!raw) {
+        return null;
+    }
+    try {
+        return JSON.parse(raw) as { key?: string; host?: string; port?: number; scheme?: string };
+    } catch {
+        return null;
+    }
+}
+
+const reverbMeta = typeof document !== 'undefined' ? parseReverbClientMeta() : null;
+const viteHost = import.meta.env.VITE_REVERB_HOST;
+const wsHost =
+    reverbMeta?.host && String(reverbMeta.host).trim() !== ''
+        ? String(reverbMeta.host)
+        : viteHost && viteHost !== 'localhost'
+          ? viteHost
+          : typeof window !== 'undefined'
+            ? window.location.hostname
+            : 'localhost';
+const reverbScheme = reverbMeta?.scheme ?? import.meta.env.VITE_REVERB_SCHEME ?? 'https';
+const reverbPort =
+    reverbMeta?.port ??
+    parseInt(import.meta.env.VITE_REVERB_PORT ?? (reverbScheme === 'https' ? '443' : '80'), 10);
+
 // Configure Laravel Echo for Reverb (uses Pusher protocol)
 const echoConfig = {
     broadcaster: 'reverb' as const,
-    key: import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost: import.meta.env.VITE_REVERB_HOST,
-    wsPort: parseInt(import.meta.env.VITE_REVERB_PORT ?? '80'),
-    wssPort: parseInt(import.meta.env.VITE_REVERB_PORT ?? '443'),
-    forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
+    key:
+        reverbMeta?.key && String(reverbMeta.key).trim() !== ''
+            ? String(reverbMeta.key)
+            : import.meta.env.VITE_REVERB_APP_KEY,
+    wsHost,
+    wsPort: reverbScheme === 'https' ? 80 : reverbPort,
+    wssPort: reverbScheme === 'https' ? reverbPort : 443,
+    forceTLS: reverbScheme === 'https',
     enabledTransports: ['ws', 'wss'] as ('ws' | 'wss')[],
-    authorizer: (channel: any) => {
+    authorizer: (channel: { name: string }) => {
         return {
-            authorize: (socketId: string, callback: Function) => {
+            authorize: (socketId: string, callback: (error: unknown, data: unknown) => void) => {
                 // console.log('Authorizing channel:', channel.name, 'Socket ID:', socketId);
 
                 axios.post('/broadcasting/auth', {

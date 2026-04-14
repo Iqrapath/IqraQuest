@@ -59,7 +59,7 @@ export default function TeacherContactEditModal({
         }
 
         // Phone validation (optional but if provided, should be valid)
-        if (formData.phone && !/^[\d\s\-\+\(\)]+$/.test(formData.phone)) {
+        if (formData.phone && !/^[\d\s\-+()]+$/.test(formData.phone)) {
             newErrors.phone = 'Please enter a valid phone number';
         }
 

@@ -32,5 +32,25 @@ export default [
     {
         ignores: ['vendor', 'node_modules', 'public', 'bootstrap/ssr', 'tailwind.config.js'],
     },
+    {
+        rules: {
+            '@typescript-eslint/no-explicit-any': 'warn',
+            '@typescript-eslint/no-unsafe-function-type': 'off',
+            '@typescript-eslint/no-unused-vars': [
+                'warn',
+                { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+            ],
+            'prefer-const': 'warn',
+            'no-var': 'warn',
+            'no-useless-escape': 'warn',
+            '@typescript-eslint/ban-ts-comment': 'warn',
+            'react-hooks/error-boundaries': 'warn',
+            'react-hooks/exhaustive-deps': 'warn',
+            'react-hooks/immutability': 'warn',
+            'react-hooks/refs': 'warn',
+            'react-hooks/set-state-in-effect': 'warn',
+            'react-hooks/static-components': 'warn',
+        },
+    },
     prettier, // Turn off all rules that might conflict with Prettier
 ];

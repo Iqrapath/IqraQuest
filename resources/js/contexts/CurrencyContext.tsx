@@ -41,9 +41,14 @@ export function CurrencyProvider({ children, initialCurrency = 'NGN' }: { childr
         const fetchRates = async () => {
             try {
                 // Use Laravel API instead of external API
-                const response = await fetch('/api/currency/rates');
+                const response = await fetch('/api/currency/rates', {
+                    headers: { Accept: 'application/json' },
+                });
+                if (!response.ok) {
+                    throw new Error(`Rates HTTP ${response.status}`);
+                }
                 const data = await response.json();
-                setRates(data.rates);
+                setRates(data.rates ?? {});
                 setLoading(false);
             } catch (error) {
                 console.error('Failed to fetch exchange rates:', error);

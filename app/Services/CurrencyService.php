@@ -2,13 +2,12 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class CurrencyService
 {
-
     /**
      * Convert amount from one currency to another
      */
@@ -66,15 +65,22 @@ class CurrencyService
 
         try {
             // Use same API as frontend for consistency (https://open.er-api.com/v6/latest/USD)
-            $response = Http::timeout(5)->get("https://open.er-api.com/v6/latest/USD");
+            $response = Http::timeout(5)->get('https://open.er-api.com/v6/latest/USD');
 
             if ($response->successful()) {
-                $rates = $response->json()['rates'];
+                $payload = $response->json();
+                $rates = is_array($payload) ? ($payload['rates'] ?? null) : null;
+                if (! is_array($rates) || $rates === []) {
+                    Log::warning('Exchange rate API returned no rates', ['payload_keys' => is_array($payload) ? array_keys($payload) : null]);
+
+                    return null;
+                }
 
                 // Cache for 6 hours
                 Cache::put('exchange_rates_base_usd', $rates, now()->addHours(6));
 
                 Log::info('Fetched all exchange rates from API successfully');
+
                 return $rates;
             }
         } catch (\Exception $e) {
@@ -137,7 +143,7 @@ class CurrencyService
 
         $symbol = $symbols[$currency] ?? $currency;
 
-        return $symbol . number_format($amount, 2);
+        return $symbol.number_format($amount, 2);
     }
 
     /**

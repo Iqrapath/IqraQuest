@@ -190,12 +190,12 @@ export default function Footer() {
                                 {/* Email */}
                                 {isVisible('show_support_email') && props.settings?.general?.support_email && (
                                     <a
-                                        href={`mailto:${usePage<any>().props.settings?.general?.support_email}`}
+                                        href={`mailto:${props.settings.general.support_email}`}
                                         className="flex items-center gap-[clamp(0.25rem,0.42vw,0.375rem)] transition-colors hover:text-white"
                                     >
                                         <Icon icon="mdi:email-outline" className="h-[clamp(0.875rem,1.39vw,1.25rem)] w-[clamp(0.875rem,1.39vw,1.25rem)] shrink-0 text-[#d9d9d9]" />
                                         <span className="whitespace-pre text-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-semibold leading-[clamp(0.875rem,1.39vw,1.25rem)] text-[#d9d9d9]">
-                                            {usePage<any>().props.settings?.general?.support_email}
+                                            {props.settings.general.support_email}
                                         </span>
                                     </a>
                                 )}
@@ -203,12 +203,12 @@ export default function Footer() {
                                 {/* Phone */}
                                 {isVisible('show_contact_number') && props.settings?.general?.contact_number && (
                                     <a
-                                        href={`tel:${usePage<any>().props.settings?.general?.contact_number}`}
+                                        href={`tel:${props.settings.general.contact_number}`}
                                         className="flex items-center gap-[clamp(0.25rem,0.42vw,0.375rem)] transition-colors hover:text-white"
                                     >
                                         <Icon icon="mdi:phone-outline" className="h-[clamp(0.875rem,1.39vw,1.25rem)] w-[clamp(0.875rem,1.39vw,1.25rem)] shrink-0 text-[#d9d9d9]" />
                                         <span className="whitespace-pre text-nowrap font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-semibold leading-[clamp(0.875rem,1.39vw,1.25rem)] text-[#d9d9d9]">
-                                            {usePage<any>().props.settings?.general?.contact_number}
+                                            {props.settings.general.contact_number}
                                         </span>
                                     </a>
                                 )}
@@ -218,7 +218,7 @@ export default function Footer() {
                                     <div className="flex items-start gap-[clamp(0.25rem,0.56vw,0.5rem)]">
                                         <Icon icon="mdi:map-marker-outline" className="mt-[clamp(0.125rem,0.4vw,0.356rem)] h-[clamp(0.875rem,1.39vw,1.25rem)] w-[clamp(0.875rem,1.39vw,1.25rem)] shrink-0 text-[#d9d9d9]" />
                                         <span className="font-['Nunito'] text-[clamp(0.875rem,1.11vw,1rem)] font-semibold leading-[clamp(0.875rem,1.39vw,1.25rem)] text-[#d9d9d9]">
-                                            {usePage<any>().props.settings?.general?.office_address}
+                                            {props.settings?.general?.office_address}
                                         </span>
                                     </div>
                                 )}
