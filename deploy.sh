@@ -8,6 +8,21 @@ log() {
 
 log "Starting deployment..."
 
+# Storage must be writable by the PHP-FPM / web server user. If deploy runs as root,
+# set before deploy:  export DEPLOY_FIX_PERMISSIONS=1
+# Optional override:     export DEPLOY_WEB_USER=nginx   # or apache, www-data, etc.
+if [[ "${DEPLOY_FIX_PERMISSIONS:-0}" == "1" ]]; then
+  WEB_USER="${DEPLOY_WEB_USER:-www-data}"
+  log "Fixing ownership/permissions on storage and bootstrap/cache for ${WEB_USER}..."
+  chown -R "${WEB_USER}:${WEB_USER}" storage bootstrap/cache
+  chmod -R ug+rwx storage bootstrap/cache
+  # Log file may have been created by a different user during a prior deploy
+  rm -f storage/logs/laravel.log
+  touch storage/logs/laravel.log
+  chown "${WEB_USER}:${WEB_USER}" storage/logs/laravel.log
+  chmod 664 storage/logs/laravel.log
+fi
+
 # 0) Sync working tree to exact origin/main state (deterministic deploy)
 log "Syncing repository with origin/main..."
 git fetch origin
