@@ -23,23 +23,28 @@ class PaystackWebhookController extends Controller
 
     public function handle(Request $request)
     {
-        // DEBUG LOGGING
-        Log::info('Paystack webhook RAW content', ['content' => $request->getContent()]);
-        Log::info('Paystack webhook ALL inputs', $request->all());
+        if (config('app.debug')) {
+            Log::debug('Paystack webhook received', [
+                'content_length' => strlen($request->getContent()),
+                'event' => $request->input('event'),
+            ]);
+        }
 
         // Verify webhook signature
-        $signature = $request->header('x-paystack-signature');
-        $input = $request->getContent();
+        $secret = config('services.paystack.secret_key');
+        $signature = $request->header('X-Paystack-Signature');
+        $payload = $request->getContent();
+        $computed = hash_hmac('sha512', $payload, (string) $secret);
 
-        if (!$this->paystackService->verifyWebhookSignature($signature, $input)) {
+        if (!$signature || !hash_equals($computed, (string) $signature)) {
             Log::warning('Invalid Paystack webhook signature');
-            return response()->json(['status' => 'error', 'message' => 'Invalid signature'], 400);
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
         }
 
         $event = $request->input('event');
         $data = $request->input('data');
 
-        Log::info('Paystack webhook received', ['event' => $event, 'reference' => $data['reference'] ?? null]);
+        Log::info('Paystack webhook verified', ['event' => $event, 'reference' => $data['reference'] ?? null]);
 
         try {
             switch ($event) {

@@ -54,6 +54,7 @@ export default function AdminLeftSidebar({ onLogoutClick }: AdminLeftSidebarProp
     ];
 
     const cmsItems = [
+        { name: __('System Hub'), icon: 'material-symbols:terminal', route: '/admin/system/hub', permission: 'change_platform_settings' },
         { name: __('CMS'), icon: 'simple-icons:payloadcms', route: '#', comingSoon: true, permission: 'change_platform_settings' },
         { name: __('Admin Controls'), icon: 'carbon:network-admin-control', route: '#', comingSoon: true, permission: 'change_platform_settings' },
         { name: __('Referrals System'), icon: 'carbon:review', route: '#', comingSoon: true, permission: 'change_platform_settings' },

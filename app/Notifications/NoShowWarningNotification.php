@@ -52,11 +52,13 @@ class NoShowWarningNotification extends Notification implements ShouldQueue
             ->line("- Started at: {$this->booking->start_time->format('h:i A')}")
             ->line("---")
             ->line("⏰ **Important:** If you don't join within the next 5 minutes, you may be marked as a no-show.")
-            ->line($isLearner 
-                ? "No-shows may forfeit up to 50% of the session fee."
-                : "No-show teachers will result in a full refund.")
+            ->line($isLearner
+                ? "If you are marked as a no-show, the session will be cancelled and your payment is refunded in full to your wallet (the teacher is not paid for that session)."
+                : "No-show teachers will result in a full refund to the learner.")
             ->action('Join Session Now', url("/classroom/{$this->booking->id}"))
-            ->line("Please join immediately to avoid penalties.");
+            ->line($isLearner
+                ? "Please join immediately so you do not miss your lesson."
+                : "Please join immediately to avoid penalties.");
     }
 
     public function toArray(object $notifiable): array

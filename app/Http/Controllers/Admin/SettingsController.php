@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\Subject;
 use App\Enums\UserRole;
 use App\Constants\Permissions;
+use App\Support\LegalHtmlSanitizer;
 use App\Notifications\TermsUpdatedNotification;
 use App\Notifications\AdminCredentialsNotification;
 use Illuminate\Http\Request;
@@ -112,6 +113,9 @@ class SettingsController extends Controller
 
         foreach ($validated as $key => $value) {
             $type = is_bool($value) ? 'boolean' : 'string';
+            if ($type === 'string' && in_array($key, ['terms_conditions', 'privacy_policy'], true)) {
+                $value = LegalHtmlSanitizer::sanitize($value);
+            }
             SystemSetting::set($key, $value, 'legal', $type);
         }
 

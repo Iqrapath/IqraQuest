@@ -181,7 +181,7 @@ class DetectNoShows extends Command
             // Teacher no-show - full refund to student
             $this->handleTeacherNoShow($booking);
         } elseif (!$studentAttended) {
-            // Student no-show - teacher gets partial payment
+            // Student no-show — full refund after arbiter (teacher gets nothing)
             $this->handleStudentNoShow($booking);
         }
     }
@@ -206,6 +206,14 @@ class DetectNoShows extends Command
 
         $this->info("  ✓ Both no-show for Booking #{$booking->id} — submitted to Arbiter");
         Log::info("No-show: Both parties for booking #{$booking->id} — deferred to Arbiter");
+
+        app(\App\Services\AuditService::class)->log(
+            'NO_SHOW_DETECTED',
+            $booking,
+            ['status' => 'confirmed'],
+            ['status' => 'awaiting_judgment'],
+            "Both parties no-show after 15 minutes. Session auto-ended and sent for judgment."
+        );
     }
 
     /**
@@ -228,6 +236,15 @@ class DetectNoShows extends Command
 
         $this->info("  ✓ Teacher no-show for Booking #{$booking->id} — submitted to Arbiter");
         Log::info("No-show: Teacher for booking #{$booking->id} — deferred to Arbiter");
+
+        app(\App\Services\AuditService::class)->log(
+            'NO_SHOW_DETECTED',
+            $booking,
+            ['status' => 'confirmed'],
+            ['status' => 'awaiting_judgment'],
+            "Teacher no-show after 15 minutes. Session auto-ended and sent for judgment.",
+            ['party' => 'teacher']
+        );
     }
 
     /**
@@ -250,5 +267,14 @@ class DetectNoShows extends Command
 
         $this->info("  ✓ Student no-show for Booking #{$booking->id} — submitted to Arbiter");
         Log::info("No-show: Student for booking #{$booking->id} — deferred to Arbiter");
+
+        app(\App\Services\AuditService::class)->log(
+            'NO_SHOW_DETECTED',
+            $booking,
+            ['status' => 'confirmed'],
+            ['status' => 'awaiting_judgment'],
+            "Student no-show after 15 minutes. Session auto-ended and sent for judgment.",
+            ['party' => 'student']
+        );
     }
 }

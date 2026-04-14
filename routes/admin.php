@@ -193,4 +193,22 @@ Route::middleware(['auth', 'verified', 'role:admin'])
             Route::delete('/{teacher}', [VerificationRequestController::class, 'destroy'])->name('destroy');
         });
 
+        // System Management & Logging ("The Brain")
+        Route::prefix('system')->name('system.')->middleware(['can:change_platform_settings'])->group(function () {
+            Route::get('/hub', [\App\Http\Controllers\Admin\SystemHubController::class, 'index'])->name('hub');
+            Route::post('/terminal/execute', [\App\Http\Controllers\Admin\SystemHubController::class, 'executeCommand'])->name('terminal.execute');
+            Route::get('/activities/create', [\App\Http\Controllers\Admin\SystemHubController::class, 'create'])->name('activities.create');
+            Route::get('/activities/{id}', [\App\Http\Controllers\Admin\SystemHubController::class, 'show'])->name('activities.show');
+            Route::post('/activities', [\App\Http\Controllers\Admin\SystemHubController::class, 'store'])->name('activities.store');
+            Route::patch('/activities/{id}', [\App\Http\Controllers\Admin\SystemHubController::class, 'update'])->name('activities.update');
+            Route::delete('/activities/{id}', [\App\Http\Controllers\Admin\SystemHubController::class, 'destroy'])->name('activities.destroy');
+            Route::post('/activities/{id}/restore', [\App\Http\Controllers\Admin\SystemHubController::class, 'restore'])->name('activities.restore');
+            Route::get('/logs/export', [\App\Http\Controllers\Admin\SystemHubController::class, 'exportLogs'])->name('logs.export');
+
+            // Queue Management
+            Route::post('/queues/retry/{id}', [\App\Http\Controllers\Admin\SystemHubController::class, 'retryJob'])->name('queues.retry');
+            Route::post('/queues/retry-all', [\App\Http\Controllers\Admin\SystemHubController::class, 'retryAllTasks'])->name('queues.retry-all');
+            Route::delete('/queues/failed/{id}', [\App\Http\Controllers\Admin\SystemHubController::class, 'deleteFailedJob'])->name('queues.delete-failed');
+        });
+
     });

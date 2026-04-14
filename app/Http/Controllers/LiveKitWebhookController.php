@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Services\EscrowService;
+use App\Services\LiveKitWebhookVerifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -11,9 +12,12 @@ class LiveKitWebhookController extends Controller
 {
     protected EscrowService $escrowService;
 
-    public function __construct(EscrowService $escrowService)
+    protected LiveKitWebhookVerifier $webhookVerifier;
+
+    public function __construct(EscrowService $escrowService, LiveKitWebhookVerifier $webhookVerifier)
     {
         $this->escrowService = $escrowService;
+        $this->webhookVerifier = $webhookVerifier;
     }
 
     /**
@@ -21,10 +25,24 @@ class LiveKitWebhookController extends Controller
      */
     public function handle(Request $request)
     {
-        $payload = $request->all();
+        $rawBody = $request->getContent();
+
+        if (! $this->webhookVerifier->verify($rawBody, $request->header('Authorization'))) {
+            Log::warning('LiveKit webhook rejected: invalid signature or missing credentials');
+
+            return response()->json(['status' => 'unauthorized'], 401);
+        }
+
+        $payload = json_decode($rawBody, true);
+        if (! is_array($payload)) {
+            return response()->json(['status' => 'invalid_payload'], 400);
+        }
+
         $event = $payload['event'] ?? null;
 
-        Log::info('LiveKit Webhook received', ['event' => $event, 'payload' => $payload]);
+        if (config('app.debug')) {
+            Log::debug('LiveKit Webhook received', ['event' => $event]);
+        }
 
         switch ($event) {
             case 'room_started':

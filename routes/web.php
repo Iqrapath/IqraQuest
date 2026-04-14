@@ -25,8 +25,10 @@ Route::get('/about-us', [\App\Http\Controllers\AboutUsController::class, 'index'
 Route::get('/terms', [\App\Http\Controllers\LegalController::class, 'terms'])->name('terms');
 Route::get('/privacy', [\App\Http\Controllers\LegalController::class, 'privacy'])->name('privacy');
 
-// Match Request API (Teacher Matching with Gemini)
-Route::post('/api/match-request', [\App\Http\Controllers\MatchRequestController::class, 'store'])->name('match-request.store');
+// Match Request API (Teacher Matching with Gemini) — rate limited to reduce abuse / cost
+Route::post('/api/match-request', [\App\Http\Controllers\MatchRequestController::class, 'store'])
+    ->middleware('throttle:8,1')
+    ->name('match-request.store');
 
 // Booking Gateway (Preserves intent after login)
 Route::get('/book/{teacher}', [\App\Http\Controllers\WelcomeController::class, 'bookTeacher'])

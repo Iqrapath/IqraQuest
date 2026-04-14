@@ -6,6 +6,7 @@ use App\Models\Wallet;
 use App\Models\Transaction;
 use App\Models\PaymentSetting;
 use App\Models\User;
+use App\Models\LedgerEntry;
 use Illuminate\Support\Facades\DB;
 
 class WalletService
@@ -53,7 +54,23 @@ class WalletService
             ]);
 
             // Update wallet balance
+            $balanceBefore = $wallet->balance;
             $wallet->increment('balance', $amount);
+            $balanceAfter = $wallet->balance;
+
+            // Record Ledger Entry
+            LedgerEntry::create([
+                'user_id' => $userId,
+                'amount' => $amount,
+                'type' => 'credit',
+                'category' => $metadata['type'] ?? 'other',
+                'source_type' => $transaction->transactionable_type ?? Transaction::class,
+                'source_id' => $transaction->transactionable_id ?? $transaction->id,
+                'balance_before' => $balanceBefore,
+                'balance_after' => $balanceAfter,
+                'description' => $description,
+                'metadata' => $metadata,
+            ]);
 
             return $transaction;
         });
@@ -93,7 +110,23 @@ class WalletService
             ]);
 
             // Update wallet balance
+            $balanceBefore = $wallet->balance;
             $wallet->decrement('balance', $amount);
+            $balanceAfter = $wallet->balance;
+
+            // Record Ledger Entry
+            LedgerEntry::create([
+                'user_id' => $userId,
+                'amount' => $amount,
+                'type' => 'debit',
+                'category' => $metadata['type'] ?? 'other',
+                'source_type' => $transaction->transactionable_type ?? Transaction::class,
+                'source_id' => $transaction->transactionable_id ?? $transaction->id,
+                'balance_before' => $balanceBefore,
+                'balance_after' => $balanceAfter,
+                'description' => $description,
+                'metadata' => $metadata,
+            ]);
 
             return $transaction;
         });

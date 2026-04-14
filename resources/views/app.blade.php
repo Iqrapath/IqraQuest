@@ -70,7 +70,15 @@
 </head>
 
 <body class="font-sans antialiased">
-    @inertia
+    {{-- Inertia React v2 reads initial state from #app data-page, not the legacy <script type="application/json"> tag. --}}
+    @php
+        $__inertiaSsrBody = app(\Inertia\Ssr\SsrState::class)->setPage($page)->dispatch();
+    @endphp
+    @if ($__inertiaSsrBody)
+        {!! $__inertiaSsrBody->body !!}
+    @else
+        <div id="app" data-page='@json($page)'></div>
+    @endif
 </body>
 
 </html>

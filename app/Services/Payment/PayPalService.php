@@ -8,7 +8,7 @@ use PayPalCheckoutSdk\Core\ProductionEnvironment;
 use PayPalCheckoutSdk\Orders\OrdersCreateRequest;
 use PayPalCheckoutSdk\Orders\OrdersCaptureRequest;
 use PayPalCheckoutSdk\Orders\OrdersGetRequest;
-use PayPalCheckoutSdk\Payouts\PayoutsPostRequest;
+use PayPalPayoutsSdk\Payouts\PayoutsPostRequest;
 use Illuminate\Support\Facades\Log;
 
 class PayPalService

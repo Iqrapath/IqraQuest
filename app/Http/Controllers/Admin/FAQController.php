@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\FAQ;
+use App\Support\LegalHtmlSanitizer;
 use Illuminate\Http\Request;
 
 class FAQController extends Controller
@@ -22,6 +23,8 @@ class FAQController extends Controller
             'order' => 'nullable|integer',
         ]);
 
+        $validated['answer'] = LegalHtmlSanitizer::sanitize($validated['answer']);
+
         $faq = FAQ::create($validated);
 
         return back()->with('success', 'FAQ created successfully.');
@@ -35,6 +38,8 @@ class FAQController extends Controller
             'status' => 'required|in:published,draft',
             'order' => 'nullable|integer',
         ]);
+
+        $validated['answer'] = LegalHtmlSanitizer::sanitize($validated['answer']);
 
         $faq->update($validated);
 

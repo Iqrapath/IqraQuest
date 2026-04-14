@@ -73,31 +73,25 @@ class NoShowDetectedNotification extends Notification implements ShouldQueue
                     ->line("Please ensure you join sessions on time to maintain your reputation.");
             }
         } elseif ($this->noShowType === 'student') {
-            $teacherAmount = $this->booking->total_price * 0.5;
-            $teacherEarnings = $teacherAmount * (1 - ($this->booking->commission_rate ?? 15) / 100);
-
             if ($this->isLearner) {
-                $refundAmount = $this->booking->total_price * 0.5;
                 $mail->line("⚠️ **The session was missed.**")
                     ->line("**Session Details:**")
                     ->line("- Subject: {$this->booking->subject->name}")
                     ->line("- Teacher: {$this->booking->teacher->user->name}")
                     ->line("- Scheduled: {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('M j, Y')} at {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('g:i A')}")
                     ->line("---")
-                    ->line("**No-Show Policy Applied:**")
-                    ->line("- 50% refund: {$currency} " . number_format($refundAmount, 2) . " credited to your wallet")
-                    ->line("- 50% paid to teacher as compensation for their time")
+                    ->line("**No-show policy:** The session is cancelled. The full amount ({$currency} {$amount}) will be refunded to your wallet after processing completes.")
                     ->line("---")
-                    ->line("Please ensure sessions are joined on time or cancelled in advance.");
+                    ->line("Please join on time next time, or cancel in advance if you cannot attend.");
             } else {
-                $mail->line("The learner did not join the scheduled session.")
+                $mail->line("The learner did not join the scheduled session within the grace period.")
                     ->line("**Session Details:**")
                     ->line("- Subject: {$this->booking->subject->name}")
                     ->line("- Booked by: {$this->booking->getStudentDisplayName()}")
                     ->line("- Scheduled: {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('M j, Y')} at {$this->booking->start_time->setTimezone($notifiable->timezone ?? config('app.display_timezone'))->format('g:i A')}")
                     ->line("---")
-                    ->line("**Compensation:** {$currency} " . number_format($teacherEarnings, 2) . " has been credited to your wallet (50% of session fee, after commission).")
-                    ->line("Thank you for being ready for the session.");
+                    ->line("**Outcome:** The booking is cancelled. There is **no payment** for this session when the learner does not join.")
+                    ->line("Thank you for being ready to teach.");
             }
         }
 
@@ -111,8 +105,8 @@ class NoShowDetectedNotification extends Notification implements ShouldQueue
             ? "Your teacher didn't show up. Full refund processed."
             : "You missed your session. Full refund issued.",
             'student' => $this->isLearner
-            ? "Session missed. 50% refund processed."
-            : "Learner didn't show up. You received 50% compensation.",
+            ? "Session missed. Full refund will be processed."
+            : "Learner didn't show up. Session cancelled; no payment.",
             'both' => "Neither party joined. Session cancelled.",
         };
 

@@ -63,6 +63,30 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         Integration::handles($exceptions);
 
+        // Automatic DB Logging for all Critical Exceptions
+        $exceptions->reportable(function (\Throwable $e) {
+            try {
+                \App\Models\SystemActivity::create([
+                    'user_id' => \Illuminate\Support\Facades\Auth::id(),
+                    'category' => 'ERROR',
+                    'event_type' => 'EXCEPTION_CAUGHT',
+                    'description' => "Uncaught Exception: " . $e->getMessage(),
+                    'metadata' => [
+                        'exception' => get_class($e),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                        'url' => request()->fullUrl(),
+                        'ip' => request()->ip(),
+                        'trace' => substr($e->getTraceAsString(), 0, 1000), // First 1000 chars of trace
+                    ],
+                    'severity' => ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpException && $e->getStatusCode() < 500) ? 'warning' : 'error',
+                ]);
+            } catch (\Exception $loggingError) {
+                // Fail silently to avoid infinite loops if DB is down
+                \Illuminate\Support\Facades\Log::error("Failed to log exception to DB: " . $loggingError->getMessage());
+            }
+        });
+
         // Render custom Inertia error pages
         $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response) {
             // Temporarily allow in local environment to preview error pages

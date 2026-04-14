@@ -7,17 +7,20 @@ use App\Models\Teacher;
 use App\Models\Transaction;
 use App\Models\PaymentSetting; // Import PaymentSetting
 use App\Services\Payment\PaystackService;
+use App\Services\AuditService;
 use Illuminate\Support\Facades\DB;
 
 class PayoutService
 {
     protected PaystackService $paystackService;
     protected WalletService $walletService;
+    protected AuditService $auditService;
 
-    public function __construct(PaystackService $paystackService, WalletService $walletService)
+    public function __construct(PaystackService $paystackService, WalletService $walletService, AuditService $auditService)
     {
         $this->paystackService = $paystackService;
         $this->walletService = $walletService;
+        $this->auditService = $auditService;
     }
 
     /**
@@ -74,6 +77,15 @@ class PayoutService
             // Update teacher's last payout request timestamp
             $teacher->update(['last_payout_requested_at' => now()]);
 
+            // Audit Log
+            $this->auditService->log(
+                'PAYOUT_REQUESTED',
+                $payout,
+                [],
+                ['amount' => $amount, 'method_id' => $paymentMethodId],
+                "Payout requested by teacher #{$teacherId}"
+            );
+
             return $payout;
         });
     }
@@ -89,7 +101,17 @@ class PayoutService
             throw new \Exception('Only pending payouts can be approved');
         }
 
+        $oldStatus = $payout->status;
         $payout->approve($adminId);
+
+        // Audit Log
+        $this->auditService->log(
+            'PAYOUT_APPROVED',
+            $payout,
+            ['status' => $oldStatus],
+            ['status' => 'approved', 'admin_id' => $adminId],
+            "Payout #{$payoutId} approved by admin #{$adminId}"
+        );
 
         return $payout;
     }
@@ -105,7 +127,17 @@ class PayoutService
             throw new \Exception('Only pending payouts can be rejected');
         }
 
+        $oldStatus = $payout->status;
         $payout->reject($reason, $adminId);
+
+        // Audit Log
+        $this->auditService->log(
+            'PAYOUT_REJECTED',
+            $payout,
+            ['status' => $oldStatus],
+            ['status' => 'rejected', 'admin_id' => $adminId, 'reason' => $reason],
+            "Payout #{$payoutId} rejected by admin #{$adminId}"
+        );
 
         return $payout;
     }

@@ -21,9 +21,6 @@ class SessionArbiter extends Command
     // Min completion to get full payment (percentage)
     const MIN_COMPLETION_PERCENTAGE = 80;
 
-    // Percentage teacher gets for student no-show
-    const NO_SHOW_TEACHER_PERCENTAGE = 50;
-
     protected EscrowService $escrowService;
 
     public function __construct(EscrowService $escrowService)
@@ -81,9 +78,19 @@ class SessionArbiter extends Command
     {
         $coolingCutoff = now()->subMinutes(self::COOLING_PERIOD_MINUTES);
 
+        // Student no-show (queued by DetectNoShows after 15 min): rule on next arbiter run (no extra cooling).
         $pendingCases = Booking::where('status', 'awaiting_judgment')
             ->where('payment_status', 'held')
-            ->where('judgment_at', '<=', $coolingCutoff)
+            ->where(function ($q) use ($coolingCutoff) {
+                $q->where('cancellation_reason', 'Student no-show')
+                    ->where('judgment_at', '<=', now())
+                    ->orWhere(function ($q2) use ($coolingCutoff) {
+                        $q2->where(function ($q3) {
+                            $q3->where('cancellation_reason', '!=', 'Student no-show')
+                                ->orWhereNull('cancellation_reason');
+                        })->where('judgment_at', '<=', $coolingCutoff);
+                    });
+            })
             ->with(['student', 'teacher.user', 'subject'])
             ->get();
 
@@ -237,15 +244,13 @@ class SessionArbiter extends Command
             ];
         }
 
-        // Case 3: Student no-show only
+        // Case 3: Student no-show only — full refund, cancelled, teacher receives nothing
         if (!$evidence['student_attended']) {
             return [
                 'type' => 'student_no_show',
-                'action' => 'partial_payment',
-                'teacher_percentage' => self::NO_SHOW_TEACHER_PERCENTAGE,
-                'final_status' => 'completed',
-                'reason' => "Student no-show. Teacher attended for {$evidence['teacher_minutes']}min. " .
-                    "Teacher receives " . self::NO_SHOW_TEACHER_PERCENTAGE . "% compensation.",
+                'action' => 'full_refund',
+                'final_status' => 'cancelled',
+                'reason' => "Student no-show. Teacher was present; student did not join within the grace period. Full refund to student.",
             ];
         }
 

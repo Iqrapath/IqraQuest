@@ -19,6 +19,15 @@ use Inertia\Inertia;
 
 class SocialLoginController extends Controller
 {
+    protected function providerConfigured(string $provider): bool
+    {
+        $config = config("services.{$provider}");
+
+        return !empty($config['client_id'])
+            && !empty($config['client_secret'])
+            && !empty($config['redirect']);
+    }
+
     /**
      * Redirect the user to the provider authentication page.
      */
@@ -26,6 +35,11 @@ class SocialLoginController extends Controller
     {
         if (!in_array($provider, ['google', 'facebook'])) {
             abort(404);
+        }
+
+        if (!$this->providerConfigured($provider)) {
+            return redirect()->route('login')
+                ->with('error', ucfirst($provider) . ' login is not configured.');
         }
 
         // Build the state with role or context if provided
@@ -51,6 +65,11 @@ class SocialLoginController extends Controller
     {
         if (!in_array($provider, ['google', 'facebook'])) {
             abort(404);
+        }
+
+        if (!$this->providerConfigured($provider)) {
+            return redirect()->route('login')
+                ->with('error', ucfirst($provider) . ' login is not configured.');
         }
 
         try {

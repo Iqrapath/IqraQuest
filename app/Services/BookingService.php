@@ -24,6 +24,9 @@ class BookingService
             $startTime = Carbon::parse($data['start_time'], $studentTimezone)->setTimezone('UTC');
             $endTime = Carbon::parse($data['end_time'], $studentTimezone)->setTimezone('UTC');
 
+            // -1. Validate Lead Time (at least 30 minutes before start)
+            $this->validateLeadTime($startTime);
+
             // 0. Smart Reuse/Deduplicate: Check if THIS user already has an active booking for EXACTLY this slot
             // We ONLY reuse/update if the existing booking is still PENDING. 
             // If it's confirmed or awaiting approval, we let the conflict logic catch it later.
@@ -102,6 +105,20 @@ class BookingService
         $student->notify(new \App\Notifications\NewClassOfferNotification($booking));
 
         return $booking;
+    }
+
+    /**
+     * Validate that a booking is being made at least 30 minutes before the start time.
+     */
+    protected function validateLeadTime(Carbon $startTime): void
+    {
+        $minimumLeadTimeMinutes = 30; // Configurable buffer
+        $bookingDeadline = Carbon::now('UTC')->addMinutes($minimumLeadTimeMinutes);
+
+        if ($startTime->lessThan($bookingDeadline)) {
+            $diffMinutes = Carbon::now('UTC')->diffInMinutes($startTime);
+            throw new Exception("Classes must be booked at least {$minimumLeadTimeMinutes} minutes in advance. (Attempted {$diffMinutes} minutes before start)");
+        }
     }
 
     /**

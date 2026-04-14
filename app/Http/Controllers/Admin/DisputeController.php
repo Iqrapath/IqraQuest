@@ -6,17 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Notifications\DisputeResolvedNotification;
 use App\Services\EscrowService;
-use Illuminate\Huest;
+use App\Services\AuditService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class DisputeController extends Controller
 {
     protected EscrowService $escrowService;
+    protected AuditService $auditService;
 
-    public function __construct(EscrowService $escrowService)
+    public function __construct(EscrowService $escrowService, AuditService $auditService)
     {
         $this->escrowService = $escrowService;
+        $this->auditService = $auditService;
     }
 
     /**
@@ -131,6 +134,15 @@ class DisputeController extends Controller
             'released'
         );
 
+        // Audit Log
+        $this->auditService->log(
+            'DISPUTE_RESOLVED',
+            $booking,
+            ['dispute_status' => 'pending'],
+            ['outcome' => 'teacher_win', 'resolution' => $validated['resolution']],
+            "Dispute for booking #{$booking->id} resolved in favor of teacher"
+        );
+
         // Notify both parties
         $this->notifyResolution($booking, 'teacher');
 
@@ -158,6 +170,15 @@ class DisputeController extends Controller
             $validated['resolution'],
             Auth::id(),
             'refunded'
+        );
+
+        // Audit Log
+        $this->auditService->log(
+            'DISPUTE_RESOLVED',
+            $booking,
+            ['dispute_status' => 'pending'],
+            ['outcome' => 'student_win', 'resolution' => $validated['resolution']],
+            "Dispute for booking #{$booking->id} resolved in favor of student"
         );
 
         // Notify both parties
@@ -192,6 +213,19 @@ class DisputeController extends Controller
             $validated['resolution'],
             Auth::id(),
             'partial'
+        );
+
+        // Audit Log
+        $this->auditService->log(
+            'DISPUTE_RESOLVED',
+            $booking,
+            ['dispute_status' => 'pending'],
+            [
+                'outcome' => 'partial_split',
+                'teacher_percentage' => $validated['teacher_percentage'],
+                'resolution' => $validated['resolution']
+            ],
+            "Dispute for booking #{$booking->id} resolved with partial split ({$validated['teacher_percentage']}% to teacher)"
         );
 
         // Notify both parties

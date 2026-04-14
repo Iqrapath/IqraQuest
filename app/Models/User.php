@@ -10,11 +10,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use App\Traits\LogsActivity;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable, \App\Traits\HasPermissions;
+    use HasFactory, Notifiable, TwoFactorAuthenticatable, \App\Traits\HasPermissions, LogsActivity;
 
     /**
      * The attributes that are mass assignable.

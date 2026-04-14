@@ -7,22 +7,23 @@ use App\Models\PlatformEarning;
 use App\Models\PaymentSetting;
 use App\Notifications\FundsReleasedNotification;
 use App\Notifications\FundsRefundedNotification;
+use App\Services\AuditService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class EscrowService
 {
     protected WalletService $walletService;
+    protected AuditService $auditService;
 
     // Configuration defaults (can be overridden by PaymentSettings)
     const DEFAULT_DISPUTE_WINDOW_HOURS = 2; // Reduced from 24
     const DEFAULT_MIN_COMPLETION_PERCENTAGE = 80;
-    const DEFAULT_NO_SHOW_WAIT_MINUTES = 15;
-    const DEFAULT_NO_SHOW_TEACHER_PERCENTAGE = 50;
 
-    public function __construct(WalletService $walletService)
+    public function __construct(WalletService $walletService, AuditService $auditService)
     {
         $this->walletService = $walletService;
+        $this->auditService = $auditService;
     }
 
     /**
@@ -106,11 +107,21 @@ class EscrowService
             ]);
 
             // Update booking
+            $oldStatus = $booking->payment_status;
             $booking->update([
                 'payment_status' => 'released',
                 'funds_released_at' => now(),
                 'amount_released' => $teacherEarnings,
             ]);
+
+            // Audit Log
+            $this->auditService->log(
+                'ESCROW_RELEASE',
+                $booking,
+                ['payment_status' => $oldStatus],
+                ['payment_status' => 'released', 'amount' => $teacherEarnings],
+                "Funds released to teacher for booking #{$booking->id}"
+            );
 
             // Notify teacher
             try {
@@ -152,11 +163,21 @@ class EscrowService
             );
 
             // Update booking
+            $oldStatus = $booking->payment_status;
             $booking->update([
                 'payment_status' => 'refunded',
                 'funds_refunded_at' => now(),
                 'amount_refunded' => $refundAmount,
             ]);
+
+            // Audit Log
+            $this->auditService->log(
+                'ESCROW_REFUND',
+                $booking,
+                ['payment_status' => $oldStatus],
+                ['payment_status' => 'refunded', 'amount' => $refundAmount, 'reason' => $reason],
+                "Funds refunded to student for booking #{$booking->id}"
+            );
 
             // Notify student
             try {
@@ -266,10 +287,12 @@ class EscrowService
                 'cancellation_reason' => 'Teacher did not attend the session',
             ]);
         } elseif (!$booking->student_attended) {
-            // Student no-show - teacher gets partial payment (present for the slot)
-            $noShowPercentage = $this->getNoShowTeacherPercentage();
-            $this->processPartialPayment($booking, $noShowPercentage, 'Student no-show');
-            $booking->update(['status' => 'completed']);
+            // Student no-show while teacher was present — full refund, class cancelled, teacher gets nothing
+            $this->refundFunds($booking, null, 'Student did not attend the session');
+            $booking->update([
+                'status' => 'cancelled',
+                'cancellation_reason' => 'Student no-show',
+            ]);
         } else {
             // Both attended - check completion percentage
             $completionPercentage = $booking->getCompletionPercentage();
@@ -367,9 +390,11 @@ class EscrowService
      */
     public function handleStudentNoShow(Booking $booking): void
     {
-        $noShowPercentage = $this->getNoShowTeacherPercentage();
-        $this->processPartialPayment($booking, $noShowPercentage, 'Student did not join the session');
-        $booking->update(['status' => 'completed']);
+        $this->refundFunds($booking, null, 'Student did not join the session');
+        $booking->update([
+            'status' => 'cancelled',
+            'cancellation_reason' => 'Student no-show',
+        ]);
     }
 
     // ===== CONFIGURATION HELPERS =====
@@ -388,15 +413,5 @@ class EscrowService
     protected function getMinCompletionPercentage(): float
     {
         return self::DEFAULT_MIN_COMPLETION_PERCENTAGE;
-    }
-
-    protected function getNoShowWaitMinutes(): int
-    {
-        return self::DEFAULT_NO_SHOW_WAIT_MINUTES;
-    }
-
-    protected function getNoShowTeacherPercentage(): float
-    {
-        return self::DEFAULT_NO_SHOW_TEACHER_PERCENTAGE;
     }
 }

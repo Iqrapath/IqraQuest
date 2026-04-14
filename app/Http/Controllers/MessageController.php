@@ -29,10 +29,11 @@ class MessageController extends Controller
         $messages = [];
         
         if ($request->has('conversation')) {
-            $selectedConversation = Conversation::with(['userOne', 'userTwo', 'booking.subject'])
+            $candidate = Conversation::with(['userOne', 'userTwo', 'booking.subject'])
                 ->find($request->conversation);
-            
-            if ($selectedConversation && $selectedConversation->hasParticipant($user)) {
+
+            if ($candidate && $candidate->hasParticipant($user)) {
+                $selectedConversation = $candidate;
                 // Mark messages as read
                 $selectedConversation->markAsReadFor($user);
                 
@@ -44,6 +45,8 @@ class MessageController extends Controller
                     ->map(fn($msg) => $this->formatMessage($msg, $user));
                 
                 $selectedConversation = $this->formatConversation($selectedConversation, $user);
+            } else {
+                $selectedConversation = null;
             }
         }
         
