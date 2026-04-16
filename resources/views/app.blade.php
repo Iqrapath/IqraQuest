@@ -67,19 +67,46 @@
     @php
         $reverb = config('broadcasting.connections.reverb', []);
         $reverbOptions = is_array($reverb) ? ($reverb['options'] ?? []) : [];
+        $appUrl = (string) config('app.url');
+        $appUrlHost = parse_url($appUrl, PHP_URL_HOST) ?: 'localhost';
+        $appUrlScheme = parse_url($appUrl, PHP_URL_SCHEME) ?: 'https';
+        $appUsesHttps = $appUrlScheme === 'https';
+
         $reverbHost = $reverbOptions['host'] ?? null;
         if (!$reverbHost) {
-            $reverbHost = parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'localhost';
+            $reverbHost = $appUrlHost;
         }
+
+        // If the app is on HTTPS, avoid shipping local hostnames (localhost/127.0.0.1) to the browser,
+        // since "localhost" would mean the end-user's machine instead of your server.
+        $reverbHostWasLocal = false;
+        $localHosts = ['localhost', '127.0.0.1', '::1', '0.0.0.0'];
+        if ($appUsesHttps && $reverbHost && in_array(strtolower((string) $reverbHost), $localHosts, true)) {
+            $reverbHost = $appUrlHost;
+            $reverbHostWasLocal = true;
+        }
+
+        $reverbScheme = $reverbOptions['scheme'] ?? $appUrlScheme;
+        if ($appUsesHttps && $reverbScheme === 'http') {
+            $reverbScheme = 'https';
+        }
+
         // Build in PHP — @json([...]) breaks when the array contains $var['key'] (] closes the Blade directive early).
+        $reverbPort = (int) ($reverbOptions['port'] ?? ($reverbScheme === 'https' ? 443 : 80));
+        if ($reverbHostWasLocal && $reverbScheme === 'https') {
+            $reverbPort = 443;
+        } elseif ($reverbHostWasLocal && $reverbScheme === 'http') {
+            $reverbPort = 80;
+        }
+
         $reverbClient = [
             'key' => is_array($reverb) ? ($reverb['key'] ?? '') : '',
             'host' => $reverbHost,
-            'port' => (int) ($reverbOptions['port'] ?? 443),
-            'scheme' => $reverbOptions['scheme'] ?? 'https',
+            'port' => $reverbPort,
+            'scheme' => $reverbScheme,
         ];
     @endphp
-    <meta name="reverb-client" content="@json($reverbClient)">
+    <meta name="reverb-client" content='@json($reverbClient)'>
 
     @viteReactRefresh
     @vite(['resources/js/app.tsx'])
