@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
-
+#
+# Frontend build (npm run build) needs a lot of RAM. On small VPSes the kernel may OOM-kill
+# the build (you see: "Killed" with no PHP stack trace). Fixes:
+#   - Add swap (e.g. 2G): fallocate/chmod/swapon, or
+#   - Build assets in CI and upload public/build, then deploy with:
+#       export DEPLOY_SKIP_NPM_BUILD=1
+#   - Optionally cap Node heap (may fail on huge bundles instead of silent OOM):
+#       export DEPLOY_NODE_HEAP_MB=1536
+#
 set -euo pipefail
 
 log() {
@@ -33,15 +41,25 @@ git clean -fd
 log "Installing PHP dependencies..."
 composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-log "Installing Node dependencies..."
-npm ci
-
 log "Generating Wayfinder TypeScript routes (required for Vite build)..."
 php artisan wayfinder:generate --with-form --no-interaction
 
-# 3) Build assets
-log "Building frontend assets..."
-npm run build
+if [[ "${DEPLOY_SKIP_NPM_BUILD:-0}" == "1" ]]; then
+  log "Skipping npm ci / vite build (DEPLOY_SKIP_NPM_BUILD=1). Ensure public/build matches this release (e.g. built in CI and rsync'd here)."
+else
+  log "Installing Node dependencies..."
+  npm ci
+
+  # Cap V8 heap so small servers fail with a clear JS OOM instead of the kernel SIGKILL ("Killed").
+  # Tune DEPLOY_NODE_HEAP_MB for your VPS (1536–4096 typical); unset to use Node default.
+  if [[ -n "${DEPLOY_NODE_HEAP_MB:-}" ]]; then
+    export NODE_OPTIONS="--max-old-space-size=${DEPLOY_NODE_HEAP_MB}"
+    log "Using NODE_OPTIONS=${NODE_OPTIONS} for vite build."
+  fi
+
+  log "Building frontend assets..."
+  npm run build
+fi
 
 # 4) Update database
 log "Running migrations..."
