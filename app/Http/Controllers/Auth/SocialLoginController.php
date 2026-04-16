@@ -2,20 +2,22 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Models\User;
-use Illuminate\Auth\Events\Registered;
-use App\Models\Teacher;
-use App\Models\Student;
-use App\Models\Guardian;
 use App\Enums\UserRole;
+use App\Http\Controllers\Controller;
+use App\Models\Guardian;
+use App\Models\Student;
+use App\Models\Teacher;
+use App\Models\User;
+use App\Services\FileUploadService;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
-use Laravel\Socialite\Facades\Socialite;
 use Inertia\Inertia;
+use Laravel\Socialite\Facades\Socialite;
 
 class SocialLoginController extends Controller
 {
@@ -23,9 +25,9 @@ class SocialLoginController extends Controller
     {
         $config = config("services.{$provider}");
 
-        return !empty($config['client_id'])
-            && !empty($config['client_secret'])
-            && !empty($config['redirect']);
+        return ! empty($config['client_id'])
+            && ! empty($config['client_secret'])
+            && ! empty($config['redirect']);
     }
 
     /**
@@ -33,22 +35,22 @@ class SocialLoginController extends Controller
      */
     public function redirect(Request $request, string $provider)
     {
-        if (!in_array($provider, ['google', 'facebook'])) {
+        if (! in_array($provider, ['google', 'facebook'])) {
             abort(404);
         }
 
-        if (!$this->providerConfigured($provider)) {
-            // For API/Functional tests, return a direct 400/401 instead of a 302 redirect
-            // as some test tools expect a distinct failure code if config is missing.
-            if ($request->wantsJson() || config('app.env') !== 'production') {
+        if (! $this->providerConfigured($provider)) {
+            // Web requests should still behave like redirects even when a provider
+            // is not configured, otherwise the route looks broken to monitoring/tests.
+            if ($request->expectsJson() || $request->wantsJson()) {
                 return response()->json([
-                    'error' => ucfirst($provider) . ' login is not configured.',
-                    'hint' => 'Check environment variables (CLIENT_ID, CLIENT_SECRET)'
+                    'error' => ucfirst($provider).' login is not configured.',
+                    'hint' => 'Check environment variables (CLIENT_ID, CLIENT_SECRET)',
                 ], 400);
             }
 
             return redirect()->route('login')
-                ->with('error', ucfirst($provider) . ' login is not configured.');
+                ->with('error', ucfirst($provider).' login is not configured.');
         }
 
         // Build the state with role or context if provided
@@ -72,21 +74,22 @@ class SocialLoginController extends Controller
      */
     public function callback(Request $request, string $provider)
     {
-        if (!in_array($provider, ['google', 'facebook'])) {
+        if (! in_array($provider, ['google', 'facebook'])) {
             abort(404);
         }
 
-        if (!$this->providerConfigured($provider)) {
+        if (! $this->providerConfigured($provider)) {
             return redirect()->route('login')
-                ->with('error', ucfirst($provider) . ' login is not configured.');
+                ->with('error', ucfirst($provider).' login is not configured.');
         }
 
         try {
             $socialUser = Socialite::driver($provider)->stateless()->user();
-            \Illuminate\Support\Facades\Log::info("Social login success for {$provider}. Email: " . $socialUser->getEmail());
+            Log::info("Social login success for {$provider}. Email: ".$socialUser->getEmail());
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Social login failed for {$provider}", ['exception' => $e]);
-            return redirect()->route('login')->with('error', 'Unable to login with ' . ucfirst($provider));
+            Log::error("Social login failed for {$provider}", ['exception' => $e]);
+
+            return redirect()->route('login')->with('error', 'Unable to login with '.ucfirst($provider));
         }
 
         // Extract role and context from state if present
@@ -108,9 +111,9 @@ class SocialLoginController extends Controller
             ->first();
 
         if ($user) {
-            \Illuminate\Support\Facades\Log::info("User found. ID: {$user->id}");
+            Log::info("User found. ID: {$user->id}");
             // Update provider ID if missing
-            if (!$user->{"{$provider}_id"}) {
+            if (! $user->{"{$provider}_id"}) {
                 $user->update(["{$provider}_id" => $socialUser->getId()]);
             }
 
@@ -119,7 +122,7 @@ class SocialLoginController extends Controller
             // If teacher hasn't completed onboarding, redirect to the correct step
             if ($user->isTeacher() && $user->teacher && $user->teacher->onboarding_step < 5) {
                 $step = $user->teacher->onboarding_step;
-                
+
                 $routeName = match ($step) {
                     2 => 'teacher.onboarding.step2',
                     3 => 'teacher.onboarding.step3',
@@ -136,7 +139,7 @@ class SocialLoginController extends Controller
 
         // NEW USER - No role specified (came from login page)
         // Store social data in session and redirect to role selection
-        if (!$role) {
+        if (! $role) {
             Session::put('social_registration', [
                 'provider' => $provider,
                 'provider_id' => $socialUser->getId(),
@@ -146,8 +149,8 @@ class SocialLoginController extends Controller
                 'context' => $context,
             ]);
 
-            \Illuminate\Support\Facades\Log::info("New user without role. Redirecting to social role selection.");
-            
+            Log::info('New user without role. Redirecting to social role selection.');
+
             return redirect()->route('social.select-role');
         }
 
@@ -161,8 +164,8 @@ class SocialLoginController extends Controller
     public function showRoleSelection()
     {
         $socialData = Session::get('social_registration');
-        
-        if (!$socialData) {
+
+        if (! $socialData) {
             return redirect()->route('login')->with('error', 'Session expired. Please try again.');
         }
 
@@ -184,23 +187,23 @@ class SocialLoginController extends Controller
         ]);
 
         $socialData = Session::get('social_registration');
-        
-        if (!$socialData) {
+
+        if (! $socialData) {
             return redirect()->route('login')->with('error', 'Session expired. Please try again.');
         }
 
         // Create a mock social user object
-        $socialUser = new \stdClass();
+        $socialUser = new \stdClass;
         $socialUser->name = $socialData['name'];
         $socialUser->email = $socialData['email'];
         $socialUser->id = $socialData['provider_id'];
         $socialUser->avatar = $socialData['avatar'];
-        
+
         // Add methods to match Socialite user interface
-        $socialUser->getName = fn() => $socialData['name'];
-        $socialUser->getEmail = fn() => $socialData['email'];
-        $socialUser->getId = fn() => $socialData['provider_id'];
-        $socialUser->getAvatar = fn() => $socialData['avatar'];
+        $socialUser->getName = fn () => $socialData['name'];
+        $socialUser->getEmail = fn () => $socialData['email'];
+        $socialUser->getId = fn () => $socialData['provider_id'];
+        $socialUser->getAvatar = fn () => $socialData['avatar'];
 
         // Clear session data
         Session::forget('social_registration');
@@ -213,10 +216,10 @@ class SocialLoginController extends Controller
      */
     protected function createUserWithRole($socialUser, string $provider, string $role)
     {
-        \Illuminate\Support\Facades\Log::info("Creating new user with role: {$role}");
+        Log::info("Creating new user with role: {$role}");
 
         // Validate role
-        if (!in_array($role, [UserRole::TEACHER->value, UserRole::STUDENT->value, UserRole::GUARDIAN->value])) {
+        if (! in_array($role, [UserRole::TEACHER->value, UserRole::STUDENT->value, UserRole::GUARDIAN->value])) {
             $role = UserRole::STUDENT->value;
         }
 
@@ -228,7 +231,7 @@ class SocialLoginController extends Controller
 
         // Download and store avatar locally if it's a URL
         if ($avatar && filter_var($avatar, FILTER_VALIDATE_URL)) {
-            $uploadService = app(\App\Services\FileUploadService::class);
+            $uploadService = app(FileUploadService::class);
             $localAvatar = $uploadService->uploadFromUrl($avatar, 'avatars', $name, 'avatar');
             if ($localAvatar) {
                 $avatar = $localAvatar;
@@ -269,7 +272,7 @@ class SocialLoginController extends Controller
             $redirectRoute = 'home';
         }
 
-        \Illuminate\Support\Facades\Log::info("User created. Redirecting to: {$redirectRoute}");
+        Log::info("User created. Redirecting to: {$redirectRoute}");
 
         Auth::login($user);
 
