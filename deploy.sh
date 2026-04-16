@@ -65,4 +65,8 @@ else
   log "Warning: PHP-FPM service not detected; skipping reload."
 fi
 
+systemctl restart laravel-reverb
+systemctl restart laravel-queue
+systemctl reload nginx
+
 log "Deployment complete."
