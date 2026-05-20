@@ -42,9 +42,11 @@
 IqraQuest is a comprehensive e-learning platform designed specifically for Islamic education, connecting students and guardians with qualified Quran teachers worldwide. The platform provides live video classrooms, flexible scheduling, secure payment processing, AI-powered teacher matching, and a complete learning management system.
 
 ### 🎯 Mission
+
 To make quality Islamic education accessible to everyone, everywhere, through modern technology and experienced teachers.
 
 ### 👥 User Roles
+
 - **Students**: Book sessions, attend live classes, track progress, manage wallet
 - **Guardians**: Manage multiple children, oversee learning, make payments
 - **Teachers**: Conduct classes, manage availability, track earnings, request payouts
@@ -55,6 +57,7 @@ To make quality Islamic education accessible to everyone, everywhere, through mo
 ## ✨ Features
 
 ### 🎓 Core Learning Features
+
 - **Live Video Classrooms** - High-quality video/audio sessions powered by LiveKit
 - **Interactive Whiteboard** - Real-time collaboration tools during lessons
 - **Session Recording** - Automatic recording of classes for review
@@ -64,6 +67,7 @@ To make quality Islamic education accessible to everyone, everywhere, through mo
 - **Quran Tools** - Integrated Quran player and canvas for teaching
 
 ### 📅 Booking & Scheduling
+
 - **Flexible Scheduling** - Book sessions based on teacher availability
 - **Recurring Bookings** - Set up weekly/monthly recurring sessions
 - **Reschedule Requests** - Easy rescheduling with teacher approval
@@ -72,6 +76,7 @@ To make quality Islamic education accessible to everyone, everywhere, through mo
 - **Time Zone Support** - Automatic timezone conversion
 
 ### 💰 Financial System
+
 - **Multi-Gateway Payments** - Paystack (cards, bank transfers) & PayPal
 - **Digital Wallets** - Secure wallet system for students and teachers
 - **Auto-Payout System** - Automatic teacher payouts when threshold reached
@@ -81,6 +86,7 @@ To make quality Islamic education accessible to everyone, everywhere, through mo
 - **Multi-Currency Support** - NGN, USD, EUR, GBP
 
 ### 👤 User Management
+
 - **Multi-Role Authentication** - Role-based access control (RBAC)
 - **Social Login** - Google & Facebook OAuth integration
 - **OTP Verification** - Secure 6-digit OTP email verification
@@ -90,6 +96,7 @@ To make quality Islamic education accessible to everyone, everywhere, through mo
 - **Teacher Verification** - Certificate verification and approval workflow
 
 ### 💬 Communication
+
 - **Real-Time Messaging** - In-platform chat between students and teachers
 - **Typing Indicators** - Real-time typing status
 - **Read Receipts** - Message delivery confirmation
@@ -97,6 +104,7 @@ To make quality Islamic education accessible to everyone, everywhere, through mo
 - **Session Chat** - In-classroom messaging during live sessions
 
 ### ⭐ Reviews & Ratings
+
 - **Student Reviews** - Rate and review teachers after sessions
 - **Guardian Oversight** - Guardians can view all children's reviews
 - **Teacher Feedback** - Teachers can rate student attendance and participation
@@ -104,11 +112,13 @@ To make quality Islamic education accessible to everyone, everywhere, through mo
 - **Rating Analytics** - Aggregated ratings and performance metrics
 
 ### 🤖 AI-Powered Features
+
 - **Teacher Matching** - Google Gemini AI for personalized teacher recommendations
 - **Match Scoring** - Detailed compatibility scores with AI reasoning
 - **Smart Recommendations** - Subject, schedule, and preference-based matching
 
 ### 🔒 Security Features
+
 - **IP-Based Login Tracking** - Monitor and block suspicious login attempts
 - **Session Management** - Secure session handling with expiration
 - **Password Policy** - Strong password requirements (12+ chars)
@@ -120,37 +130,42 @@ To make quality Islamic education accessible to everyone, everywhere, through mo
 ## 🚀 Tech Stack
 
 ### Backend
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **PHP** | 8.2+ | Server-side language |
-| **Laravel** | 12.0 | Application framework |
-| **Inertia.js** | 2.1 | Modern SPA framework |
-| **Laravel Fortify** | 1.30 | Authentication backend |
-| **Laravel Socialite** | 5.23 | OAuth integration |
-| **Laravel Reverb** | 1.0 | WebSocket server |
-| **Laravel Queue** | Database | Background job processing |
-| **DomPDF** | 3.1 | PDF generation |
+
+| Technology            | Version  | Purpose                   |
+| --------------------- | -------- | ------------------------- |
+| **PHP**               | 8.2+     | Server-side language      |
+| **Laravel**           | 12.0     | Application framework     |
+| **Inertia.js**        | 2.1      | Modern SPA framework      |
+| **Laravel Fortify**   | 1.30     | Authentication backend    |
+| **Laravel Socialite** | 5.23     | OAuth integration         |
+| **Laravel Reverb**    | 1.0      | WebSocket server          |
+| **Laravel Queue**     | Database | Background job processing |
+| **DomPDF**            | 3.1      | PDF generation            |
 
 ### Frontend
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **React** | 19.2 | UI library |
-| **TypeScript** | 5.7 | Type safety |
-| **Tailwind CSS** | 4.0 | Utility-first CSS |
-| **Vite** | 7.0 | Build tool |
-| **Radix UI** | Latest | Headless UI components |
-| **LiveKit** | 2.9.17 | Video conferencing |
-| **Iconify** | 6.0 | Icon library (150k+ icons) |
-| **Lucide React** | 0.475 | Additional icons |
-| **TanStack Table** | 8.21 | Advanced data tables |
-| **Recharts** | 3.5 | Data visualization |
-| **CVA** | 0.7.1 | Component variants |
+
+| Technology         | Version | Purpose                    |
+| ------------------ | ------- | -------------------------- |
+| **React**          | 19.2    | UI library                 |
+| **TypeScript**     | 5.7     | Type safety                |
+| **Tailwind CSS**   | 4.0     | Utility-first CSS          |
+| **Vite**           | 7.0     | Build tool                 |
+| **Radix UI**       | Latest  | Headless UI components     |
+| **LiveKit**        | 2.9.17  | Video conferencing         |
+| **Iconify**        | 6.0     | Icon library (150k+ icons) |
+| **Lucide React**   | 0.475   | Additional icons           |
+| **TanStack Table** | 8.21    | Advanced data tables       |
+| **Recharts**       | 3.5     | Data visualization         |
+| **CVA**            | 0.7.1   | Component variants         |
 
 ### Payment Gateways
+
 - **Paystack** - Primary gateway (cards, bank transfers, payouts)
-- **PayPal** - Alternative payment method
+- **PayPal Checkout SDK** - Alternative payment method for cards
+- **PayPal Payouts SDK** - Teacher payouts via PayPal
 
 ### Third-Party Services
+
 - **LiveKit** - Video/audio communication infrastructure
 - **Google Gemini** - AI-powered teacher matching
 - **Bunny Fonts** - Font CDN (Poppins, Inter, Nunito)
@@ -194,6 +209,7 @@ To make quality Islamic education accessible to everyone, everywhere, through mo
 ### Database Schema Overview
 
 **Core Tables:**
+
 - `users` - All system users (students, guardians, teachers, admins)
 - `students`, `guardians`, `teachers` - Role-specific profile data
 - `bookings` - Session bookings with scheduling information
@@ -204,6 +220,7 @@ To make quality Islamic education accessible to everyone, everywhere, through mo
 - `teacher_certificates` - Teacher qualification documents
 
 **Supporting Tables:**
+
 - `teacher_availability` - Teacher schedule management
 - `classroom_attendance` - Session attendance records
 - `classroom_materials` - Lesson resources and files
@@ -217,6 +234,7 @@ To make quality Islamic education accessible to everyone, everywhere, through mo
 ## 📦 Installation
 
 ### Prerequisites
+
 - **PHP** 8.2 or higher
 - **Composer** 2.0+
 - **Node.js** 18+ and npm/yarn
@@ -224,12 +242,14 @@ To make quality Islamic education accessible to everyone, everywhere, through mo
 - **Redis** (optional, recommended for production)
 
 ### Step 1: Clone Repository
+
 ```bash
 git clone https://github.com/your-org/iqraquest.git
 cd iqraquest
 ```
 
 ### Step 2: Install Dependencies
+
 ```bash
 # Install PHP dependencies
 composer install
@@ -239,6 +259,7 @@ npm install
 ```
 
 ### Step 3: Environment Configuration
+
 ```bash
 # Copy environment file
 cp .env.example .env
@@ -248,6 +269,7 @@ php artisan key:generate
 ```
 
 ### Step 4: Database Setup
+
 ```bash
 # Create database (MySQL example)
 mysql -u root -p -e "CREATE DATABASE iqraquest;"
@@ -260,6 +282,7 @@ php artisan db:seed
 ```
 
 ### Step 5: Storage Setup
+
 ```bash
 # Create symbolic link for storage
 php artisan storage:link
@@ -268,12 +291,14 @@ php artisan storage:link
 ### Step 6: Start Development Servers
 
 **Option 1: Using Composer Script (Recommended)**
+
 ```bash
 composer dev
 # Runs: Laravel server + Queue worker + Vite dev server
 ```
 
 **Option 2: Manual (3-4 terminals)**
+
 ```bash
 # Terminal 1: Laravel server
 php artisan serve
@@ -295,6 +320,7 @@ php artisan reverb:start
 ### Environment Variables
 
 #### Application Settings
+
 ```env
 APP_NAME="IqraQuest"
 APP_ENV=local
@@ -303,6 +329,7 @@ APP_URL=http://localhost:8000
 ```
 
 #### Database
+
 ```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -313,6 +340,7 @@ DB_PASSWORD=
 ```
 
 #### Queue & Broadcasting
+
 ```env
 QUEUE_CONNECTION=database
 BROADCAST_CONNECTION=reverb
@@ -326,12 +354,14 @@ REVERB_SCHEME=http
 ```
 
 #### Email Verification
+
 ```env
 EMAIL_VERIFICATION_METHOD=otp  # or 'link'
 OTP_EXPIRY_MINUTES=10
 ```
 
 #### OAuth - Social Login
+
 ```env
 GOOGLE_CLIENT_ID=your-client-id
 GOOGLE_CLIENT_SECRET=your-client-secret
@@ -343,6 +373,7 @@ FACEBOOK_REDIRECT_URI="${APP_URL}/auth/facebook/callback"
 ```
 
 #### Payment Gateway - Paystack
+
 ```env
 PAYSTACK_PUBLIC_KEY=pk_test_xxxxx
 PAYSTACK_SECRET_KEY=sk_test_xxxxx
@@ -350,6 +381,7 @@ PAYSTACK_WEBHOOK_SECRET=whsec_xxxxx
 ```
 
 #### Payment Gateway - PayPal
+
 ```env
 PAYPAL_MODE=sandbox  # or 'live'
 PAYPAL_CLIENT_ID=xxxxx
@@ -358,6 +390,7 @@ PAYPAL_WEBHOOK_ID=xxxxx
 ```
 
 #### LiveKit (Video Conferencing)
+
 ```env
 LIVEKIT_API_KEY=your-api-key
 LIVEKIT_API_SECRET=your-api-secret
@@ -365,11 +398,13 @@ LIVEKIT_HOST=wss://your-livekit-server.com
 ```
 
 #### Google Gemini (AI Matching)
+
 ```env
 GEMINI_API_KEY=your-gemini-api-key
 ```
 
 #### Payment Settings (Managed via Admin Panel)
+
 ```env
 PLATFORM_COMMISSION_PERCENTAGE=15
 PLATFORM_COMMISSION_TYPE=percentage  # or 'fixed'
@@ -468,6 +503,7 @@ IqraQuest/
 ### 1. Authentication System
 
 **Features:**
+
 - Multi-role authentication (Student, Guardian, Teacher, Admin)
 - Social login (Google, Facebook)
 - OTP email verification (6-digit, 10-minute expiry)
@@ -480,6 +516,7 @@ IqraQuest/
 ### 2. Booking System
 
 **Features:**
+
 - Search and filter teachers
 - Real-time availability calendar
 - One-time or recurring sessions
@@ -490,6 +527,7 @@ IqraQuest/
 - Calendar export (Google Calendar, iCal)
 
 **Booking Flow:**
+
 1. Student/Guardian selects teacher and time slot
 2. System checks availability
 3. Payment processed (via wallet or direct payment)
@@ -502,6 +540,7 @@ IqraQuest/
 ### 3. Live Classroom System (The Majlis)
 
 **Features:**
+
 - HD video/audio conferencing (LiveKit)
 - Screen sharing
 - Interactive whiteboard
@@ -516,6 +555,7 @@ IqraQuest/
 ### 4. Payment & Financial System
 
 **Architecture:**
+
 ```
 Student Pays → Wallet Credited → Booking Confirmed →
 Session Completed → Teacher Earnings → Auto/Manual Payout →
@@ -523,12 +563,14 @@ Bank/PayPal Transfer
 ```
 
 **Student/Guardian Wallet:**
+
 - Digital wallet with transaction history
 - Multiple payment methods (cards, bank transfer, PayPal)
 - Save payment methods for quick checkout
 - Multi-currency support
 
 **Teacher Earnings & Payouts:**
+
 - Real-time earnings dashboard
 - Available balance tracking
 - Manual payout requests (daily limit, minimum threshold)
@@ -538,6 +580,7 @@ Bank/PayPal Transfer
 - Retry logic for failed payouts (3 attempts)
 
 **Admin Financial Management:**
+
 - Complete financial dashboard
 - Payout approval queue
 - Commission management (percentage/fixed)
@@ -547,6 +590,7 @@ Bank/PayPal Transfer
 ### 5. Guardian Management System
 
 **Features:**
+
 - Multi-step onboarding process (2 steps)
 - Manage multiple children from one account
 - Create login credentials for each child
@@ -558,12 +602,14 @@ Bank/PayPal Transfer
 ### 6. Teacher Verification System
 
 **4-Step Onboarding:**
+
 1. Personal information
 2. Teaching experience and certifications
 3. Subjects and availability
 4. Payment details
 
 **Verification Process:**
+
 - Document verification
 - Video interview with admin
 - Certificate validation
@@ -572,6 +618,7 @@ Bank/PayPal Transfer
 ### 7. AI Teacher Matching
 
 **Features:**
+
 - Gemini AI Integration for intelligent matching
 - Preference-Based matching (subject, time, learning goals)
 - Fallback scoring algorithm if AI unavailable
@@ -584,12 +631,14 @@ Bank/PayPal Transfer
 ### Colors
 
 **Primary Palette:**
+
 - Primary: `#4caf50` (Green)
 - Accent: `#4d9b91` (Teal)
 - Landing: `#317b74` (Dark Teal), `#fff7e4` (Cream)
 - Background: `#ffffff` (Light), `#1c2a3a` (Dark)
 
 **Semantic Colors:**
+
 - Success: `#93c19e`
 - Warning: `#fdba74`
 - Error: `#ef4444`
@@ -598,31 +647,35 @@ Bank/PayPal Transfer
 ### Typography
 
 **Font Families:**
+
 - **Poppins**: Headings, body text
 - **Inter**: Body text, buttons
 - **Nunito**: Landing page components
 
 **Responsive Scaling:**
 All typography uses the automated scaling formula:
+
 ```
 clamp(minSize, (px / 1440) * 100vw, maxSize)
 ```
 
 Example:
+
 ```tsx
 // 48px heading becomes:
-className="text-[clamp(2rem,3.33vw,4rem)]"
+className = 'text-[clamp(2rem,3.33vw,4rem)]';
 
 // 32px padding becomes:
-className="px-[clamp(0.5rem,2.22vw,2rem)]"
+className = 'px-[clamp(0.5rem,2.22vw,2rem)]';
 ```
 
 ### Dark Mode
 
 Toggle dark mode with `.dark` class on root element:
+
 ```tsx
 <div className="bg-white dark:bg-[#1c2a3a]">
-  <p className="text-gray-900 dark:text-white">Content</p>
+    <p className="text-gray-900 dark:text-white">Content</p>
 </div>
 ```
 
@@ -631,6 +684,7 @@ Toggle dark mode with `.dark` class on root element:
 ## 💻 Development Guidelines
 
 ### Code Style
+
 - **Backend**: Follow PSR-12 coding standard (Laravel Pint)
 - **Frontend**: ESLint + Prettier configuration
 - **TypeScript**: Strict mode enabled
@@ -639,39 +693,42 @@ Toggle dark mode with `.dark` class on root element:
 ### Component Patterns
 
 **UI Components (with CVA):**
+
 ```tsx
 import { cva, type VariantProps } from 'class-variance-authority';
 
-const buttonVariants = cva("base-classes", {
-  variants: {
-    variant: { default: "...", outline: "..." },
-    size: { default: "...", sm: "...", lg: "..." }
-  },
-  defaultVariants: {
-    variant: "default",
-    size: "default"
-  }
+const buttonVariants = cva('base-classes', {
+    variants: {
+        variant: { default: '...', outline: '...' },
+        size: { default: '...', sm: '...', lg: '...' },
+    },
+    defaultVariants: {
+        variant: 'default',
+        size: 'default',
+    },
 });
 ```
 
 **Page Components (with Inertia):**
+
 ```tsx
 import { Head, Link, usePage } from '@inertiajs/react';
 
 export default function PageName() {
-  const { auth } = usePage<SharedData>().props;
-  return (
-    <>
-      <Head title="Page Title" />
-      {/* content */}
-    </>
-  );
+    const { auth } = usePage<SharedData>().props;
+    return (
+        <>
+            <Head title="Page Title" />
+            {/* content */}
+        </>
+    );
 }
 ```
 
 ### Icons
 
 **Iconify (Primary):**
+
 ```tsx
 import { Icon } from '@iconify/react';
 
@@ -719,6 +776,7 @@ php artisan test         # Run PHPUnit/Pest tests
 ## 📚 API Documentation
 
 ### Authentication Endpoints
+
 ```
 POST   /register               # User registration
 POST   /login                  # User login
@@ -732,6 +790,7 @@ GET    /auth/facebook/callback # Facebook OAuth callback
 ```
 
 ### Student Endpoints
+
 ```
 GET    /student/dashboard                  # Student dashboard
 GET    /student/bookings                   # List bookings
@@ -745,6 +804,7 @@ GET    /student/ratings                    # My reviews
 ```
 
 ### Teacher Endpoints
+
 ```
 GET    /teacher/dashboard                  # Teacher dashboard
 GET    /teacher/requests                   # Booking requests
@@ -756,6 +816,7 @@ POST   /teacher/payment/methods/*          # Payment methods
 ```
 
 ### Admin Endpoints
+
 ```
 GET    /admin/dashboard                    # Admin dashboard
 GET    /admin/teachers                     # Manage teachers
@@ -767,6 +828,7 @@ GET    /admin/settings                     # Platform settings
 ```
 
 ### Webhook Endpoints
+
 ```
 POST   /webhooks/paystack                  # Paystack webhooks
 POST   /webhooks/livekit                   # LiveKit webhooks
@@ -777,6 +839,7 @@ POST   /webhooks/livekit                   # LiveKit webhooks
 ## 🧪 Testing
 
 ### Running Tests
+
 ```bash
 # Run all tests
 php artisan test
@@ -792,6 +855,7 @@ php artisan test --filter test_user_can_create_booking
 ```
 
 ### Test Structure
+
 ```
 tests/
 ├── Feature/              # Integration tests
@@ -824,12 +888,12 @@ tests/
 - [ ] Set up backup system
 - [ ] Configure monitoring (Laravel Pulse, Sentry)
 - [ ] Run optimization commands:
-  ```bash
-  php artisan config:cache
-  php artisan route:cache
-  php artisan view:cache
-  npm run build
-  ```
+    ```bash
+    php artisan config:cache
+    php artisan route:cache
+    php artisan view:cache
+    npm run build
+    ```
 
 ### Queue Worker (Systemd)
 
@@ -851,6 +915,7 @@ WantedBy=multi-user.target
 ```
 
 Enable and start:
+
 ```bash
 sudo systemctl enable iqraquest-worker
 sudo systemctl start iqraquest-worker
@@ -861,6 +926,7 @@ sudo systemctl start iqraquest-worker
 ## 🔒 Security
 
 ### Security Features Implemented
+
 - **Authentication**: Fortify + Socialite with 2FA support
 - **Authorization**: Role-based access control (RBAC)
 - **Input Validation**: Form Request validation on all inputs
@@ -900,28 +966,28 @@ sudo systemctl start iqraquest-worker
 
 1. **Fork the repository**
 2. **Create a feature branch**
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
+    ```bash
+    git checkout -b feature/amazing-feature
+    ```
 3. **Make your changes**
-   - Follow the coding standards
-   - Add tests for new features
-   - Update documentation
+    - Follow the coding standards
+    - Add tests for new features
+    - Update documentation
 4. **Run quality checks**
-   ```bash
-   npm run lint
-   npm run format
-   npm run types
-   php artisan test
-   ```
+    ```bash
+    npm run lint
+    npm run format
+    npm run types
+    php artisan test
+    ```
 5. **Commit with descriptive messages**
-   ```bash
-   git commit -m "feat: add amazing feature"
-   ```
+    ```bash
+    git commit -m "feat: add amazing feature"
+    ```
 6. **Push and create PR**
-   ```bash
-   git push origin feature/amazing-feature
-   ```
+    ```bash
+    git push origin feature/amazing-feature
+    ```
 
 ### Commit Convention
 
@@ -939,64 +1005,90 @@ sudo systemctl start iqraquest-worker
 
 ### Recent Updates
 
-#### 2026-03-26 - Timezone Standardization & "In Review" Lifecycle 🆕
-- ✅ **Platform-Wide Timezone Support**
-  - Standardized all UI displays to use `Africa/Lagos` (WAT) as secondary local fallback.
-  - Decoupled UTC database storage from user-facing local time calculations.
-  - Updated all dashboard notifications (Student/Teacher/Admin) to use fixed WAT offsets for consistency.
+#### 2026-04-17 - Deployment & Infrastructure Enhancements 🆕
 
-- ✅ **"In Review" Booking Management**
-  - New "In Review" tab implemented for both Student and Teacher dashboards.
-  - Groups `awaiting_judgment` and `disputed` bookings for easier tracking during the 2-hour post-session window.
-  - Enabled "Release Funds" and "Raise Dispute" actions for students during this period.
+- ✅ **Deployment Script Improvements**
+    - Added `DEPLOY_SKIP_NPM_BUILD` env variable to allow skipping npm build when assets are pre-built.
+    - Added `DEPLOY_NODE_HEAP_MB` for capping Node.js heap size to prevent OOM on small VPS.
+    - Added guidance for managing RAM during frontend builds.
 
-- ✅ **Admin Dashboard Refinements**
-  - Fixed broken avatar images by using the standardized `avatar_url` accessor.
-  - Refined bookings table to show teacher emails and full session durations (Start - End time).
-  - Aligned Admin terminology to "In Review" to match student/teacher views.
+- ✅ **Inertia SSR & Build Configuration**
+    - Disabled Inertia SSR by default for improved performance.
+    - Auto-generates Wayfinder before Vite build.
+    - Fixed Blade helper to load only app entry.
+
+- ✅ **Logging & Error Handling**
+    - Enhanced logging in SocialLoginController.
+    - Improved webhook signature verification and logging.
+    - Enhanced CurrencyService logging.
+
+- ✅ **Infrastructure Reliability**
+    - Improved CI workflow for better reliability.
+    - Refactored deployment script for safety.
+    - Fixed guest 500 errors on login/currency API.
+
+#### 2026-03-26 - PayPal Integration 🆕
+
+- ✅ **PayPal SDK Integration**
+    - Added PayPal Checkout SDK for card payments.
+    - Added PayPal Payouts SDK for teacher payouts.
+    - Now supports PayPal as alternative payment method to Paystack.
+
+- ✅ **Booking & Notification Enhancements**
+    - Enhanced booking and notification systems.
+    - Updated booking status handling in BookingStatusService and EscrowService.
+
+- ✅ **Timezone Standardization & "In Review" Lifecycle**
+    - Platform-wide timezone support with `Africa/Lagos` (WAT) as fallback.
+    - "In Review" booking tab for both Student and Teacher dashboards.
+    - Admin dashboard refinements with fixed avatar images.
 
 #### 2025-12-31 - AI Teacher Matching & System Settings 🆕
+
 - ✅ **AI-Powered Teacher Matching**
-  - Gemini integration for intelligent teacher recommendations
-  - Match requests stored and tracked
-  - Preference-based filtering with scoring
+    - Gemini integration for intelligent teacher recommendations
+    - Match requests stored and tracked
+    - Preference-based filtering with scoring
 
 - ✅ **System Settings Management**
-  - Centralized admin settings configuration
-  - Feature toggles and controls
-  - Role and permission management
+    - Centralized admin settings configuration
+    - Feature toggles and controls
+    - Role and permission management
 
 #### 2025-12-21 - Enhanced Onboarding & Verification Flow 🆕
+
 - ✅ **Multi-Step Guardian Onboarding**
-  - Redesigned 2-step onboarding flow for superior UX
-  - **Step 1: Guardian Profile**: Unified collection of location, contact info, and family bio
-  - **Step 2: Child Account Control**: Register multiple children with independent credentials
+    - Redesigned 2-step onboarding flow for superior UX
+    - **Step 1: Guardian Profile**: Unified collection of location, contact info, and family bio
+    - **Step 2: Child Account Control**: Register multiple children with independent credentials
 
 - ✅ **OTP Verification System Fixes**
-  - Centralized redirection logic in middleware
-  - Fixed "login later" redirection issues
-  - Overrode `sendEmailVerificationNotification` for centralized OTP handling
+    - Centralized redirection logic in middleware
+    - Fixed "login later" redirection issues
+    - Overrode `sendEmailVerificationNotification` for centralized OTP handling
 
 - ✅ **Family-Oriented Notifications**
-  - `WelcomeGuardianNotification` (Mail, Database, Broadcast)
-  - Automated `WelcomeStudentNotification` for children
+    - `WelcomeGuardianNotification` (Mail, Database, Broadcast)
+    - Automated `WelcomeStudentNotification` for children
 
 #### 2025-12-20 - Advanced Profile, Settings & Ratings Systems
+
 - ✅ **Comprehensive Rating & Feedback System**
-  - High-fidelity dashboard for Students, Guardians, and Teachers
-  - Guardian integration with aggregated performance stats
-  - Teacher dashboard with attendance calculation and positive feedback rates
+    - High-fidelity dashboard for Students, Guardians, and Teachers
+    - Guardian integration with aggregated performance stats
+    - Teacher dashboard with attendance calculation and positive feedback rates
 
 - ✅ **Enhanced User Settings (Multi-Role)**
-  - Two-Factor Authentication (2FA) with QR code setup and recovery codes
-  - Granular notification settings (Email/Push) for 10+ activity types
-  - Account Management: Identity verification resend, deactivation, deletion flows
+    - Two-Factor Authentication (2FA) with QR code setup and recovery codes
+    - Granular notification settings (Email/Push) for 10+ activity types
+    - Account Management: Identity verification resend, deactivation, deletion flows
 
 - ✅ **Rich User Profiles**
-  - Role-specific profile pages with specialized data
-  - Modern, responsive edit modals with real-time state management
+    - Role-specific profile pages with specialized data
+    - Modern, responsive edit modals with real-time state management
 
 #### 2025-12-09 - Payment & Financial System
+
 - ✅ Complete teacher earnings & payout system
 - ✅ Instant auto-payout implementation
 - ✅ Admin payment management panel
@@ -1005,12 +1097,14 @@ sudo systemctl start iqraquest-worker
 - ✅ Payment gateway integration (Paystack, PayPal)
 
 #### 2025-12-03 - Authentication & Social Login
+
 - ✅ Social login with Laravel Socialite (Google, Facebook)
 - ✅ OTP email verification system
 - ✅ Enhanced authentication security
 - ✅ Multi-role registration system
 
 #### 2025-11-27 - Initial Setup & Design System
+
 - ✅ Responsive Navbar component with Figma design
 - ✅ Automated scaling system using `clamp()` formulas
 - ✅ Iconify integration (150,000+ icons)
