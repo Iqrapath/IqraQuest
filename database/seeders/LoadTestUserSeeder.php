@@ -46,18 +46,20 @@ class LoadTestUserSeeder extends Seeder
 
         DB::transaction(function () use ($count, $passwordHash, $passwordRaw, $subjectIds, $adminId, &$studentsData, &$teachersData, &$guardiansData) {
             for ($i = 1; $i <= $count; $i++) {
-                // 1. Create Student
+                // 1. Create or reuse Student
                 $studentEmail = "stress.student.{$i}@iqraquest.com";
-                $studentUser = User::create([
-                    'name' => "Stress Student {$i}",
-                    'email' => $studentEmail,
-                    'password' => $passwordHash,
-                    'role' => UserRole::STUDENT,
-                    'status' => 'active',
-                    'email_verified_at' => now(),
-                ]);
+                $studentUser = User::firstOrCreate(
+                    ['email' => $studentEmail],
+                    [
+                        'name' => "Stress Student {$i}",
+                        'password' => $passwordHash,
+                        'role' => UserRole::STUDENT,
+                        'status' => 'active',
+                        'email_verified_at' => now(),
+                    ]
+                );
 
-                $studentProfile = $studentUser->student()->create([
+                $studentProfile = $studentUser->student ?? $studentUser->student()->create([
                     'date_of_birth' => '2010-01-01',
                     'gender' => 'male',
                     'level' => 'beginner',
@@ -65,10 +67,12 @@ class LoadTestUserSeeder extends Seeder
                     'notes' => 'Stress test student',
                 ]);
 
-                $studentUser->wallet()->update([
-                    'balance' => 100000.00,
-                    'currency' => 'USD',
-                ]);
+                if ($studentUser->wallet) {
+                    $studentUser->wallet->update([
+                        'balance' => 100000.00,
+                        'currency' => 'USD',
+                    ]);
+                }
 
                 $studentsData[] = [
                     'id' => $studentUser->id,
@@ -77,34 +81,40 @@ class LoadTestUserSeeder extends Seeder
                     'password' => $passwordRaw,
                 ];
 
-                // 2. Create Guardian
+                // 2. Create or reuse Guardian
                 $guardianEmail = "stress.guardian.{$i}@iqraquest.com";
-                $guardianUser = User::create([
-                    'name' => "Stress Guardian {$i}",
-                    'email' => $guardianEmail,
-                    'password' => $passwordHash,
-                    'role' => UserRole::GUARDIAN,
-                    'status' => 'active',
-                    'email_verified_at' => now(),
-                ]);
+                $guardianUser = User::firstOrCreate(
+                    ['email' => $guardianEmail],
+                    [
+                        'name' => "Stress Guardian {$i}",
+                        'password' => $passwordHash,
+                        'role' => UserRole::GUARDIAN,
+                        'status' => 'active',
+                        'email_verified_at' => now(),
+                    ]
+                );
 
-                $guardianProfile = $guardianUser->guardian()->create([
+                $guardianProfile = $guardianUser->guardian ?? $guardianUser->guardian()->create([
                     'phone' => '+1234567890',
                     'address' => '123 Stress St',
                     'city' => 'Lagos',
                     'country' => 'Nigeria',
                 ]);
 
-                $guardianUser->wallet()->update([
-                    'balance' => 100000.00,
-                    'currency' => 'USD',
-                ]);
+                if ($guardianUser->wallet) {
+                    $guardianUser->wallet->update([
+                        'balance' => 100000.00,
+                        'currency' => 'USD',
+                    ]);
+                }
 
-                // Link this guardian to the corresponding student
-                $guardianProfile->students()->attach($studentProfile->id, [
-                    'relationship' => 'parent',
-                    'is_primary' => true,
-                ]);
+                // Link guardian to student (ignore if already linked)
+                if (!$guardianProfile->students()->where('student_id', $studentProfile->id)->exists()) {
+                    $guardianProfile->students()->attach($studentProfile->id, [
+                        'relationship' => 'parent',
+                        'is_primary' => true,
+                    ]);
+                }
 
                 $guardiansData[] = [
                     'id' => $guardianUser->id,
@@ -112,18 +122,20 @@ class LoadTestUserSeeder extends Seeder
                     'password' => $passwordRaw,
                 ];
 
-                // 3. Create Teacher
+                // 3. Create or reuse Teacher
                 $teacherEmail = "stress.teacher.{$i}@iqraquest.com";
-                $teacherUser = User::create([
-                    'name' => "Stress Teacher {$i}",
-                    'email' => $teacherEmail,
-                    'password' => $passwordHash,
-                    'role' => UserRole::TEACHER,
-                    'status' => 'active',
-                    'email_verified_at' => now(),
-                ]);
+                $teacherUser = User::firstOrCreate(
+                    ['email' => $teacherEmail],
+                    [
+                        'name' => "Stress Teacher {$i}",
+                        'password' => $passwordHash,
+                        'role' => UserRole::TEACHER,
+                        'status' => 'active',
+                        'email_verified_at' => now(),
+                    ]
+                );
 
-                $teacherProfile = $teacherUser->teacher()->create([
+                $teacherProfile = $teacherUser->teacher ?? $teacherUser->teacher()->create([
                     'bio' => "Stress Test Teacher {$i}. Native speaker, certified tutor.",
                     'experience_years' => 5,
                     'hourly_rate' => 20.00,
@@ -138,20 +150,23 @@ class LoadTestUserSeeder extends Seeder
                     'teacher_type' => 'freelance',
                 ]);
 
-                // Attach subjects to the teacher
+                // Attach subjects to the teacher (skip if already attached)
                 foreach ($subjectIds as $subId) {
-                    $teacherProfile->subjects()->attach($subId, [
-                        'proficiency_level' => 'advanced',
-                        'years_teaching' => 5,
-                    ]);
+                    if (!$teacherProfile->subjects()->where('subject_id', $subId)->exists()) {
+                        $teacherProfile->subjects()->attach($subId, [
+                            'proficiency_level' => 'advanced',
+                            'years_teaching' => 5,
+                        ]);
+                    }
                 }
 
-                // Add availability slots for Monday-Friday
+                // Add availability slots for Monday-Friday (skip if already exist)
                 $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
                 foreach ($days as $day) {
-                    TeacherAvailability::create([
+                    TeacherAvailability::firstOrCreate([
                         'teacher_id' => $teacherProfile->id,
                         'day_of_week' => $day,
+                    ], [
                         'is_available' => true,
                         'start_time' => '08:00:00',
                         'end_time' => '18:00:00',
