@@ -31,10 +31,12 @@ if [[ "${DEPLOY_FIX_PERMISSIONS:-0}" == "1" ]]; then
   chmod 664 storage/logs/laravel.log
 fi
 
-# 0) Sync working tree to exact origin/main state (deterministic deploy)
-log "Syncing repository with origin/main..."
+# 0) Sync working tree to exact origin state (deterministic deploy)
+# Override with: DEPLOY_BRANCH=staging bash deploy.sh
+DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
+log "Syncing repository with origin/${DEPLOY_BRANCH}..."
 git fetch origin
-git reset --hard origin/main
+git reset --hard "origin/${DEPLOY_BRANCH}"
 git clean -fd
 
 # 2) Install dependencies (Backend & Frontend)
