@@ -143,12 +143,23 @@ class PayoutService
     }
 
     /**
-     * Process an approved payout
+     * Process an approved payout.
+     *
+     * SAFETY: The third-party HTTP transfer MUST NOT run inside a DB transaction.
+     * If the HTTP call succeeded but the subsequent DB commit failed, the teacher
+     * would receive money without any wallet debit — a double-spend.
+     *
+     * Pattern used here:
+     *   1. Transaction A  – mark payout as `processing` (idempotent write).
+     *   2. No transaction – execute the external HTTP transfer.
+     *   3. Transaction B  – on success: debit wallet & mark `completed`.
+     *                        on failure: mark `failed` only.
      */
     public function processPayout(int $payoutId): Payout
     {
-        return DB::transaction(function () use ($payoutId) {
-            $payout = Payout::with('teacher', 'paymentMethod')->findOrFail($payoutId);
+        // ── Phase 1: Mark as processing in an isolated transaction ──────────────
+        $payout = DB::transaction(function () use ($payoutId) {
+            $payout = Payout::with('teacher', 'paymentMethod')->lockForUpdate()->findOrFail($payoutId);
 
             if ($payout->status !== 'approved') {
                 throw new \Exception('Only approved payouts can be processed');
@@ -156,47 +167,63 @@ class PayoutService
 
             $payout->markAsProcessing();
 
-            try {
-                // Process based on gateway
-                if ($payout->gateway === 'paystack') {
-                    $result = $this->processPaystackPayout($payout);
-                } elseif ($payout->gateway === 'paypal') {
-                    $result = $this->processPayPalPayout($payout);
-                } else {
-                    throw new \Exception('Unsupported payment gateway');
-                }
+            return $payout->fresh(['teacher', 'paymentMethod']);
+        });
 
-                if ($result['status']) {
-                    // Debit teacher's wallet
-                    $this->walletService->debitWallet(
-                        $payout->teacher->user_id,
-                        $payout->amount,
-                        "Payout to {$payout->paymentMethod->account_name}",
-                        ['payout_id' => $payout->id],
-                        $payout->gateway
-                    );
+        // ── Phase 2: Execute external HTTP transfer (outside any transaction) ───
+        try {
+            if ($payout->gateway === 'paystack') {
+                $result = $this->processPaystackPayout($payout);
+            } elseif ($payout->gateway === 'paypal') {
+                $result = $this->processPayPalPayout($payout);
+            } else {
+                throw new \Exception('Unsupported payment gateway');
+            }
+        } catch (\Exception $e) {
+            // Network / gateway exception — mark failed and re-throw.
+            // No wallet debit occurred so no funds are at risk.
+            DB::transaction(function () use ($payout, $e) {
+                $payout->update([
+                    'status' => 'failed',
+                    'gateway_response' => ['error' => $e->getMessage()],
+                ]);
+            });
+            throw $e;
+        }
 
-                    // Mark as completed
-                    $payout->update([
-                        'status' => 'completed',
-                        'gateway_reference' => $result['reference'],
-                        'gateway_response' => $result['data'] ?? [],
-                        'processed_at' => now(),
-                    ]);
-                } else {
-                    $payout->update([
-                        'status' => 'failed',
-                        'gateway_response' => ['error' => $result['message']],
-                    ]);
+        // ── Phase 3: Finalise in a new isolated transaction ──────────────────────
+        return DB::transaction(function () use ($payout, $result) {
+            // Re-fetch inside the new transaction to get the freshest state.
+            $freshPayout = Payout::with('teacher', 'paymentMethod')->lockForUpdate()->findOrFail($payout->id);
 
-                    throw new \Exception($result['message']);
-                }
-            } catch (\Exception $e) {
-                $payout->update(['status' => 'failed']);
-                throw $e;
+            if ($result['status']) {
+                // Debit teacher's wallet — safe to do here because the HTTP transfer
+                // already succeeded; the two operations are in the same transaction so
+                // both succeed or both roll back together.
+                $this->walletService->debitWallet(
+                    $freshPayout->teacher->user_id,
+                    $freshPayout->amount,
+                    "Payout to {$freshPayout->paymentMethod->account_name}",
+                    ['payout_id' => $freshPayout->id],
+                    $freshPayout->gateway
+                );
+
+                $freshPayout->update([
+                    'status' => 'completed',
+                    'gateway_reference' => $result['reference'],
+                    'gateway_response' => $result['data'] ?? [],
+                    'processed_at' => now(),
+                ]);
+            } else {
+                $freshPayout->update([
+                    'status' => 'failed',
+                    'gateway_response' => ['error' => $result['message']],
+                ]);
+
+                throw new \Exception($result['message']);
             }
 
-            return $payout->fresh();
+            return $freshPayout->fresh();
         });
     }
 

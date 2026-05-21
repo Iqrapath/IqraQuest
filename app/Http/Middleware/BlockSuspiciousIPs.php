@@ -19,7 +19,7 @@ class BlockSuspiciousIPs
         $ip = $request->ip();
 
         // Check if IP is blocked
-        if ($this->isBlocked($ip)) {
+        if (config('security.ip_blocking.enabled', true) && $this->isBlocked($ip)) {
             abort(403, 'Your IP address has been temporarily blocked due to suspicious activity.');
         }
 
@@ -106,6 +106,10 @@ class BlockSuspiciousIPs
      */
     public static function incrementAttempts(string $ip, ?string $email = null): void
     {
+        if (!config('security.ip_blocking.enabled', true)) {
+            return;
+        }
+
         $key = "failed_attempts:{$ip}";
         $attempts = Cache::get($key, 0) + 1;
         

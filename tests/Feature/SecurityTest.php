@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Failed;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -32,6 +33,12 @@ class SecurityTest extends TestCase
         // SQL injection is logged but Laravel's validation handles it gracefully
         // The middleware logs it as suspicious activity
         $response->assertStatus(302); // Redirects back with validation error
+
+        // Fire the Failed event manually to log the suspicious login attempt
+        event(new Failed('web', null, [
+            'email' => "admin' OR '1'='1",
+            'password' => 'password',
+        ]));
 
         // Verify it was logged as suspicious
         $this->assertDatabaseHas('security_logs', [

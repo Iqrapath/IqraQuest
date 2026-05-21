@@ -18,7 +18,15 @@ class BookingService
     public function createBooking(User $student, Teacher $teacher, array $data, bool $processPayment = true)
     {
         return DB::transaction(function () use ($student, $teacher, $data, $processPayment) {
-            // Parse the incoming timezone-naive string assuming it was generated in the 
+            if ($student->isStudent() && !$student->relationLoaded('student')) {
+                $student->load('student');
+            } elseif ($student->isGuardian() && !$student->relationLoaded('guardian')) {
+                $student->load('guardian');
+            } elseif ($student->isTeacher() && !$student->relationLoaded('teacher')) {
+                $student->load('teacher');
+            }
+
+            // Parse the incoming timezone-naive string assuming it was generated in the
             // Student's local browser timezone, then convert it definitively to UTC for storage.
             $studentTimezone = $student->timezone ?? config('app.display_timezone');
             $startTime = Carbon::parse($data['start_time'], $studentTimezone)->setTimezone('UTC');
@@ -27,8 +35,13 @@ class BookingService
             // -1. Validate Lead Time (at least 30 minutes before start)
             $this->validateLeadTime($startTime);
 
+            // CONCURRENCY GUARD: Lock the teacher row for the duration of this transaction.
+            // This serialises concurrent booking requests for the same teacher, eliminating
+            // the check-then-insert race condition (TOCTOU / double-booking).
+            Teacher::where('id', $teacher->id)->lockForUpdate()->first();
+
             // 0. Smart Reuse/Deduplicate: Check if THIS user already has an active booking for EXACTLY this slot
-            // We ONLY reuse/update if the existing booking is still PENDING. 
+            // We ONLY reuse/update if the existing booking is still PENDING.
             // If it's confirmed or awaiting approval, we let the conflict logic catch it later.
             $existingBooking = Booking::where('teacher_id', $teacher->id)
                 ->where('user_id', $student->id)
@@ -56,10 +69,8 @@ class BookingService
                 return $existingBooking;
             }
 
-            // 1. Validate Availability (Double Check)
+            // 1. Validate Availability (Double Check — safe because teacher row is locked above)
             if (!$this->isSlotAvailable($teacher, $startTime, $endTime)) {
-                // For offers, we might checking against the teacher's own calendar differently, 
-                // but generally they shouldn't double book themselves.
                 throw new Exception("This time slot is no longer available.");
             }
 
@@ -241,6 +252,10 @@ class BookingService
         return DB::transaction(function () use ($student, $teacher, $sessions, $isRecurring, $occurrences, $subjectId, $notes, $currency, $studentId) {
             $allBookings = collect();
             $walletService = app(WalletService::class);
+
+            // CONCURRENCY GUARD: Lock the teacher row so that no other concurrent batch
+            // can interleave slot-availability checks for this teacher.
+            Teacher::where('id', $teacher->id)->lockForUpdate()->first();
 
             // Helper: Strip timezone indicators and parse as UTC.
             // Availability times are timezone-naive (e.g. "19:00"). The app timezone

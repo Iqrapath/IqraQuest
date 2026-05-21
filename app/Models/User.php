@@ -275,16 +275,26 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the user's specific timezone preference based on their active profile
+     * Get the user's specific timezone preference based on their active profile.
+     *
+     * N+1 GUARD: `timezone` is included in `$appends`, so this accessor fires on
+     * every serialization. We only resolve the value when the relevant profile
+     * relation is *already loaded* in memory — otherwise we return null and avoid
+     * issuing a hidden SQL query per user row.
+     *
+     * Callers who genuinely need the timezone (e.g. booking notifications) must
+     * eager-load the profile relation:
+     *   User::with('teacher')->find($id)->timezone   // returns teacher timezone
+     *   $user->load('student')                        // then $user->timezone works
      */
     public function getTimezoneAttribute(): ?string
     {
         if ($this->isTeacher()) {
-            return $this->teacher?->timezone;
+            return $this->relationLoaded('teacher') ? $this->teacher?->timezone : null;
         } elseif ($this->isStudent()) {
-            return $this->student?->timezone;
+            return $this->relationLoaded('student') ? $this->student?->timezone : null;
         } elseif ($this->isGuardian()) {
-            return $this->guardian?->timezone;
+            return $this->relationLoaded('guardian') ? $this->guardian?->timezone : null;
         }
 
         return null;

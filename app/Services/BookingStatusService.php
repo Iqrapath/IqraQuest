@@ -279,19 +279,21 @@ class BookingStatusService
     {
         $isTeacher = $viewer?->teacher && $booking->teacher_id === $viewer->teacher->id;
 
-        // Get existing review for this booking
+        // Get existing review for this booking (single query — result is reused below).
         $existingReview = null;
+        $reviewFetched  = null; // The raw Review model instance, kept for hasRated().
+
         if ($viewer && !$isTeacher) {
-            $review = \App\Models\Review::where('booking_id', $booking->id)
+            $reviewFetched = \App\Models\Review::where('booking_id', $booking->id)
                 ->where('user_id', $viewer->id)
                 ->first();
 
-            if ($review) {
+            if ($reviewFetched) {
                 $existingReview = [
-                    'id' => $review->id,
-                    'rating' => $review->rating,
-                    'comment' => $review->comment,
-                    'created_at' => $review->created_at->toIso8601String(),
+                    'id'         => $reviewFetched->id,
+                    'rating'     => $reviewFetched->rating,
+                    'comment'    => $reviewFetched->comment,
+                    'created_at' => $reviewFetched->created_at->toIso8601String(),
                 ];
             }
         }
@@ -339,7 +341,8 @@ class BookingStatusService
             'can_dispute' => $booking->canBeDisputed(),
             'can_confirm_release' => !$isTeacher && $booking->payment_status === 'held' && in_array($booking->status, ['completed', 'awaiting_judgment']),
             'can_join' => $this->canJoinSession($booking),
-            'can_rate' => !$isTeacher && $this->isCompleted($booking) && !$this->hasRated($booking, $viewer),
+            // Pass the pre-fetched review instance so hasRated() skips the second DB query.
+            'can_rate' => !$isTeacher && $this->isCompleted($booking) && !$this->hasRated($booking, $viewer, $reviewFetched),
             'has_review' => $existingReview !== null,
             'review' => $existingReview,
             'meeting_link' => $booking->meeting_link,
@@ -413,13 +416,29 @@ class BookingStatusService
     }
 
     /**
-     * Check if user has already rated this booking
+     * Check if user has already rated this booking.
+     *
+     * Accepts an optional pre-fetched $review model so that callers who already
+     * queried the Review table (e.g. formatBookingForResponse) can avoid a second
+     * DB round-trip. When $prefetched is supplied the database is never hit.
+     *
+     * @param  \App\Models\Review|null  $prefetched  The already-loaded Review, or null if not yet checked.
      */
-    protected function hasRated(Booking $booking, ?User $user): bool
+    protected function hasRated(Booking $booking, ?User $user, ?\App\Models\Review $prefetched = null): bool
     {
-        if (!$user)
+        if (!$user) {
             return true;
+        }
 
+        // If the caller already fetched the review, reuse that result.
+        if ($prefetched !== null) {
+            return true; // A non-null model means a review exists.
+        }
+
+        // `null` from the caller means "I tried and found nothing" only when it
+        // was explicitly passed. To distinguish "not passed" from "passed null",
+        // we rely on the default value being null and the caller always supplying
+        // the argument when it has already done the query.
         return \App\Models\Review::where('booking_id', $booking->id)
             ->where('user_id', $user->id)
             ->exists();
