@@ -155,7 +155,7 @@ class OtpVerificationController extends Controller
     public function updateEmail(Request $request): RedirectResponse
     {
         $request->validate([
-            'email' => ['required', 'string', 'email:rfc,dns', 'max:255', 'unique:users'],
+            'email' => ['required', 'string', app()->environment('local') ? 'email:rfc' : 'email:rfc,dns', 'max:255', 'unique:users'],
         ]);
 
         $user = $request->user();
