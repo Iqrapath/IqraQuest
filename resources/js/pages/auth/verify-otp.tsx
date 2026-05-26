@@ -203,7 +203,7 @@ export default function VerifyOtp({ hasValidOtp, status, email }: VerifyOtpProps
 
                     <div className="flex items-center justify-between px-2 text-[14px]">
                         <button
-                            onClick={() => router.get(logout())}
+                            onClick={() => router.post(logout().url)}
                             className="text-[#64748b] hover:text-[#1a1d56] font-medium flex items-center gap-1.5 transition-colors cursor-pointer hover:underline"
                         >
                             <Icon icon="solar:logout-2-linear" className="w-4 h-4" />
