@@ -13,6 +13,7 @@ import {
 interface Subject {
     id: number;
     name: string;
+    category?: string | null;
     description: string | null;
     is_active: boolean;
     display_order: number;
@@ -75,6 +76,7 @@ export default function FeatureControlsTab({ toggles, subjects = { data: [], cur
     const subjectForm = useForm({
         id: '',
         name: '',
+        category: '',
         description: '',
         display_order: 0,
         is_active: true,
@@ -85,6 +87,7 @@ export default function FeatureControlsTab({ toggles, subjects = { data: [], cur
         subjectForm.setData({
             id: '',
             name: '',
+            category: '',
             description: '',
             display_order: (subjects.data.length > 0 ? Math.max(...subjects.data.map(s => s.display_order)) + 1 : 1),
             is_active: true,
@@ -98,6 +101,7 @@ export default function FeatureControlsTab({ toggles, subjects = { data: [], cur
         subjectForm.setData({
             id: subject.id.toString(),
             name: subject.name,
+            category: subject.category || '',
             description: subject.description || '',
             display_order: subject.display_order,
             is_active: subject.is_active,
@@ -191,6 +195,7 @@ export default function FeatureControlsTab({ toggles, subjects = { data: [], cur
                                 <tr>
                                     <th className="px-6 py-4 font-semibold">Order</th>
                                     <th className="px-6 py-4 font-semibold">Name</th>
+                                    <th className="px-6 py-4 font-semibold">Category</th>
                                     <th className="px-6 py-4 font-semibold">Description</th>
                                     <th className="px-6 py-4 font-semibold">Active</th>
                                     <th className="px-6 py-4 font-semibold text-right">Actions</th>
@@ -201,6 +206,7 @@ export default function FeatureControlsTab({ toggles, subjects = { data: [], cur
                                     <tr key={subject.id} className="hover:bg-gray-50/50 transition-colors">
                                         <td className="px-6 py-4 text-gray-500">{subject.display_order}</td>
                                         <td className="px-6 py-4 font-medium text-gray-900">{subject.name}</td>
+                                        <td className="px-6 py-4 font-medium text-[#338078]">{subject.category || <span className="text-gray-300 font-normal italic">None</span>}</td>
                                         <td className="px-6 py-4 text-gray-500 max-w-[300px] truncate" title={subject.description || ''}>
                                             {subject.description || <span className="text-gray-300 italic">None</span>}
                                         </td>
@@ -284,6 +290,24 @@ export default function FeatureControlsTab({ toggles, subjects = { data: [], cur
                                 required
                             />
                             {subjectForm.errors.name && <p className="text-xs text-red-500">{subjectForm.errors.name}</p>}
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-[#101928]">Category</label>
+                            <select
+                                value={subjectForm.data.category}
+                                onChange={e => subjectForm.setData('category', e.target.value)}
+                                className="w-full px-4 py-3 rounded-[12px] bg-white border border-gray-200 outline-none focus:border-[#338078] focus:ring-1 focus:ring-[#338078] transition-all"
+                            >
+                                <option value="">Select a Category (Optional)</option>
+                                <option value="Quran">Quran</option>
+                                <option value="Arabic">Arabic</option>
+                                <option value="Tech">Tech</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Education">Education</option>
+                                <option value="Crypto">Crypto</option>
+                            </select>
+                            {subjectForm.errors.category && <p className="text-xs text-red-500">{subjectForm.errors.category}</p>}
                         </div>
 
                         <div className="space-y-2">

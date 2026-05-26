@@ -292,6 +292,7 @@ class SettingsController extends Controller
         $validated = $request->validate([
             'id' => 'nullable|exists:subjects,id',
             'name' => 'required|string|max:100',
+            'category' => 'nullable|string|in:Quran,Arabic,Tech,Marketing,Education,Crypto',
             'description' => 'nullable|string|max:500',
             'icon' => 'nullable|string|max:50',
             'display_order' => 'required|integer',
@@ -301,6 +302,7 @@ class SettingsController extends Controller
         $subjectData = [
             'name' => $validated['name'],
             'slug' => \Illuminate\Support\Str::slug($validated['name']),
+            'category' => $validated['category'] ?? null,
             'description' => $validated['description'] ?? null,
             'icon' => $validated['icon'] ?? null,
             'display_order' => $validated['display_order'],

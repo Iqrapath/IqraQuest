@@ -11,10 +11,17 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 
 interface Subject {
     id: number;
     name: string;
+    category?: string | null;
 }
 
 interface Props {
@@ -46,6 +53,19 @@ export default function Step2({ teacher, subjects }: Props) {
     });
 
     const [bioLength, setBioLength] = useState(data.bio.length);
+    const [comboboxOpen, setComboboxOpen] = useState(false);
+
+    const groupedSubjects = React.useMemo(() => {
+        const groups: Record<string, Subject[]> = {};
+        subjects.forEach((subject) => {
+            const category = subject.category || 'Other';
+            if (!groups[category]) {
+                groups[category] = [];
+            }
+            groups[category].push(subject);
+        });
+        return groups;
+    }, [subjects]);
 
     // Determine initial selection state
     const getInitialExperienceSelection = () => {
@@ -178,28 +198,85 @@ export default function Step2({ teacher, subjects }: Props) {
 
                             <div className="space-y-7">
                                 {/* Subjects you teach */}
-                                <div>
-                                    <label className="block text-[#170F49] text-[16px] font-medium mb-4" style={{ fontFamily: 'Nunito' }}>
+                                <div className="space-y-3">
+                                    <label className="block text-[#170F49] text-[16px] font-medium mb-1" style={{ fontFamily: 'Nunito' }}>
                                         Subjects you teach
                                     </label>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {subjects.map((subject) => (
-                                            <label
-                                                key={subject.id}
-                                                className="flex items-center gap-2 cursor-pointer"
+                                    
+                                    <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                role="combobox"
+                                                aria-expanded={comboboxOpen}
+                                                className="w-full justify-between h-[48px] px-[18px] border border-[#9E9E9E] rounded-[5px] text-[#000000] text-[16px] font-normal hover:bg-white hover:text-[#000000] focus:ring-[#338078] focus:border-[#338078]"
                                             >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={data.subjects.includes(subject.id)}
-                                                    onChange={() => handleSubjectToggle(subject.id)}
-                                                    className="w-5 h-5 rounded border-[#9E9E9E] text-[#338078] focus:ring-[#338078]"
-                                                />
-                                                <span className="text-[#170F49] text-[16px]" style={{ fontFamily: 'Nunito' }}>
-                                                    {subject.name}
-                                                </span>
-                                            </label>
-                                        ))}
-                                    </div>
+                                                {data.subjects.length > 0 
+                                                    ? `${data.subjects.length} subject${data.subjects.length > 1 ? 's' : ''} selected` 
+                                                    : "Select subjects you teach..."}
+                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                                            <Command className="w-full">
+                                                <CommandInput placeholder="Search subjects..." className="h-11 border-none focus:ring-0" />
+                                                <CommandList className="max-h-[300px] overflow-y-auto">
+                                                    <CommandEmpty>No subject found.</CommandEmpty>
+                                                    {Object.entries(groupedSubjects).map(([category, categorySubjects]) => (
+                                                        <CommandGroup key={category} heading={category} className="px-2 py-1.5 text-[#1a1d56] font-bold">
+                                                            {categorySubjects.map((subject) => {
+                                                                const isSelected = data.subjects.includes(subject.id);
+                                                                return (
+                                                                    <CommandItem
+                                                                        key={subject.id}
+                                                                        value={subject.name}
+                                                                        onSelect={() => handleSubjectToggle(subject.id)}
+                                                                        className="cursor-pointer flex items-center justify-between py-2 px-3 rounded-md hover:bg-gray-100/80 text-sm font-normal text-gray-700"
+                                                                    >
+                                                                        <div className="flex items-center gap-2">
+                                                                            <div className={cn(
+                                                                                "flex h-4 w-4 items-center justify-center rounded border border-gray-300 transition-colors",
+                                                                                isSelected ? "bg-[#338078] border-[#338078] text-white" : "bg-white"
+                                                                            )}>
+                                                                                {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                                                                            </div>
+                                                                            <span>{subject.name}</span>
+                                                                        </div>
+                                                                    </CommandItem>
+                                                                );
+                                                            })}
+                                                        </CommandGroup>
+                                                    ))}
+                                                </CommandList>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
+
+                                    {/* Display selected subject badges */}
+                                    {data.subjects.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 pt-1">
+                                            {data.subjects.map((subId: number) => {
+                                                const subject = subjects.find(s => s.id === subId);
+                                                if (!subject) return null;
+                                                return (
+                                                    <Badge
+                                                        key={subId}
+                                                        variant="secondary"
+                                                        className="bg-[#E8F5F4] hover:bg-[#d5eded] text-[#338078] border border-[#338078]/10 px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[14px] font-medium"
+                                                    >
+                                                        {subject.name}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleSubjectToggle(subId)}
+                                                            className="text-[#338078] hover:text-red-500 transition-colors focus:outline-none"
+                                                        >
+                                                            <X className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    </Badge>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                     {errors.subjects && <p className="mt-2 text-sm text-red-600">{errors.subjects}</p>}
                                 </div>
 
