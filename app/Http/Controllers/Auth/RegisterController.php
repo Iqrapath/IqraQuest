@@ -17,8 +17,9 @@ class RegisterController extends Controller
     public function store(Request $request, CreateNewUser $creator): RedirectResponse
     {
         // Rate limiting: 3 registrations per IP per hour
+        $limit = app()->environment('local') ? 100 : 3;
         $key = 'registration-attempts:' . $request->ip();
-        if (RateLimiter::tooManyAttempts($key, 3)) {
+        if (RateLimiter::tooManyAttempts($key, $limit)) {
             $seconds = RateLimiter::availableIn($key);
             $minutes = ceil($seconds / 60);
             return back()->withErrors([

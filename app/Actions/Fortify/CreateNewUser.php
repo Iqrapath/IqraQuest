@@ -25,7 +25,7 @@ class CreateNewUser implements CreatesNewUsers
             'max:255',
             Rule::unique(User::class),
         ];
-        $emailRules[] = app()->runningUnitTests() ? 'email:rfc' : 'email:rfc,dns';
+        $emailRules[] = (app()->runningUnitTests() || app()->environment('local')) ? 'email:rfc' : 'email:rfc,dns';
 
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
