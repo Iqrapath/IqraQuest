@@ -1,18 +1,25 @@
 import { Icon } from '@iconify/react';
 import { router, useForm } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import AppLogoIcon from './app-logo-icon';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Spinner } from '@/components/ui/spinner';
 import { toast } from 'sonner';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { Check, ChevronsUpDown, X } from 'lucide-react';
 
 interface Subject {
     id: number;
     name: string;
     description: string;
     icon?: string;
+    category?: string | null;
 }
 
 interface StudentOnboardingModalProps {
@@ -25,7 +32,7 @@ export default function StudentOnboardingModal({ isOpen, onComplete, onSkip }: S
     const [step, setStep] = useState(1);
     const [subjects, setSubjects] = useState<Subject[]>([]);
     const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [comboboxOpen, setComboboxOpen] = useState(false);
 
     const { data, setData, post, processing, errors } = useForm({
         gender: '',
@@ -37,6 +44,18 @@ export default function StudentOnboardingModal({ isOpen, onComplete, onSkip }: S
         availability_type: 'flexible',
         subjects: [] as number[],
     });
+
+    const groupedSubjects = useMemo(() => {
+        const groups: Record<string, Subject[]> = {};
+        subjects.forEach((subject) => {
+            const category = subject.category || 'Other';
+            if (!groups[category]) {
+                groups[category] = [];
+            }
+            groups[category].push(subject);
+        });
+        return groups;
+    }, [subjects]);
 
     useEffect(() => {
         if (isOpen && step === 3 && subjects.length === 0) {
@@ -90,10 +109,6 @@ export default function StudentOnboardingModal({ isOpen, onComplete, onSkip }: S
             setData('subjects', [...current, id]);
         }
     };
-
-    const filteredSubjects = subjects.filter(sub =>
-        sub.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1a1d56]/40 backdrop-blur-sm p-4 overflow-hidden">
@@ -212,20 +227,9 @@ export default function StudentOnboardingModal({ isOpen, onComplete, onSkip }: S
                     {/* Step 3: Subjects */}
                     {step === 3 && (
                         <div className="flex flex-col gap-6 animate-in slide-in-from-right-4 duration-500">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                <div className="text-center md:text-left">
-                                    <h2 className="font-['Nunito'] text-2xl font-bold text-[#1a1d56]">Your Interests</h2>
-                                    <p className="text-gray-500 text-sm sm:text-base">Which subjects interest you?</p>
-                                </div>
-                                <div className="relative w-full sm:w-64">
-                                    <Icon icon="solar:magnifer-linear" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                    <Input
-                                        placeholder="Search subjects..."
-                                        className="pl-10 rounded-xl border-gray-100 bg-gray-50 h-11 focus:bg-white"
-                                        value={searchQuery}
-                                        onChange={e => setSearchQuery(e.target.value)}
-                                    />
-                                </div>
+                            <div className="text-center md:text-left">
+                                <h2 className="font-['Nunito'] text-2xl font-bold text-[#1a1d56]">Your Interests</h2>
+                                <p className="text-gray-500 text-sm sm:text-base">Which subjects interest you?</p>
                             </div>
 
                             {isLoadingSubjects ? (
@@ -234,29 +238,79 @@ export default function StudentOnboardingModal({ isOpen, onComplete, onSkip }: S
                                     <p className="text-gray-400">Loading subjects...</p>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-4">
-                                    {filteredSubjects.length > 0 ? (
-                                        filteredSubjects.map((sub) => (
-                                            <button
-                                                key={sub.id}
-                                                onClick={() => toggleSubject(sub.id)}
-                                                className={`flex flex-col items-start gap-2 p-4 rounded-2xl border-2 transition-all text-left group ${data.subjects.includes(sub.id)
-                                                        ? 'border-[#338078] bg-[#E8F5F4]'
-                                                        : 'border-gray-100 bg-white hover:border-[#338078]/50'
-                                                    }`}
+                                <div className="space-y-4 pb-4">
+                                    <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                role="combobox"
+                                                aria-expanded={comboboxOpen}
+                                                className="w-full justify-between h-12 px-4 border border-gray-200 rounded-xl text-[#000000] text-[16px] font-normal hover:bg-white hover:text-[#000000] focus:ring-[#338078]"
                                             >
-                                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${data.subjects.includes(sub.id) ? 'bg-white' : 'bg-gray-50 group-hover:bg-gray-100'}`}>
-                                                    <Icon icon={sub.icon || 'solar:book-bookmark-bold'} className={`w-6 h-6 ${data.subjects.includes(sub.id) ? 'text-[#338078]' : 'text-gray-400'}`} />
-                                                </div>
-                                                <div>
-                                                    <p className={`font-bold text-[15px] ${data.subjects.includes(sub.id) ? 'text-[#338078]' : 'text-[#1a1d56]'}`}>{sub.name}</p>
-                                                </div>
-                                            </button>
-                                        ))
-                                    ) : (
-                                        <div className="col-span-full py-12 text-center flex flex-col items-center gap-3">
-                                            <Icon icon="solar:document-add-linear" className="w-12 h-12 text-gray-200" />
-                                            <p className="text-gray-400 font-['Inter']">No subjects found matching "{searchQuery}"</p>
+                                                {data.subjects.length > 0 
+                                                    ? `${data.subjects.length} subject${data.subjects.length > 1 ? 's' : ''} selected` 
+                                                    : "Select subjects you are interested in..."}
+                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                                            <Command className="w-full">
+                                                <CommandInput placeholder="Search subjects..." className="h-11 border-none focus:ring-0" />
+                                                <CommandList className="max-h-[300px] overflow-y-auto">
+                                                    <CommandEmpty>No subject found.</CommandEmpty>
+                                                    {Object.entries(groupedSubjects).map(([category, categorySubjects]) => (
+                                                        <CommandGroup key={category} heading={category} className="px-2 py-1.5 text-[#1a1d56] font-bold">
+                                                            {categorySubjects.map((subject) => {
+                                                                const isSelected = data.subjects.includes(subject.id);
+                                                                return (
+                                                                    <CommandItem
+                                                                        key={subject.id}
+                                                                        value={subject.name}
+                                                                        onSelect={() => toggleSubject(subject.id)}
+                                                                        className="cursor-pointer flex items-center justify-between py-2 px-3 rounded-md hover:bg-gray-100/80 text-sm font-normal text-gray-700"
+                                                                    >
+                                                                        <div className="flex items-center gap-2">
+                                                                            <div className={cn(
+                                                                                "flex h-4 w-4 items-center justify-center rounded border border-gray-300 transition-colors",
+                                                                                isSelected ? "bg-[#338078] border-[#338078] text-white" : "bg-white"
+                                                                            )}>
+                                                                                {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                                                                            </div>
+                                                                            <span>{subject.name}</span>
+                                                                        </div>
+                                                                    </CommandItem>
+                                                                );
+                                                            })}
+                                                        </CommandGroup>
+                                                    ))}
+                                                </CommandList>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
+
+                                    {/* Display selected subject badges */}
+                                    {data.subjects.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 pt-1">
+                                            {data.subjects.map((subId: number) => {
+                                                const subject = subjects.find(s => s.id === subId);
+                                                if (!subject) return null;
+                                                return (
+                                                    <Badge
+                                                        key={subId}
+                                                        variant="secondary"
+                                                        className="bg-[#E8F5F4] hover:bg-[#d5eded] text-[#338078] border border-[#338078]/10 px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[14px] font-medium"
+                                                    >
+                                                        {subject.name}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => toggleSubject(subId)}
+                                                            className="text-[#338078] hover:text-red-500 transition-colors focus:outline-none"
+                                                        >
+                                                            <X className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    </Badge>
+                                                );
+                                            })}
                                         </div>
                                     )}
                                 </div>

@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Models\Subject;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class SubjectSeeder extends Seeder
 {
@@ -13,238 +15,195 @@ class SubjectSeeder extends Seeder
      */
     public function run(): void
     {
-        $subjects = [
-            // Quran Studies
-            [
-                'name' => 'Hifz',
-                'description' => 'Quran Memorization - Complete memorization of the Holy Quran',
-                'display_order' => 1,
+        Schema::disableForeignKeyConstraints();
+        
+        DB::table('teacher_subjects')->truncate();
+        DB::table('student_subjects')->truncate();
+        DB::table('guardian_subjects')->truncate();
+        DB::table('bookings')->truncate();
+        DB::table('match_requests')->truncate();
+        Subject::truncate();
+        
+        Schema::enableForeignKeyConstraints();
+
+        $categories = [
+            'Quran' => [
+                [
+                    'name' => 'Hifz',
+                    'description' => 'Quran Memorization - Complete memorization of the Holy Quran',
+                    'icon' => 'solar:book-bookmark-bold',
+                ],
+                [
+                    'name' => 'Tajweed',
+                    'description' => 'Quran Recitation Rules - Proper pronunciation and recitation rules',
+                    'icon' => 'solar:microphone-large-bold',
+                ],
+                [
+                    'name' => 'Tafsir',
+                    'description' => 'Quran Interpretation - Explanation and commentary of Quranic verses',
+                    'icon' => 'solar:document-text-bold',
+                ],
+                [
+                    'name' => 'Qira\'at',
+                    'description' => 'Quranic Recitation Styles - Different authentic methods of Quran recitation',
+                    'icon' => 'solar:music-note-bold',
+                ],
+                [
+                    'name' => 'Quranic Arabic',
+                    'description' => 'Vocabulary and grammar specifically for understanding the Quran',
+                    'icon' => 'solar:translation-bold',
+                ],
             ],
-            [
-                'name' => 'Tajweed',
-                'description' => 'Quran Recitation Rules - Proper pronunciation and recitation of the Quran',
-                'display_order' => 2,
+            'Arabic' => [
+                [
+                    'name' => 'Classical Arabic (Fusha)',
+                    'description' => 'Standard modern and classical Arabic language studies',
+                    'icon' => 'solar:chat-round-line-bold',
+                ],
+                [
+                    'name' => 'Conversational Arabic (Ammiya)',
+                    'description' => 'Dialects and spoken Arabic for daily conversation',
+                    'icon' => 'solar:dialog-bold',
+                ],
+                [
+                    'name' => 'Arabic Grammar (Nahw)',
+                    'description' => 'Arabic syntax and structure rules',
+                    'icon' => 'solar:tuning-bold-duotone',
+                ],
+                [
+                    'name' => 'Arabic Morphology (Sarf)',
+                    'description' => 'Arabic word formation and verb conjugation patterns',
+                    'icon' => 'solar:square-share-line-bold',
+                ],
             ],
-            [
-                'name' => 'Tafsir',
-                'description' => 'Quran Interpretation - Explanation and commentary of Quranic verses',
-                'display_order' => 3,
+            'Tech' => [
+                [
+                    'name' => 'Web Development',
+                    'description' => 'Building websites and web applications using HTML, CSS, JavaScript, React, etc.',
+                    'icon' => 'solar:code-bold',
+                ],
+                [
+                    'name' => 'Python Programming',
+                    'description' => 'General purpose programming, scripts, automation, and basics',
+                    'icon' => 'solar:programming-bold',
+                ],
+                [
+                    'name' => 'Mobile App Development',
+                    'description' => 'Building apps for iOS and Android using Flutter, React Native, or native Swift/Kotlin',
+                    'icon' => 'solar:smartphone-bold',
+                ],
+                [
+                    'name' => 'UI/UX Design',
+                    'description' => 'User interface and experience design using Figma, wireframing, and prototyping',
+                    'icon' => 'solar:palette-bold',
+                ],
+                [
+                    'name' => 'Data Science & AI',
+                    'description' => 'Data analysis, statistics, machine learning, and AI applications',
+                    'icon' => 'solar:cpu-bold',
+                ],
+                [
+                    'name' => 'Cybersecurity',
+                    'description' => 'Network security, ethical hacking, defense strategies, and online protection',
+                    'icon' => 'solar:shield-keyhole-bold',
+                ],
             ],
-            [
-                'name' => 'Qira\'at',
-                'description' => 'Quranic Recitation Styles - Different authentic methods of Quran recitation',
-                'display_order' => 4,
+            'Marketing' => [
+                [
+                    'name' => 'Digital Marketing',
+                    'description' => 'Overview of online advertising, funnel design, and online presence',
+                    'icon' => 'solar:globus-bold',
+                ],
+                [
+                    'name' => 'Search Engine Optimization (SEO)',
+                    'description' => 'Optimizing search engine visibility, keyword research, and on-page/off-page tuning',
+                    'icon' => 'solar:ranking-bold',
+                ],
+                [
+                    'name' => 'Social Media Marketing',
+                    'description' => 'Growing brands on platforms like Instagram, TikTok, LinkedIn, and Facebook',
+                    'icon' => 'solar:share-circle-bold',
+                ],
+                [
+                    'name' => 'Copywriting & Content Marketing',
+                    'description' => 'Writing persuasive sales copy and high-value educational content',
+                    'icon' => 'solar:pen-bold',
+                ],
+                [
+                    'name' => 'Brand Strategy',
+                    'description' => 'Developing unique brand identities, positioning, and target audience alignment',
+                    'icon' => 'solar:crown-bold',
+                ],
             ],
-            [
-                'name' => 'Uloom al-Quran',
-                'description' => 'Sciences of the Quran - Study of Quranic sciences and methodology',
-                'display_order' => 5,
+            'Education' => [
+                [
+                    'name' => 'Teaching Methods & Pedagogy',
+                    'description' => 'Modern learning theories, classroom management, and teaching methodologies',
+                    'icon' => 'solar:diploma-bold',
+                ],
+                [
+                    'name' => 'Special Education',
+                    'description' => 'Methods for teaching students with diverse learning needs and abilities',
+                    'icon' => 'solar:accessibility-bold',
+                ],
+                [
+                    'name' => 'Early Childhood Education',
+                    'description' => 'Teaching and nurturing young children (ages 2 to 8)',
+                    'icon' => 'solar:smile-circle-bold',
+                ],
+                [
+                    'name' => 'Curriculum Development',
+                    'description' => 'Designing educational courses, syllabus planning, and assessments',
+                    'icon' => 'solar:notebook-bold',
+                ],
+                [
+                    'name' => 'Educational Leadership',
+                    'description' => 'School administration, principal/leadership training, and educational policy',
+                    'icon' => 'solar:users-group-rounded-bold',
+                ],
             ],
-            
-            // Hadith Studies
-            [
-                'name' => 'Hadith',
-                'description' => 'Prophetic Traditions - Study of the sayings and actions of Prophet Muhammad (PBUH)',
-                'display_order' => 6,
-            ],
-            [
-                'name' => 'Mustalah al-Hadith',
-                'description' => 'Hadith Terminology - Science of hadith authentication and classification',
-                'display_order' => 7,
-            ],
-            [
-                'name' => 'Hadith Memorization',
-                'description' => 'Memorization of authentic hadiths from major collections',
-                'display_order' => 8,
-            ],
-            
-            // Islamic Jurisprudence
-            [
-                'name' => 'Fiqh',
-                'description' => 'Islamic Jurisprudence - Understanding Islamic law and rulings',
-                'display_order' => 9,
-            ],
-            [
-                'name' => 'Usul al-Fiqh',
-                'description' => 'Principles of Islamic Jurisprudence - Methodology of deriving Islamic rulings',
-                'display_order' => 10,
-            ],
-            [
-                'name' => 'Fiqh al-Ibadat',
-                'description' => 'Jurisprudence of Worship - Rulings related to prayer, fasting, hajj, etc.',
-                'display_order' => 11,
-            ],
-            [
-                'name' => 'Fiqh al-Muamalat',
-                'description' => 'Jurisprudence of Transactions - Islamic rulings on business and contracts',
-                'display_order' => 12,
-            ],
-            [
-                'name' => 'Fiqh al-Usrah',
-                'description' => 'Family Jurisprudence - Islamic rulings on marriage, divorce, inheritance',
-                'display_order' => 13,
-            ],
-            
-            // Islamic Creed
-            [
-                'name' => 'Tawheed',
-                'description' => 'Islamic Monotheism - The oneness of Allah and core Islamic beliefs',
-                'display_order' => 14,
-            ],
-            [
-                'name' => 'Aqeedah',
-                'description' => 'Islamic Creed - Core beliefs and theology in Islam',
-                'display_order' => 15,
-            ],
-            
-            // Prophet\'s Biography
-            [
-                'name' => 'Seerah',
-                'description' => 'Biography of the Prophet - Life and teachings of Prophet Muhammad (PBUH)',
-                'display_order' => 16,
-            ],
-            [
-                'name' => 'Shama\'il',
-                'description' => 'Prophetic Characteristics - Physical and moral attributes of the Prophet',
-                'display_order' => 17,
-            ],
-            
-            // Islamic History
-            [
-                'name' => 'Islamic History',
-                'description' => 'History of Islam - From the time of Prophet Muhammad to modern era',
-                'display_order' => 18,
-            ],
-            [
-                'name' => 'History of Khulafa',
-                'description' => 'History of the Rightly Guided Caliphs and Islamic leadership',
-                'display_order' => 19,
-            ],
-            [
-                'name' => 'Islamic Civilization',
-                'description' => 'Contributions of Islamic civilization to science, arts, and culture',
-                'display_order' => 20,
-            ],
-            
-            // Arabic Language
-            [
-                'name' => 'Arabic Language',
-                'description' => 'Classical and Modern Arabic - Reading, writing, and speaking Arabic',
-                'display_order' => 21,
-            ],
-            [
-                'name' => 'Arabic Grammar (Nahw)',
-                'description' => 'Arabic Syntax - Study of sentence structure and grammar rules',
-                'display_order' => 22,
-            ],
-            [
-                'name' => 'Arabic Morphology (Sarf)',
-                'description' => 'Arabic word formation and conjugation patterns',
-                'display_order' => 23,
-            ],
-            [
-                'name' => 'Arabic Literature',
-                'description' => 'Classical and modern Arabic poetry and prose',
-                'display_order' => 24,
-            ],
-            [
-                'name' => 'Balagha',
-                'description' => 'Arabic Rhetoric - Eloquence and literary beauty in Arabic',
-                'display_order' => 25,
-            ],
-            
-            // Islamic Ethics & Spirituality
-            [
-                'name' => 'Akhlaq',
-                'description' => 'Islamic Ethics - Moral character and behavior in Islam',
-                'display_order' => 26,
-            ],
-            [
-                'name' => 'Tasawwuf',
-                'description' => 'Islamic Spirituality - Purification of the heart and soul',
-                'display_order' => 27,
-            ],
-            [
-                'name' => 'Adab',
-                'description' => 'Islamic Manners - Proper etiquette and conduct in Islam',
-                'display_order' => 28,
-            ],
-            
-            // Contemporary Islamic Studies
-            [
-                'name' => 'Islamic Finance',
-                'description' => 'Shariah-compliant financial systems and transactions',
-                'display_order' => 29,
-            ],
-            [
-                'name' => 'Islamic Economics',
-                'description' => 'Economic principles and systems in Islam',
-                'display_order' => 30,
-            ],
-            [
-                'name' => 'Comparative Religion',
-                'description' => 'Study of Islam in relation to other religions',
-                'display_order' => 31,
-            ],
-            [
-                'name' => 'Da\'wah',
-                'description' => 'Islamic Propagation - Methods of calling people to Islam',
-                'display_order' => 32,
-            ],
-            [
-                'name' => 'Islamic Psychology',
-                'description' => 'Mental health and counseling from Islamic perspective',
-                'display_order' => 33,
-            ],
-            
-            // Specialized Studies
-            [
-                'name' => 'Maqasid al-Shariah',
-                'description' => 'Objectives of Islamic Law - Higher purposes of Shariah',
-                'display_order' => 34,
-            ],
-            [
-                'name' => 'Islamic Inheritance',
-                'description' => 'Laws of inheritance and estate distribution in Islam',
-                'display_order' => 35,
-            ],
-            [
-                'name' => 'Islamic Astronomy',
-                'description' => 'Determining prayer times, Qibla direction, and Islamic calendar',
-                'display_order' => 36,
-            ],
-            [
-                'name' => 'Waqf Studies',
-                'description' => 'Islamic endowments and charitable trusts',
-                'display_order' => 37,
-            ],
-            
-            // Children & Youth
-            [
-                'name' => 'Islamic Studies for Kids',
-                'description' => 'Age-appropriate Islamic education for children',
-                'display_order' => 38,
-            ],
-            [
-                'name' => 'Quran for Beginners',
-                'description' => 'Basic Quran reading and recitation for beginners',
-                'display_order' => 39,
-            ],
-            [
-                'name' => 'Islamic Stories',
-                'description' => 'Stories from Quran and Islamic history for children',
-                'display_order' => 40,
+            'Crypto' => [
+                [
+                    'name' => 'Blockchain Fundamentals',
+                    'description' => 'Core concepts of distributed ledgers, cryptography, and consensus mechanisms',
+                    'icon' => 'solar:link-bold',
+                ],
+                [
+                    'name' => 'Smart Contract Development',
+                    'description' => 'Programming on-chain logic using Solidity or Rust (Ethereum, Solana, etc.)',
+                    'icon' => 'solar:code-file-bold',
+                ],
+                [
+                    'name' => 'Decentralized Finance (DeFi)',
+                    'description' => 'Understanding automated market makers, lending pools, yield farming, and decentralized exchanges',
+                    'icon' => 'solar:card-transfer-bold',
+                ],
+                [
+                    'name' => 'Cryptocurrency Trading',
+                    'description' => 'Technical analysis, risk management, order types, and trading strategies',
+                    'icon' => 'solar:graph-up-bold',
+                ],
+                [
+                    'name' => 'Web3 Development',
+                    'description' => 'Integrating frontend interfaces with smart contracts using Ethers.js, Wagmi, or Web3.js',
+                    'icon' => 'solar:server-bold',
+                ],
             ],
         ];
 
-        foreach ($subjects as $subject) {
-            Subject::create([
-                'name' => $subject['name'],
-                'slug' => Str::slug($subject['name']),
-                'description' => $subject['description'],
-                'is_active' => true,
-                'display_order' => $subject['display_order'],
-            ]);
+        $order = 1;
+        foreach ($categories as $categoryName => $subjects) {
+            foreach ($subjects as $subject) {
+                Subject::create([
+                    'name' => $subject['name'],
+                    'slug' => Str::slug($subject['name']),
+                    'category' => $categoryName,
+                    'description' => $subject['description'],
+                    'icon' => $subject['icon'],
+                    'is_active' => true,
+                    'display_order' => $order++,
+                ]);
+            }
         }
     }
 }

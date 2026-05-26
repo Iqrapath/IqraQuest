@@ -91,7 +91,7 @@
             $reverbScheme = 'https';
         }
 
-        // Build in PHP — @json([...]) breaks when the array contains $var['key'] (] closes the Blade directive early).
+        // Build in PHP — @json(...) breaks when the array contains $var['key'] (] closes the Blade directive early).
         $reverbPort = (int) ($reverbOptions['port'] ?? ($reverbScheme === 'https' ? 443 : 80));
         if ($reverbHostWasLocal && $reverbScheme === 'https') {
             $reverbPort = 443;

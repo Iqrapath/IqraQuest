@@ -1,6 +1,6 @@
 import { Icon } from '@iconify/react';
 import { router, useForm } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import AppLogoIcon from './app-logo-icon';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -9,11 +9,17 @@ import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Check, ChevronsUpDown, X } from 'lucide-react';
 
 interface Subject {
     id: number;
     name: string;
     icon?: string;
+    category?: string | null;
 }
 
 interface GuardianOnboardingModalProps {
@@ -38,9 +44,29 @@ export default function GuardianOnboardingModal({ isOpen, onComplete, onSkip, in
             setStep(initialStep);
         }
     }, [isOpen, initialStep]);
-    const [subjects, setSubjects] = useState<Subject[]>([]);
+        const [subjects, setSubjects] = useState<Subject[]>([]);
     const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
     const [showPasswords, setShowPasswords] = useState<{ [key: number]: boolean }>({});
+    const [comboboxOpens, setComboboxOpens] = useState<{ [key: number]: boolean }>({});
+
+    const setComboboxOpenForChild = (index: number, open: boolean) => {
+        setComboboxOpens(prev => ({
+            ...prev,
+            [index]: open
+        }));
+    };
+
+    const groupedSubjects = useMemo(() => {
+        const groups: Record<string, Subject[]> = {};
+        subjects.forEach((subject) => {
+            const category = subject.category || 'Other';
+            if (!groups[category]) {
+                groups[category] = [];
+            }
+            groups[category].push(subject);
+        });
+        return groups;
+    }, [subjects]);
 
     const togglePasswordVisibility = (index: number) => {
         setShowPasswords(prev => ({
@@ -374,18 +400,81 @@ export default function GuardianOnboardingModal({ isOpen, onComplete, onSkip, in
 
                                         <div className="space-y-3">
                                             <label className="text-sm font-semibold text-[#1a1d56]">Preferred Subjects</label>
-                                            <div className="flex flex-wrap gap-x-6 gap-y-3">
-                                                {subjects.map((sub) => (
-                                                    <label key={sub.id} className="flex items-center gap-2 cursor-pointer group">
-                                                        <Checkbox
-                                                            checked={child.subjects.includes(sub.id)}
-                                                            onCheckedChange={() => toggleSubject(index, sub.id)}
-                                                            className="border-gray-300 data-[state=checked]:bg-[#338078] data-[state=checked]:border-[#338078]"
-                                                        />
-                                                        <span className="text-sm text-gray-600 group-hover:text-[#1a1d56] transition-colors">{sub.name}</span>
-                                                    </label>
-                                                ))}
-                                            </div>
+                                            
+                                            <Popover open={comboboxOpens[index] || false} onOpenChange={(open) => setComboboxOpenForChild(index, open)}>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        role="combobox"
+                                                        aria-expanded={comboboxOpens[index] || false}
+                                                        className="w-full justify-between h-11 px-4 border border-gray-200 rounded-xl text-[#000000] text-[14px] font-normal hover:bg-white hover:text-[#000000] focus:ring-[#338078]"
+                                                    >
+                                                        {child.subjects.length > 0 
+                                                            ? `${child.subjects.length} subject${child.subjects.length > 1 ? 's' : ''} selected` 
+                                                            : "Select preferred subjects..."}
+                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                                                    <Command className="w-full">
+                                                        <CommandInput placeholder="Search subjects..." className="h-11 border-none focus:ring-0" />
+                                                        <CommandList className="max-h-[250px] overflow-y-auto">
+                                                            <CommandEmpty>No subject found.</CommandEmpty>
+                                                            {Object.entries(groupedSubjects).map(([category, categorySubjects]) => (
+                                                                <CommandGroup key={category} heading={category} className="px-2 py-1.5 text-[#1a1d56] font-bold">
+                                                                    {categorySubjects.map((sub) => {
+                                                                        const isSelected = child.subjects.includes(sub.id);
+                                                                        return (
+                                                                            <CommandItem
+                                                                                key={sub.id}
+                                                                                value={sub.name}
+                                                                                onSelect={() => toggleSubject(index, sub.id)}
+                                                                                className="cursor-pointer flex items-center justify-between py-2 px-3 rounded-md hover:bg-gray-100/80 text-sm font-normal text-gray-700"
+                                                                            >
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <div className={cn(
+                                                                                        "flex h-4 w-4 items-center justify-center rounded border border-gray-300 transition-colors",
+                                                                                        isSelected ? "bg-[#338078] border-[#338078] text-white" : "bg-white"
+                                                                                    )}>
+                                                                                        {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                                                                                    </div>
+                                                                                    <span>{sub.name}</span>
+                                                                                </div>
+                                                                            </CommandItem>
+                                                                        );
+                                                                    })}
+                                                                </CommandGroup>
+                                                            ))}
+                                                        </CommandList>
+                                                    </Command>
+                                                </PopoverContent>
+                                            </Popover>
+
+                                            {/* Display selected subject badges */}
+                                            {child.subjects.length > 0 && (
+                                                <div className="flex flex-wrap gap-2 pt-1">
+                                                    {child.subjects.map((subId: number) => {
+                                                        const subject = subjects.find(s => s.id === subId);
+                                                        if (!subject) return null;
+                                                        return (
+                                                            <Badge
+                                                                key={subId}
+                                                                variant="secondary"
+                                                                className="bg-[#E8F5F4] hover:bg-[#d5eded] text-[#338078] border border-[#338078]/10 px-3 py-1.5 rounded-full flex items-center gap-1.5 text-[14px] font-medium"
+                                                            >
+                                                                {subject.name}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => toggleSubject(index, subId)}
+                                                                    className="text-[#338078] hover:text-red-500 transition-colors focus:outline-none"
+                                                                >
+                                                                    <X className="h-3.5 w-3.5" />
+                                                                </button>
+                                                            </Badge>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="space-y-3">
