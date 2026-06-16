@@ -35,7 +35,7 @@ export default function ScheduleCallModal({
 }: ScheduleCallModalProps) {
     const isReschedule = teacher.video_verification_status === 'scheduled';
 
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors, reset, transform } = useForm({
         scheduled_at: '',
         notes: '',
         reschedule: isReschedule,
@@ -43,6 +43,10 @@ export default function ScheduleCallModal({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        transform((data) => ({
+            ...data,
+            scheduled_at: data.scheduled_at ? new Date(data.scheduled_at).toISOString() : '',
+        }));
         post(`/admin/verifications/${teacher.id}/schedule-call`, {
             onSuccess: () => {
                 onClose();

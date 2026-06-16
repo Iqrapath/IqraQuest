@@ -290,11 +290,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getTimezoneAttribute(): ?string
     {
         if ($this->isTeacher()) {
-            return $this->relationLoaded('teacher') ? $this->teacher?->timezone : null;
+            return $this->teacher?->timezone;
         } elseif ($this->isStudent()) {
-            return $this->relationLoaded('student') ? $this->student?->timezone : null;
+            return $this->student?->timezone;
         } elseif ($this->isGuardian()) {
-            return $this->relationLoaded('guardian') ? $this->guardian?->timezone : null;
+            return $this->guardian?->timezone;
         }
 
         return null;
@@ -307,6 +307,5 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $appends = [
         'avatar_url',
-        'timezone',
     ];
 }

@@ -188,8 +188,8 @@ export default function WaitingArea({
                                                 {new Intl.DateTimeFormat('en-US', {
                                                     weekday: 'short', month: 'short', day: 'numeric',
                                                     hour: '2-digit', minute: '2-digit',
-                                                    timeZone: 'UTC'
-                                                }).format(parseDBDate(vDate))} <span className="text-sm font-normal text-gray-400">UTC</span>
+                                                    timeZoneName: 'short'
+                                                }).format(parseDBDate(vDate))}
                                             </p>
                                         </div>
 

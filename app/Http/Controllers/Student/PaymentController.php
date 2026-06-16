@@ -38,6 +38,7 @@ class PaymentController extends Controller
             'gateway' => 'required|in:paystack,paypal',
             'usd_amount' => 'required_if:gateway,paypal|numeric|min:1',
             'exchange_rate' => 'nullable|numeric',
+            'channels' => 'nullable|array',
         ]);
 
         $user = auth()->user();
@@ -106,12 +107,14 @@ class PaymentController extends Controller
             // Determine callback URL based on user role
             $callbackRoute = $user->isGuardian() ? 'guardian.payment.callback' : 'student.payment.callback';
 
+            $channels = $request->input('channels', ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer']);
+
             $result = $this->paystackService->initializePayment(
                 $user->email,
                 $amount,
                 $reference,
                 ['user_id' => $user->id, 'transaction_id' => $transaction->id],
-                ['card'], // Default channels
+                $channels,
                 config('services.paystack.currency', 'NGN'), // Explicitly pass the currency
                 route($callbackRoute) // Pass dynamic callback URL
             );

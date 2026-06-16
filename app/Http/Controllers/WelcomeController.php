@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Teacher;
+use App\Models\FAQ;
 use App\Models\SystemSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,7 +29,7 @@ class WelcomeController extends Controller
 
     public function index()
     {
-        $teachers = Teacher::with(['user'])
+        $teachers = Teacher::with(['user', 'subjects'])
             ->where('status', 'approved')
             ->withCount([
                 'reviews' => function ($query) {
@@ -57,7 +58,7 @@ class WelcomeController extends Controller
                 ];
             });
 
-        $faqs = \App\Models\FAQ::where('status', 'published')
+        $faqs = FAQ::where('status', 'published')
             ->orderBy('order')
             ->get();
 
@@ -68,7 +69,7 @@ class WelcomeController extends Controller
         ]);
     }
 
-    public function bookTeacher(\App\Models\Teacher $teacher)
+    public function bookTeacher(Teacher $teacher)
     {
         $user = auth()->user();
 

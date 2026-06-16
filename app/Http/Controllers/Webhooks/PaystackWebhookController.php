@@ -107,15 +107,12 @@ class PaystackWebhookController extends Controller
         // Mark transaction as completed
         $transaction->markAsCompleted();
 
-        // If it's a wallet credit, update wallet balance
-        // We check metadata or type to ensure it's a wallet funding transaction
+        // If it's a wallet credit, update wallet balance (handled inside markAsCompleted)
+        // We keep the logging and wallet_id link safeguard here
         if ($transaction->type === 'credit' && isset($transaction->metadata['type']) && $transaction->metadata['type'] === 'wallet_credit') {
             
             // Get or create user wallet
             $wallet = $transaction->user->wallet ?? $transaction->user->wallet()->create(['balance' => 0]);
-            
-            // Increment balance
-            $wallet->increment('balance', $amount);
             
             // Ensure transaction is linked to wallet if not already
             if (!$transaction->wallet_id) {
@@ -128,15 +125,6 @@ class PaystackWebhookController extends Controller
                 'amount' => $amount,
                 'new_balance' => $wallet->fresh()->balance
             ]);
-
-            // Broadcast real-time notification to user (Uncomment if event exists)
-            // broadcast(new \App\Events\WalletCredited(
-            //     $transaction->user_id,
-            //     $amount,
-            //     $wallet->balance,
-            //     $transaction->payment_gateway ?? 'paystack',
-            //     $reference
-            // ))->toOthers();
         }
 
         Log::info('Paystack charge success processed', [

@@ -304,4 +304,12 @@ class Teacher extends Model
 
         return ($stats->completed_count > 50) && ($stats->dispute_count == 0);
     }
+
+    /**
+     * Get the dynamic list of subjects as specializations array
+     */
+    public function getSpecializationsAttribute(): array
+    {
+        return $this->subjects->pluck('name')->toArray();
+    }
 }

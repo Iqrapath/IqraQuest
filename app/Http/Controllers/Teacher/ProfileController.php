@@ -20,7 +20,7 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
         $teacher = $user->teacher()->with(['user', 'subjects', 'availability', 'certificates'])->firstOrFail();
-        $allSubjects = Subject::all(['id', 'name']);
+        $allSubjects = Subject::active()->ordered()->get(['id', 'name']);
 
         return Inertia::render('Teacher/Profile/Index', [
             'teacher' => $teacher,

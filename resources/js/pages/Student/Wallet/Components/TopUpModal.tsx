@@ -10,6 +10,7 @@ import { Icon } from '@iconify/react';
 import { CurrencyCode, CURRENCY_CONFIG } from '@/contexts/CurrencyContext';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { usePage } from '@inertiajs/react';
+import { toast } from 'sonner';
 
 interface TopUpModalProps {
     isOpen: boolean;
@@ -77,6 +78,18 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
         onConfirm(selectedMethod);
     };
 
+    const handleMethodClick = (methodId: string) => {
+        if (methodId === 'paypal') {
+            toast.error('PayPal is currently disabled.');
+            return;
+        }
+        if (methodId === 'bank_transfer') {
+            toast.error('Bank Transfer is currently disabled.');
+            return;
+        }
+        setSelectedMethod(methodId);
+    };
+
     const methods = [
         {
             id: 'card',
@@ -85,12 +98,12 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
         },
         {
             id: 'bank_transfer',
-            label: 'Bank Transfer',
+            label: 'Bank Transfer (Disabled)',
             icon: 'mingcute:transfer-line',
         },
         {
             id: 'paypal',
-            label: 'Paypal',
+            label: 'Paypal (Disabled)',
             icon: 'logos:paypal',
         }
     ];
@@ -108,21 +121,25 @@ export const TopUpModal: React.FC<TopUpModalProps> = ({
                     <div className="w-full md:w-[280px] bg-white p-4 md:p-8 border-b md:border-b-0 md:border-r border-gray-100 shrink-0">
                         <h2 className="text-lg font-semibold text-[#111928] mb-3 md:mb-8 font-['Nunito']">Payment Methods:</h2>
                         <div className="grid grid-cols-1 gap-2 md:gap-4 md:overflow-visible">
-                            {methods.map((method) => (
-                                <button
-                                    key={method.id}
-                                    onClick={() => setSelectedMethod(method.id)}
-                                    className={`w-full flex items-center p-3 md:p-4 rounded-xl transition-all duration-200 border text-left ${selectedMethod === method.id
-                                        ? 'bg-[#E4FFFC] border-[#E4FFFC] text-[#2D7A70]'
-                                        : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
-                                        }`}
-                                >
-                                    <div className="mr-3">
-                                        <Icon icon={method.icon} className={`w-5 h-5 md:w-6 md:h-6 ${selectedMethod === method.id ? 'text-[#2D7A70]' : 'text-gray-400'}`} />
-                                    </div>
-                                    <span className="font-medium text-sm md:text-base">{method.label}</span>
-                                </button>
-                            ))}
+                            {methods.map((method) => {
+                                const isDisabled = method.id === 'paypal' || method.id === 'bank_transfer';
+                                return (
+                                    <button
+                                        key={method.id}
+                                        onClick={() => handleMethodClick(method.id)}
+                                        className={`w-full flex items-center p-3 md:p-4 rounded-xl transition-all duration-200 border text-left ${
+                                            selectedMethod === method.id
+                                                ? 'bg-[#E4FFFC] border-[#E4FFFC] text-[#2D7A70]'
+                                                : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
+                                        } ${isDisabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                    >
+                                        <div className="mr-3">
+                                            <Icon icon={method.icon} className={`w-5 h-5 md:w-6 md:h-6 ${selectedMethod === method.id ? 'text-[#2D7A70]' : 'text-gray-400'}`} />
+                                        </div>
+                                        <span className="font-medium text-sm md:text-base">{method.label}</span>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 

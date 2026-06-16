@@ -333,14 +333,13 @@ export default function VerificationShow({
                                                 <p className="text-sm sm:text-lg font-bold text-gray-900 truncate mt-1">
                                                     {new Intl.DateTimeFormat('en-US', {
                                                         weekday: 'long', month: 'short', day: 'numeric', year: 'numeric',
-                                                        timeZone: 'UTC'
                                                     }).format(scheduledAt)}
                                                 </p>
                                                 <p className="text-lg sm:text-2xl font-extrabold text-blue-600">
                                                     {new Intl.DateTimeFormat('en-US', {
                                                         hour: '2-digit', minute: '2-digit',
-                                                        timeZone: 'UTC'
-                                                    }).format(scheduledAt)} <span className="text-sm font-normal text-gray-400">UTC</span>
+                                                        timeZoneName: 'short'
+                                                    }).format(scheduledAt)}
                                                 </p>
                                             </div>
 
@@ -357,7 +356,7 @@ export default function VerificationShow({
                                             ) : isTooEarly ? (
                                                 <p className="text-xs sm:text-sm text-gray-600 flex items-center gap-1">
                                                     <Icon icon="solar:clock-circle-linear" className="w-4 h-4 shrink-0" />
-                                                    <span>Room opens at <strong>{new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'UTC' }).format(earlyJoinTime)} UTC</strong></span>
+                                                    <span>Room opens at <strong>{new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZoneName: 'short' }).format(earlyJoinTime)}</strong></span>
                                                 </p>
                                             ) : (
                                                 <p className="text-xs sm:text-sm text-red-600 flex items-center gap-1">

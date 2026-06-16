@@ -76,7 +76,7 @@ class OnboardingController extends Controller
     public function step2(): Response
     {
         $teacher = auth()->user()->teacher;
-        $subjects = Subject::all();
+        $subjects = Subject::active()->ordered()->get();
 
         return Inertia::render('Teacher/Onboarding/Step2', [
             'teacher' => $teacher->load('subjects'),

@@ -85,7 +85,7 @@ class FindTeacherController extends Controller
             });
 
         // Get all subjects for filter dropdown
-        $subjects = Subject::orderBy('name')->get(['id', 'name']);
+        $subjects = Subject::active()->ordered()->get(['id', 'name']);
 
         return Inertia::render('FindTeacher/Index', [
             'teachers' => $teachers,
