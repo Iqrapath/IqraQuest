@@ -114,8 +114,22 @@ else
   log "Warning: PHP-FPM service not detected; skipping reload."
 fi
 
-systemctl restart laravel-reverb
-systemctl restart laravel-queue
+DEPLOY_REVERB_SERVICE="${DEPLOY_REVERB_SERVICE:-laravel-reverb}"
+DEPLOY_QUEUE_SERVICE="${DEPLOY_QUEUE_SERVICE:-laravel-queue}"
+
+log "Restarting systemd services..."
+if systemctl list-units --type=service --all | grep -q "${DEPLOY_REVERB_SERVICE}"; then
+  systemctl restart "${DEPLOY_REVERB_SERVICE}"
+else
+  log "Warning: Reverb service ${DEPLOY_REVERB_SERVICE} not detected; skipping."
+fi
+
+if systemctl list-units --type=service --all | grep -q "${DEPLOY_QUEUE_SERVICE}"; then
+  systemctl restart "${DEPLOY_QUEUE_SERVICE}"
+else
+  log "Warning: Queue service ${DEPLOY_QUEUE_SERVICE} not detected; skipping."
+fi
+
 systemctl reload nginx
 
 log "Deployment complete."
