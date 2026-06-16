@@ -34,10 +34,35 @@ fi
 # 0) Sync working tree to exact origin state (deterministic deploy)
 # Override with: DEPLOY_BRANCH=staging bash deploy.sh
 DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
+
+# Track if package-lock.json changes to avoid redundant npm ci
+PKG_LOCK_HASH=""
+if [[ -f package-lock.json ]]; then
+  PKG_LOCK_HASH=$(md5sum package-lock.json | awk '{print $1}')
+fi
+
 log "Syncing repository with origin/${DEPLOY_BRANCH}..."
 git fetch origin
 git reset --hard "origin/${DEPLOY_BRANCH}"
 git clean -fd
+
+PKG_LOCK_CHANGED=1
+if [[ -f package-lock.json ]]; then
+  NEW_PKG_LOCK_HASH=$(md5sum package-lock.json | awk '{print $1}')
+  if [[ "$PKG_LOCK_HASH" == "$NEW_PKG_LOCK_HASH" && -d node_modules ]]; then
+    PKG_LOCK_CHANGED=0
+  fi
+fi
+
+# Automatically set a safe Node heap limit for small servers (< 1.5GB RAM) if not explicitly set
+if [[ -z "${DEPLOY_NODE_HEAP_MB:-}" ]]; then
+  if [[ -f /proc/meminfo ]]; then
+    TOTAL_MEM_KB=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+    if [[ -n "$TOTAL_MEM_KB" && "$TOTAL_MEM_KB" -lt 1500000 ]]; then
+      export DEPLOY_NODE_HEAP_MB=512
+    fi
+  fi
+fi
 
 # 2) Install dependencies (Backend & Frontend)
 log "Installing PHP dependencies..."
@@ -49,8 +74,12 @@ php artisan wayfinder:generate --with-form --no-interaction
 if [[ "${DEPLOY_SKIP_NPM_BUILD:-0}" == "1" ]]; then
   log "Skipping npm ci / vite build (DEPLOY_SKIP_NPM_BUILD=1). Ensure public/build matches this release (e.g. built in CI and rsync'd here)."
 else
-  log "Installing Node dependencies..."
-  npm ci
+  if [[ "${PKG_LOCK_CHANGED}" == "0" ]]; then
+    log "Skipping npm ci (package-lock.json is unchanged and node_modules exists)."
+  else
+    log "Installing Node dependencies (package-lock.json changed or node_modules missing)..."
+    npm ci
+  fi
 
   # Cap V8 heap so small servers fail with a clear JS OOM instead of the kernel SIGKILL ("Killed").
   # Tune DEPLOY_NODE_HEAP_MB for your VPS (1536–4096 typical); unset to use Node default.
